@@ -36,5 +36,12 @@
         "symfony/dependency-injection": "2.7.11",
         "behat/behat": "^3.1",
         "behat/mink-goutte-driver": "^1.2"
-    }
+    },
+
+		"repositories": {
+	"drupal": {
+		"type": "composer",
+		"url": "https://packagist.drupal-composer.org"
+	}
+}
 }
