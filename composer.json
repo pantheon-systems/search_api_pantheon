@@ -1,5 +1,10 @@
 {
     "require-dev": {
+
+
+			"drush-ops/behat-drush-endpoint": "*",
+"drupal/drupal-extension": "dev-master",
+"drupal/drupal-driver": "dev-master",
         "behat/mink-selenium2-driver": "~1.1",
         "behat/mink-extension": "~2.0",
         "symfony/dependency-injection": "2.7.11",
