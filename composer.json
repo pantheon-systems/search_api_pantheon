@@ -1,4 +1,6 @@
 {
+  "name": "drupal/search_api_pantheon",
+  "type": "drupal-module",
     "require-dev": {
         "behat/mink-selenium2-driver": "~1.1",
         "behat/mink-extension": "~2.0",
