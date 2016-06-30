@@ -15,7 +15,7 @@ dependencies:
     - ~/.composer/cache
   post:
     - composer global require pantheon-systems/terminus
-    - mkdir -p ~/terminus/plugins
+    - mkdir -p  ~/terminus/plugins
     - git clone https://github.com/greg-1-anderson/terminus-secrets-plugin ~/terminus/plugins/terminus-secrets-plugin
     - terminus auth login --machine-token=$TerminusToken
 test:
