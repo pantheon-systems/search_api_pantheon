@@ -23,6 +23,7 @@ test:
     # Make a new multidev env from a vanilla D8 site.
     - cd tests/circle && ./create-fresh-d8-site.sh
 
+
     # Set up the D8 site with contrib migrate contrib modules and enable
     # those modules on Panetheon.
     - cd tests/circle && ./setup-d8-repo.sh
