@@ -1,4 +1,6 @@
 {
+  "name": "drupal/search_api_pantheon",
+  "type": "drupal-module",
     "require-dev": {
 
 
