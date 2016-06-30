@@ -1,0 +1,15 @@
+diff --git a/composer.json b/composer.json
+index b271437..5fe6263 100644
+--- a/composer.json
++++ b/composer.json
+@@ -21,6 +21,10 @@
+         "autoloader-suffix": "Drupal8"
+     },
+     "extra": {
++      "patches": {
++        "drupal/migrate_upgrade": {
++          "Add --legacy-db-key parameter to drush migrate-update": "https://www.drupal.org/files/issues/legacy-db-key-2751151-2.patch" }
++        },
+         "_readme": [
+             "By default Drupal loads the autoloader from ./vendor/autoload.php.",
+             "To change the autoloader you can edit ./autoload.php."

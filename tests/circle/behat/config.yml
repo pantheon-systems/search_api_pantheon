@@ -1,0 +1,11 @@
+# behat.yml
+default:
+  suites:
+    default:
+      contexts:
+        - Behat\MinkExtension\Context\MinkContext
+  extensions:
+    Behat\MinkExtension:
+      # Supplied by env variable.
+      #base_url: http://ci4-migrate-pantheon-d8.pantheonsite.io/node/1
+      goutte: ~

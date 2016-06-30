@@ -1,0 +1,38 @@
+# https://circleci.com/docs/configuration#machine
+machine:
+  php:
+    # https://circleci.com/docs/environment#php
+    version: 5.5.11
+  environment:
+    # DB config. Using default CircleCI's database.
+    TERMINUS_ENV: ci$CIRCLE_BUILD_NUM
+    TERMINUS_SITE: migrate-pantheon-d8
+    PANTHEON_D7_SITE: migrate-pantheon-d7
+    PANTHEON_D7_BRANCH: dev
+
+dependencies:
+  cache_directories:
+    - ~/.composer/cache
+  post:
+    - composer global require pantheon-systems/terminus
+    - mkdir -p ~/terminus/plugins
+    - git clone https://github.com/greg-1-anderson/terminus-secrets-plugin ~/terminus/plugins/terminus-secrets-plugin
+    - terminus auth login --machine-token=$TerminusToken
+test:
+  pre:
+    # Make a new multidev env from a vanilla D8 site.
+    - cd tests/circle && ./create-fresh-d8-site.sh
+
+    # Set up the D8 site with contrib migrate contrib modules and enable
+    # those modules on Panetheon.
+    - cd tests/circle && ./setup-d8-repo.sh
+
+    # Configure the migration, creating exportable, re-runnable configuration.
+    - cd tests/circle && ./configure-migrations.sh
+
+    # Run the actual migration on Pantheon.
+    - cd tests/circle && ./run-migration-on-pantheon.sh
+
+  override:
+    # Check that a node actually migrated.
+    - cd tests/circle && ./verify-migration-succeeded.sh
