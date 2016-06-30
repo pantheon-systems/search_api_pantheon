@@ -6,7 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
-
+use Drupal\Core\Form\FormStateInterface;
 /**
  * Implements hook_help().
  */
@@ -20,5 +20,18 @@ function search_api_pantheon_help($route_name, RouteMatchInterface $route_match)
       return $output;
 
     default:
+  }
+}
+
+/**
+ * Implements hook_form_alter() on behalf of search_api_pantheon.module.
+ */
+function search_api_pantheon_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+    // Change form id here
+  if ($form_id == 'search_api_server_form') {
+   $form['backend_config']['scheme']['#default_value'] = 'https';
+   $form['backend_config']['host']['#default_value'] = pantheon_variable_get('pantheon_index_host');
+   $form['backend_config']['port']['#default_value'] = pantheon_variable_get('pantheon_index_port');
+   $form['backend_config']['path']['#default_value'] = '/sites/self/environments/dev/index';
   }
 }
