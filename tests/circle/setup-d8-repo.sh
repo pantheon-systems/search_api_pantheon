@@ -7,6 +7,10 @@ cd drupal8
 # Tell Composer where to find packages.
 composer config repositories.drupal composer https://packagist.drupal-composer.org
 
+composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
+composer require  drupal/search_api_pantheon:dev-master
+
+
 # Bring in Migrate-related contrib modules.
 composer require drupal/migrate_plus:8.2.x-dev --prefer-dist
 composer require drupal/migrate_tools:8.2.x-dev --prefer-dist
@@ -23,9 +27,9 @@ rm -rf modules/search_api/.git/
 rm -rf modules/search_api_solr_page/.git/
 rm -rf vendor/solarium/solarium/.git/
 
-mkdir modules/search_api_pantheon
+#mkdir modules/search_api_pantheon
 # @todo, need better way to setup module. What is the composer way of doing this?
-cp  ../../search_api_pantheon.* modules/search_api_pantheon/
+#cp  ../../search_api_pantheon.* modules/search_api_pantheon/
 
 
 # Set up the settings.php connection to the source database.
