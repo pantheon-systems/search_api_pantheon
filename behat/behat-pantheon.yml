@@ -18,11 +18,10 @@ default:
       selenium2: ~
       files_path: './data-files'
 # Supplied by env variable.
-     base_url: http://dev-persch-d8-solr.pantheonsite.io/
+      base_url: http://dev-persch-d8-solr.pantheonsite.io/
     Drupal\DrupalExtension:
       blackbox: ~
       api_driver: 'drush'
       drush:
 # Supplied by env variable.
-       alias: '@pantheon.persch-d8-solr.dev'
-
+        alias: '@pantheon.persch-d8-solr.dev'

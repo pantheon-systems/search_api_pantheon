@@ -23,6 +23,11 @@ rm -rf modules/search_api/.git/
 rm -rf modules/search_api_solr_page/.git/
 rm -rf vendor/solarium/solarium/.git/
 
+mkdir modules/search_api_pantheon
+# @todo, need better way to setup module. What is the composer way of doing this?
+cp  ../../search_api_pantheon.* modules/search_api_pantheon/
+
+
 # Set up the settings.php connection to the source database.
 cp ../fixtures/settings.migrate-on-pantheon.php sites/default/
 cat ../fixtures/settings.php.addition >> sites/default/settings.php
