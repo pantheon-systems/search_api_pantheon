@@ -6,12 +6,13 @@
 	"extra": {
 		"patches": {
 			"drupal/search_api_solr": {
-				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch" }
-			},
-			"solariumphp/solarium": {
-				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch" }
+				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch"
 			},
 
+			"solariumphp/solarium": {
+				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch"
+			}
+    }
 	},
 
   "require": {
