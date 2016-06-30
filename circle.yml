@@ -33,7 +33,6 @@ test:
     # Run the actual migration on Pantheon.
     - cd tests/circle && ./run-migration-on-pantheon.sh
 
-
   override:
     # Check that a node actually migrated.
     - cd tests/circle && ./verify-migration-succeeded.sh
