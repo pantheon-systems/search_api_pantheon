@@ -15,6 +15,7 @@ dependencies:
     - ~/.composer/cache
   post:
     - composer global require pantheon-systems/terminus
+    - composer global require drush/drush:8.*
     - mkdir -p  ~/terminus/plugins
     - git clone https://github.com/greg-1-anderson/terminus-secrets-plugin ~/terminus/plugins/terminus-secrets-plugin
     - terminus auth login --machine-token=$TERMINUS_TOKEN
@@ -37,3 +38,14 @@ test:
   override:
     # Check that a node actually migrated.
     - cd tests/circle && ./verify-migration-succeeded.sh
+
+
+
+
+
+# @todo,
+# patch solarium
+# patch search_api_solr
+# post schema
+# configure server
+#

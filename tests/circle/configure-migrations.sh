@@ -31,3 +31,11 @@ terminus drush "cache-rebuild"
 # @todo commit the code change. But there seems to be a multidev bug preventing
 # Terminus from seeing the code change. Terminus will only report a code change
 # in terminus site code diffstat after the dashboard is refreshed.
+
+
+
+
+terminus drush "en -y search_api_pantheon search_api_solr search_api_page search_api"
+terminus site set-connection-mode --mode=sftp
+terminus drush "cache-rebuild"
+terminus drush search-api-pantheon-schema-post
