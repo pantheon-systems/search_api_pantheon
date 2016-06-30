@@ -13,12 +13,14 @@ composer require drupal/migrate_tools:8.2.x-dev --prefer-dist
 composer require drupal/migrate_upgrade:8.2.x-dev --prefer-dist
 composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
 composer require drupal/search_api:8.1.x-dev --prefer-dist
+composer require drupal/search_api_page:8.1.x-dev --prefer-dist
 # Make sure submodules are not committed.
 rm -rf modules/migrate_plus/.git/
 rm -rf modules/migrate_tools/.git/
 rm -rf modules/migrate_upgrade/.git/
 rm -rf modules/search_api_solr/.git/
 rm -rf modules/search_api/.git/
+rm -rf modules/search_api_solr_page/.git/
 rm -rf vendor/solarium/solarium/.git/
 
 # Set up the settings.php connection to the source database.
