@@ -7,17 +7,6 @@ cd drupal8
 # Tell Composer where to find packages.
 composer config repositories.drupal composer https://packagist.drupal-composer.org
 
-
-# This is a section that applies a patch to composer.json... So that Composer
-# can apply a patch to drupal/migrate_upgrade from
-# https://www.drupal.org/node/2751151.
-# I hope you find the Rube Goldberg absurdity of this section as enjoyable
-# as I do.
-cp ../fixtures/composer.json.patch .
-git apply composer.json.patch
-rm composer.json.patch
-composer require cweagans/composer-patches --prefer-dist
-
 # Bring in Migrate-related contrib modules.
 composer require drupal/migrate_plus:8.2.x-dev --prefer-dist
 composer require drupal/migrate_tools:8.2.x-dev --prefer-dist
