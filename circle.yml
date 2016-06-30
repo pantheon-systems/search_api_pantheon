@@ -6,7 +6,7 @@ machine:
   environment:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci$CIRCLE_BUILD_NUM
-    TERMINUS_SITE: migrate-pantheon-d8
+    TERMINUS_SITE: search-api-solr-d8
     PANTHEON_D7_SITE: migrate-pantheon-d7
     PANTHEON_D7_BRANCH: dev
 
@@ -37,3 +37,4 @@ test:
   override:
     # Check that a node actually migrated.
     - cd tests/circle && ./verify-migration-succeeded.sh
+
