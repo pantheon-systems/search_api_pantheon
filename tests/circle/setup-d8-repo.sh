@@ -8,7 +8,7 @@ cd drupal8
 composer config repositories.drupal composer https://packagist.drupal-composer.org
 
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
-composer require  drupal/search_api_pantheon:dev-master
+composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
 
 
 # Bring in Migrate-related contrib modules.
