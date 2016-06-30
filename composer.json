@@ -1,7 +1,28 @@
 {
   "name": "drupal/search_api_pantheon",
   "type": "drupal-module",
-    "require-dev": {
+
+
+	"extra": {
+		"patches": {
+			"drupal/search_api_solr": {
+				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch" }
+			},
+			"solariumphp/solarium": {
+				"ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch" }
+			},
+
+	},
+
+  "require-dev": {
+"cweagans/composer-patches": "^1.5",
+		"drupal/search_api_solr": "8.1.x-dev",
+
+  	"drupal/search_api": "8.1.x-dev"
+  },
+
+
+  "require-dev": {
 
 
 			"drush-ops/behat-drush-endpoint": "*",

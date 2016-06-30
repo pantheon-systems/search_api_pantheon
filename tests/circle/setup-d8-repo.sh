@@ -25,6 +25,7 @@ rm -rf modules/migrate_upgrade/.git/
 rm -rf modules/search_api_solr/.git/
 rm -rf modules/search_api/.git/
 rm -rf modules/search_api_solr_page/.git/
+rm -rf modules/search_api_pantheon/.git/
 rm -rf vendor/solarium/solarium/.git/
 
 mkdir modules/search_api_pantheon
