@@ -25,19 +25,12 @@ function search_api_pantheon_drush_command() {
 }
 
 /**
- * Prints a list of all search indexes.
+ * This drush command is a hacky way to post a schema. This function needs to be
+ * cleaned up and moved.
  */
 function drush_search_api_pantheon_schema_post() {
 
-
-
   $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/schema.xml';
-
-  drush_print_r(pantheon_apachesolr_post_schema_exec($schema_path));
-
-
-
-
 }
 
 
@@ -70,7 +63,7 @@ function pantheon_apachesolr_post_schema_exec($schema) {
   $ch = curl_init();
   $host = getenv( 'PANTHEON_INDEX_HOST' );
 	// @todo, pantheon env, dev
-  $path = 'sites/self/environments/dev/index';
+  $path = 'sites/self/environments/ '  . $_ENV['PANTHEON_ENVIRONMENT'] . ' /index';
 
   $client_cert = '../certs/binding.pem';
   $url = 'https://'. $host .'/'. $path;

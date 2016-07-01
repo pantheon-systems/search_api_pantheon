@@ -28,10 +28,10 @@ function search_api_pantheon_help($route_name, RouteMatchInterface $route_match)
  */
 function search_api_pantheon_form_alter(&$form, FormStateInterface $form_state, $form_id) {
     // Change form id here
-  if ($form_id == 'search_api_server_form') {
+  if ($form_id == 'search_api_server_form' && !empty($_ENV['PANTHEON_ENVIRONMENT'])) {
    $form['backend_config']['scheme']['#default_value'] = 'https';
    $form['backend_config']['host']['#default_value'] = pantheon_variable_get('pantheon_index_host');
    $form['backend_config']['port']['#default_value'] = pantheon_variable_get('pantheon_index_port');
-   $form['backend_config']['path']['#default_value'] = '/sites/self/environments/dev/index';
+   $form['backend_config']['path']['#default_value'] = '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
   }
 }

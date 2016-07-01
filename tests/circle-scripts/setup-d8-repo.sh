@@ -23,7 +23,7 @@ composer require cweagans/composer-patches --prefer-dist
 composer require drupal/search_api:8.1.x-dev --prefer-dist
 composer require drupal/search_api_page:8.1.x-dev --prefer-dist
 
-composer config repositories.solarium vcs git@github.com:stevector/solarium.git
+#composer config repositories.solarium vcs git@github.com:stevector/solarium.git
 composer require solarium/solarium:3.6.*
 composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
 
