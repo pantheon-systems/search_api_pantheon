@@ -31,6 +31,7 @@ function search_api_pantheon_drush_command() {
 function drush_search_api_pantheon_schema_post() {
 
   $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/schema.xml';
+  drush_print_r(pantheon_apachesolr_post_schema_exec($schema_path));
 }
 
 
