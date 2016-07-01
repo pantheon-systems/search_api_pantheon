@@ -7,12 +7,24 @@ cd drupal8
 # Tell Composer where to find packages.
 composer config repositories.drupal composer https://packagist.drupal-composer.org
 
+
+# This is a section that applies a patch to composer.json... So that Composer
+# can apply a patch to drupal/migrate_upgrade from
+# https://www.drupal.org/node/2751151.
+# I hope you find the Rube Goldberg absurdity of this section as enjoyable
+# as I do.
+cp ../../patches/core-composer.patch .
+git apply core-composer.patch
+rm core-composer.patch
+composer require cweagans/composer-patches --prefer-dist
+
+
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
 composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
 
 
-
-
+composer require drupal/search_api:8.1.x-dev --prefer-dist
+composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
 composer require drupal/search_api_page:8.1.x-dev --prefer-dist
 # Make sure submodules are not committed.
 
