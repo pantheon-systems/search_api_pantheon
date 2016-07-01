@@ -10,7 +10,7 @@ index d261a14..0c41558 100644
 +            "drupal/search_api_solr": {
 +                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch"
 +            },
-+            "solariumphp/solarium": {
++            "solarium/solarium": {
 +                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch"
 +            }
 +    },
