@@ -20,17 +20,17 @@ dependencies:
     - git clone https://github.com/greg-1-anderson/terminus-secrets-plugin ~/terminus/plugins/terminus-secrets-plugin
     - terminus auth login --machine-token=$TERMINUS_TOKEN
     # Make a new multidev env from a vanilla D8 site.
-    - cd tests/circle && ./create-fresh-d8-site.sh
+    - cd tests/circle-scripts && ./create-fresh-d8-site.sh
 test:
   pre:
     # Set up the D8 site with contrib migrate contrib modules and enable
     # those modules on Panetheon.
-    - cd tests/circle && ./setup-d8-repo.sh
+    - cd tests/circle-scripts && ./setup-d8-repo.sh
 
     # Configure the migration, creating exportable, re-runnable configuration.
-    - cd tests/circle && ./enable-modules.sh
+    - cd tests/circle-scripts && ./enable-modules.sh
   override:
-    - cd tests/circle && ./verify-solr.sh
+    - cd tests/circle-scripts && ./verify-solr.sh
 
 
 
