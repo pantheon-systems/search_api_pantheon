@@ -5,10 +5,8 @@ machine:
     version: 5.5.11
   environment:
     # DB config. Using default CircleCI's database.
-    TERMINUS_ENV: ci$CIRCLE_BUILD_NUM
+    TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
-    PANTHEON_D7_SITE: migrate-pantheon-d7
-    PANTHEON_D7_BRANCH: dev
 
 dependencies:
   cache_directories:
@@ -31,12 +29,3 @@ test:
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - cd tests/circle-scripts && ./verify-solr.sh
-
-
-
-# @todo,
-# patch solarium
-# patch search_api_solr
-# post schema
-# configure server
-#
