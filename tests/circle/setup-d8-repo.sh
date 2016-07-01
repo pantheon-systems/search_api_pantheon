@@ -23,6 +23,7 @@ composer config repositories.search_api_pantheon vcs git@github.com:stevector/se
 composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
 
 
+composer require solarium/solarium:3.6.*
 composer require drupal/search_api:8.1.x-dev --prefer-dist
 composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
 composer require drupal/search_api_page:8.1.x-dev --prefer-dist
@@ -33,10 +34,6 @@ rm -rf modules/search_api/.git/
 rm -rf modules/search_api_page/.git/
 rm -rf modules/search_api_pantheon/.git/
 rm -rf vendor/solarium/solarium/.git/
-
-mkdir modules/search_api_pantheon
-# @todo, need better way to setup module. What is the composer way of doing this?
-cp  ../../search_api_pantheon.* modules/search_api_pantheon/
 
 
 # Make a git commit
