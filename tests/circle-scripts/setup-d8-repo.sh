@@ -23,13 +23,13 @@ composer require cweagans/composer-patches --prefer-dist
 composer require drupal/search_api:8.1.x-dev --prefer-dist
 composer require drupal/search_api_page:8.1.x-dev --prefer-dist
 
-#composer config repositories.solarium vcs git@github.com:stevector/solarium.git
-composer require solarium/solarium:3.6.*
+composer config repositories.solarium vcs git@github.com:stevector/solarium.git
+composer require solarium/solarium:3.6.* --prefer-dist
 composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
 
 
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
-composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
+composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1 --prefer-dist
 
 # Make sure submodules are not committed.
 rm -rf modules/search_api_solr/.git/
