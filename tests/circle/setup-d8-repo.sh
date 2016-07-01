@@ -13,7 +13,7 @@ composer config repositories.drupal composer https://packagist.drupal-composer.o
 # https://www.drupal.org/node/2751151.
 # I hope you find the Rube Goldberg absurdity of this section as enjoyable
 # as I do.
-cp ../../patches/core-composer.patch .
+cp ../../../patches/core-composer.patch .
 git apply core-composer.patch
 rm core-composer.patch
 composer require cweagans/composer-patches --prefer-dist
