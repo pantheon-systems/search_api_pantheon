@@ -1,0 +1,19 @@
+diff --git a/composer.json b/composer.json
+index d261a14..0c41558 100644
+--- a/composer.json
++++ b/composer.json
+@@ -22,6 +22,14 @@
+         "autoloader-suffix": "Drupal8"
+     },
+     "extra": {
++        "patches": {
++            "drupal/search_api_solr": {
++                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch"
++            },
++            "solarium/solarium": {
++                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch"
++            }
++    },
+         "_readme": [
+             "By default Drupal loads the autoloader from ./vendor/autoload.php.",
+             "To change the autoloader you can edit ./autoload.php."
