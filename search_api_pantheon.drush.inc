@@ -34,10 +34,9 @@ function drush_search_api_pantheon_schema_post() {
   drush_print_r(pantheon_apachesolr_post_schema_exec($schema_path));
 }
 
-
-
-
 /**
+ * This function was ripped from Drupal 7 and needs to be cleaned up.
+ *
  * @param string $schema
  *   Path to local schema XML
  *
@@ -63,8 +62,7 @@ function pantheon_apachesolr_post_schema_exec($schema) {
 
   $ch = curl_init();
   $host = getenv( 'PANTHEON_INDEX_HOST' );
-	// @todo, pantheon env, dev
-  $path = 'sites/self/environments/ '  . $_ENV['PANTHEON_ENVIRONMENT'] . ' /index';
+  $path = 'sites/self/environments/'  . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
 
   $client_cert = '../certs/binding.pem';
   $url = 'https://'. $host .'/'. $path;
@@ -91,9 +89,6 @@ function pantheon_apachesolr_post_schema_exec($schema) {
     '202',
     '204'
   );
-
-//drush_print_r($info);
-drush_print_r($response);
 
   $success = (in_array($info['http_code'], $success_codes));
   fclose($file);
