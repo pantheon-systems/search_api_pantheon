@@ -21,6 +21,8 @@ default:
 #      base_url: http://dev-persch-d8-solr.pantheonsite.io/
     Drupal\DrupalExtension:
       blackbox: ~
+      region_map:
+        index_percentage: ".progress__percentage"
       api_driver: 'drush'
       drush:
 # Supplied by env variable.
