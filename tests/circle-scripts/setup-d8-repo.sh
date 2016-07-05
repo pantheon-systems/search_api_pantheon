@@ -20,7 +20,7 @@ cp ../../../patches/core-composer.patch .
 git apply core-composer.patch
 rm core-composer.patch
 composer require cweagans/composer-patches --prefer-dist
-composer require drupal/search_api:8.1.x-dev#82432cc262fe89031113672ed51adc6641006a83 --prefer-dist
+composer require drupal/search_api:8.1.x-dev#f8f9591057a387b879c7ce9af70884f6a1c51850 --prefer-dist
 composer require drupal/search_api_page:8.1.x-dev --prefer-dist
 
 #composer config repositories.solarium vcs git@github.com:stevector/solarium.git
