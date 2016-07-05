@@ -35,3 +35,15 @@ function search_api_pantheon_form_alter(&$form, FormStateInterface $form_state, 
    $form['backend_config']['path']['#default_value'] = '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
   }
 }
+
+/**
+ * Implements hook_search_api_backend_info_alter().
+ */
+function search_api_pantheon_search_api_backend_info_alter(array &$backend_info) {
+  // Completely unsetting search_api_solr as a plugin may be overly aggressive.
+  // Consider replacing it with the class provided by this module. Or keep the
+  // plugin and add more direction to the UI.
+  if (!empty($backend_info['search_api_solr'])) {
+    unset($backend_info['search_api_solr']);
+  }
+}
