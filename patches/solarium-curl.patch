@@ -7,7 +7,7 @@ index 86a0d52..468af69 100644
  
          $handler = curl_init();
 +
-+// Pantheon Change
++// Pantheon Change: @todo remove the need for this patch https://www.drupal.org/node/2761127
 +// This change is not necessary. @todo, find out why these params break ping
 +// or remove them earlier in the stack.
 +if (strpos ($uri, 'ping' )) {
