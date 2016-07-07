@@ -33,10 +33,10 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    */
   public function defaultConfiguration() {
     return array(
-      'scheme' => 'http',
-      'host' => 'localhost',
-      'port' => '8983',
-      'path' => '/solr',
+      'scheme' => 'https',
+      'host' => pantheon_variable_get('pantheon_index_host'),
+      'port' => pantheon_variable_get('pantheon_index_port'),
+      'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
       'core' => '',
       'username' => '',
       'password' => '',
