@@ -25,7 +25,7 @@ composer require drupal/search_api_page:8.1.x-dev#78cae9b745c55aded16e9fcf8e14bd
 
 #composer config repositories.solarium vcs git@github.com:stevector/solarium.git
 composer require solarium/solarium:3.6.*
-composer require drupal/search_api_solr:8.1.x-dev#98c0f51efb47b1dbcf85d3fd7a57ba6f57d4ba2d --prefer-dist
+composer require drupal/search_api_page:8.1.0-alpha10
 
 
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
