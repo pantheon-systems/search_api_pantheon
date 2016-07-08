@@ -8,7 +8,7 @@ Feature: Solr on Pantheon
     When I visit "admin/config/search/search-api/add-server"
     And I fill in "name" with "pantheon"
     And I fill in "id" with "pantheon"
-    And I selec t the radio button "Solr on Pantheon"
+    And I select the radio button "Solr on Pantheon"
     And I press the "Save" button
     # Here is the real verification of this scenario, that the server can be
     # reached.
