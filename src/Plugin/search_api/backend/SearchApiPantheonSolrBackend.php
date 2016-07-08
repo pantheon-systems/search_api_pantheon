@@ -31,31 +31,18 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     parent::__construct( $configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
 
-    $this->configuration = $this->internalDefaultConfiguration();
+    $this->configuration = $this->internalConfiguration();
     $solr_helper = new SolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('module_handler'),
-      $container->get('config.factory')->get('search_api_solr.settings'),
-      $container->get('language_manager')
-    );
   }
 
   /**
    * This configuration is needed by the parent class.
    *
    * However, as far as the Drupal Config Management sysytem is concerned
+   * the only exportable, user-changable configuration is the schema file.
    */
-  public function internalDefaultConfiguration() {
+  protected function internalConfiguration() {
     return array(
       'scheme' => 'https',
       'host' => pantheon_variable_get('pantheon_index_host'),
@@ -97,7 +84,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
-    $this->configuration = $this->internalDefaultConfiguration();
+    $this->configuration = $this->internalConfiguration();
     // Update the configuration of the solrHelper as well by replacing it by a
     // new instance.
     $solr_helper = new SolrHelper($this->configuration);
@@ -112,7 +99,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $form['schema'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('schema location'),
-      '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema.'),
+      '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema. https://www.drupal.org/node/2763089'),
       '#default_value' => $this->configuration['schema'],
     );
 
@@ -123,17 +110,15 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-
-    $this->configuration = array(
-      'schema' => '',
-    );
+    // @todo, the schema will be set and posted here.
+    https://www.drupal.org/node/2763089
+    $this->configuration = $this->defaultConfiguration();
   }
 
 }
