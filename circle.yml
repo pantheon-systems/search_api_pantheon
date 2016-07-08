@@ -34,4 +34,5 @@ test:
     # Configure the migration, creating exportable, re-runnable configuration.
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
+    - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info --standard=modules/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
     - cd tests/circle-scripts && ./verify-solr.sh
