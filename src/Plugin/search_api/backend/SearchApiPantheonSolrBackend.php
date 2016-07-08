@@ -2,43 +2,13 @@
 
 namespace Drupal\search_api_pantheon\Plugin\search_api\backend;
 
-
-
 use Drupal\Core\Config\Config;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
-use Drupal\Core\Url;
-use Drupal\field\FieldConfigInterface;
-use Drupal\field\FieldStorageConfigInterface;
-use Drupal\search_api\Item\FieldInterface;
-use Drupal\search_api\Item\ItemInterface;
-use Drupal\search_api\Plugin\search_api\data_type\value\TextValue;
-use Drupal\search_api\Plugin\search_api\data_type\value\TextValueInterface;
-use Drupal\search_api\Query\ConditionInterface;
-use Drupal\search_api\SearchApiException;
-use Drupal\search_api\IndexInterface;
-use Drupal\search_api\Query\ConditionGroupInterface;
-use Drupal\search_api\Query\QueryInterface;
-use Drupal\search_api\Backend\BackendPluginBase;
-use Drupal\search_api\Query\ResultSetInterface;
-use Drupal\search_api\Utility as SearchApiUtility;
-use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrBackendInterface;
-use Drupal\search_api_solr\Utility\Utility as SearchApiSolrUtility;
 use Drupal\search_api_solr\Solr\SolrHelper;
-use Solarium\Client;
-use Solarium\Core\Client\Request;
-use Solarium\Core\Client\Response;
-use Solarium\Core\Query\Helper;
-use Solarium\Core\Query\Result\ResultInterface;
-use Solarium\QueryType\Select\Query\Query;
-use Solarium\Exception\ExceptionInterface;
-use Solarium\Exception\HttpException;
-use Solarium\QueryType\Select\Result\Result;
-use Solarium\QueryType\Update\Query\Document\Document;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
@@ -61,7 +31,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     parent::__construct( $configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
 
-
     $this->configuration = $this->internalDefaultConfiguration();
     $solr_helper = new SolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
@@ -82,7 +51,9 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   }
 
   /**
-   * {@inheritdoc}
+   * This configuration is needed by the parent class.
+   *
+   * However, as far as the Drupal Config Management sysytem is concerned
    */
   public function internalDefaultConfiguration() {
     return array(
@@ -106,17 +77,14 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
     return array(
-
       'schema' => '',
     );
   }
-
 
   /**
    * {@inheritdoc}
@@ -124,7 +92,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   public function getConfiguration() {
     return $this->configuration;
   }
-
 
   /**
    * {@inheritdoc}
@@ -137,12 +104,10 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $this->setSolrHelper($solr_helper);
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-
 
     $form['schema'] = array(
       '#type' => 'textfield',
@@ -150,7 +115,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
       '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema.'),
       '#default_value' => $this->configuration['schema'],
     );
-
 
     return $form;
   }
@@ -160,7 +124,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
 
-
   }
 
   /**
@@ -169,7 +132,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
 
     $this->configuration = array(
-
       'schema' => '',
     );
   }
