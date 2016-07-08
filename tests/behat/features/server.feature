@@ -8,10 +8,8 @@ Feature: Solr on Pantheon
     When I visit "admin/config/search/search-api/add-server"
     And I fill in "name" with "pantheon"
     And I fill in "id" with "pantheon"
-    # Many other fields are currently filled in by a Form Alter.
-    # That will change https://github.com/stevector/search_api_pantheon/issues/4
+    And I selec t the radio button "Solr on Pantheon"
     And I press the "Save" button
-    When I visit "admin/config/search/search-api/server/pantheon"
     # Here is the real verification of this scenario, that the server can be
     # reached.
     Then I should see "The Solr server could be reached"
