@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Override Solr connection configuration from Search API Solr module.
+ */
 
 namespace Drupal\search_api_pantheon\Plugin\search_api\backend;
 
@@ -19,7 +23,7 @@ use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
  * @SearchApiBackend(
  *   id = "search_api_pantheon_solr",
  *   label = @Translation("Solr on Pantheon"),
- *   description = @Translation("Index items using an Apache Solr search server on Pantheon.")
+ *   description = @Translation("Index items using Solr on Pantheon.")
  * )
  */
 class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrBackendInterface {
@@ -29,7 +33,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager) {
 
-    parent::__construct( $configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
 
     $this->configuration = $this->internalConfiguration();
     $solr_helper = new SolrHelper($this->configuration);
@@ -110,7 +114,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     // @todo, the schema will be set and posted here.
-    https://www.drupal.org/node/2763089
+    // https://www.drupal.org/node/2763089
     $this->configuration = $this->defaultConfiguration();
   }
 
