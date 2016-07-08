@@ -12,6 +12,11 @@ machine:
 dependencies:
   cache_directories:
     - ~/.composer/cache
+
+  override:
+    - composer global require pantheon-systems/terminus
+    - composer global require drush/drush:8.*
+    - composer install
   post:
     - terminus auth login --machine-token=$TERMINUS_TOKEN
     # Make a new multidev env from a vanilla D8 site.
