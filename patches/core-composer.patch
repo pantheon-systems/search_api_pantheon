@@ -8,10 +8,10 @@ index d261a14..0c41558 100644
      "extra": {
 +        "patches": {
 +            "drupal/search_api_solr": {
-+                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solrHelper.patch"
++                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/8.x-1.x/patches/solrHelper.patch"
 +            },
 +            "solarium/solarium": {
-+                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/master/patches/solarium-curl.patch"
++                "ping url": "https://raw.githubusercontent.com/stevector/search_api_pantheon/8.x-1.x/patches/solarium-curl.patch"
 +            }
 +    },
          "_readme": [

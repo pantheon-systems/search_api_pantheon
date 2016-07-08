@@ -2,18 +2,26 @@
 machine:
   php:
     # https://circleci.com/docs/environment#php
-    version: 5.5.11
+    version: 5.6.22
   environment:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
+    PATH: $PATH:~/search_api_pantheon/vendor/bin
 
 dependencies:
   cache_directories:
     - ~/.composer/cache
-  post:
+  pre:
+    # Set the PHP timezone so that Behat script does not fail.
+    # Using > instead of >> will overwrite the file and disable xdebug.
+    # xdebug makes composer slower.
+    - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/5.6.22/etc/conf.d/xdebug.ini
+  override:
     - composer global require pantheon-systems/terminus
     - composer global require drush/drush:8.*
+    - composer install
+  post:
     - terminus auth login --machine-token=$TERMINUS_TOKEN
     # Make a new multidev env from a vanilla D8 site.
     - cd tests/circle-scripts && ./create-fresh-d8-site.sh
