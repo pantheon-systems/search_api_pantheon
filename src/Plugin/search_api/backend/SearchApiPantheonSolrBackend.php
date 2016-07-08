@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\search_api_solr\SolrBackendInterface;
 use Drupal\search_api_solr\Solr\SolrHelper;
+use Solarium\Client;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -112,6 +113,22 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     // @todo, the schema will be set and posted here.
     https://www.drupal.org/node/2763089
     $this->configuration = $this->defaultConfiguration();
+  }
+
+  /**
+   * Creates a connection to the Solr server as configured in $this->configuration.
+   */
+  protected function connect() {
+    if (!$this->solr) {
+      $this->solr = new Client();
+    //  $this->solr->setAdapter('Solarium\Core\Client\Adapter\Curl');
+
+    $this->solr->setAdapter('Drupal\search_api_pantheon\PantheonCurl');
+
+
+      $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);
+      $this->getSolrHelper()->setSolr($this->solr);
+    }
   }
 
 }
