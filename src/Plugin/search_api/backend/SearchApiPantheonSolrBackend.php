@@ -11,13 +11,10 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\search_api_solr\SolrBackendInterface;
-use Drupal\search_api_solr\Solr\SolrHelper;
-use Solarium\Client;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
 use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
+use Solarium\Client;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Apache Solr backend for search api.
@@ -85,7 +82,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $this->configuration = $this->internalConfiguration();
     // Update the configuration of the solrHelper as well by replacing it by a
     // new instance.
-    $solr_helper = new SolrHelper($this->configuration);
+    $solr_helper = new PantheonSolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
   }
 
@@ -121,16 +118,14 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   }
 
   /**
-   * Creates a connection to the Solr server as configured in $this->configuration.
+   * {@inheritdoc}
    */
   protected function connect() {
     if (!$this->solr) {
       $this->solr = new Client();
-    //  $this->solr->setAdapter('Solarium\Core\Client\Adapter\Curl');
-
-    $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
-
-
+      // The parent method is overridden so that this alternate adapter class
+      // can be set. This line is the only difference from the parent method.
+      $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
       $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);
       $this->getSolrHelper()->setSolr($this->solr);
     }
