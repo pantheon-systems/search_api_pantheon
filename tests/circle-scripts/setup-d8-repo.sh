@@ -44,7 +44,7 @@ rm -rf vendor/solarium/solarium/.git/
 
 # Make a git commit
 git config user.email "$GitEmail"
-git config user.name "Circle CI Migration Automation"
+git config user.name "Circle CI"
 git add .
 git commit -m 'Result of build step'
 git push --set-upstream origin $TERMINUS_ENV
