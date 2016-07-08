@@ -8,18 +8,6 @@ git checkout -b $TERMINUS_ENV
 # Tell Composer where to find packages.
 composer config repositories.drupal composer https://packagist.drupal-composer.org
 
-
-# This is a section that applies a patch to composer.json... So that Composer
-# can apply a patches. This step should not be necessary. It should be enough
-# to require drupal/search_api_pantheon which can then define patches.
-# I hope you find the Rube Goldberg absurdity of this section as enjoyable
-# as I do.
-# @todo, instead of using patches, make forks of solarium and search_api_solr
-# and use those fork repos.
-cp ../../../patches/core-composer.patch .
-git apply core-composer.patch
-rm core-composer.patch
-composer require cweagans/composer-patches --prefer-dist
 composer require drupal/search_api:8.1.x-dev#f8f9591057a387b879c7ce9af70884f6a1c51850 --prefer-dist
 composer require drupal/search_api_page:8.1.0-alpha10
 
