@@ -43,12 +43,16 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * the only exportable, user-changable configuration is the schema file.
    */
   protected function internalConfiguration() {
-    $pantheon_specific_configuration = [
-      'scheme' => 'https',
-      'host' => pantheon_variable_get('pantheon_index_host'),
-      'port' => pantheon_variable_get('pantheon_index_port'),
-      'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
-    ];
+    $pantheon_specific_configuration = [];
+    if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
+      $pantheon_specific_configuration = [
+        'scheme' => 'https',
+        'host' => pantheon_variable_get('pantheon_index_host'),
+        'port' => pantheon_variable_get('pantheon_index_port'),
+        'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
+      ];
+    }
+
     return $pantheon_specific_configuration + parent::defaultConfiguration();
   }
 
