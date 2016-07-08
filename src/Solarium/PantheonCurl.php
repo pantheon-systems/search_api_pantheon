@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_pantheon;
+namespace Drupal\search_api_pantheon\Solarium;
 use Solarium\Core\Client\Adapter\Curl;
 
 class PantheonCurl extends Curl {
