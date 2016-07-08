@@ -21,7 +21,8 @@
         "drush-ops/behat-drush-endpoint": "*",
         "drupal/drupal-extension": "dev-master",
         "drupal/drupal-driver": "dev-master",
-        "drush/drush": "8.*"
+        "drush/drush": "8.*",
+        "pantheon-systems/terminus": "^0.11.2"
     },
     "repositories": {
         "drupal": {

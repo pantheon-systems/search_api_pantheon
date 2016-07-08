@@ -7,6 +7,7 @@ machine:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
+    PATH: $PATH:~/search_api_pantheon/vendor/bin
 
 dependencies:
   cache_directories:
