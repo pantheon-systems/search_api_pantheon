@@ -13,7 +13,7 @@ use Solarium\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
-use Drupal\search_api_pantheon\PantheonSolrHelper;
+use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
 
 /**
  * Apache Solr backend for search api.
@@ -124,7 +124,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
       $this->solr = new Client();
     //  $this->solr->setAdapter('Solarium\Core\Client\Adapter\Curl');
 
-    $this->solr->setAdapter('Drupal\search_api_pantheon\PantheonCurl');
+    $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
 
 
       $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);

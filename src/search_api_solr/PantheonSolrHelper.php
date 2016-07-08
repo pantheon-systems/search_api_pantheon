@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_pantheon;
+namespace Drupal\search_api_pantheon\search_api_solr;
 use Drupal\search_api_solr\Solr\SolrHelper;
 
 
