@@ -2,29 +2,37 @@
 machine:
   php:
     # https://circleci.com/docs/environment#php
-    version: 5.5.11
+    version: 5.6.22
   environment:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
+    PATH: $PATH:~/search_api_pantheon/vendor/bin
 
 dependencies:
   cache_directories:
     - ~/.composer/cache
-  post:
+  pre:
+    # Set the PHP timezone so that Behat script does not fail.
+    # Using > instead of >> will overwrite the file and disable xdebug.
+    # xdebug makes composer slower.
+    - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/5.6.22/etc/conf.d/xdebug.ini
+  override:
     - composer global require pantheon-systems/terminus
     - composer global require drush/drush:8.*
-    #- terminus auth login --machine-token=$TERMINUS_TOKEN
+    - composer install
+  post:
+    - terminus auth login --machine-token=$TERMINUS_TOKEN
     # Make a new multidev env from a vanilla D8 site.
-    #- cd tests/circle-scripts && ./create-fresh-d8-site.sh
+    - cd tests/circle-scripts && ./create-fresh-d8-site.sh
 test:
   pre:
     # Set up the D8 site with contrib migrate contrib modules and enable
     # those modules on Panetheon.
-    #- cd tests/circle-scripts && ./setup-d8-repo.sh
+    - cd tests/circle-scripts && ./setup-d8-repo.sh
 
     # Configure the migration, creating exportable, re-runnable configuration.
-    #- cd tests/circle-scripts && ./enable-modules.sh
+    - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info --standard=modules/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
-    #- cd tests/circle-scripts && ./verify-solr.sh
+    - cd tests/circle-scripts && ./verify-solr.sh

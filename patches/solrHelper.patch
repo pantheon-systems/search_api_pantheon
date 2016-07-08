@@ -7,7 +7,7 @@ index 9a46804..e46300b 100644
     */
    public function pingServer() {
 -    return $this->doPing(['handler' => 'admin/info/system'], 'server');
-+    return $this->doPing(['handler' => 'admin/system'], 'server');
++    return $this->doPing(['handler' => 'admin/system'], 'server'); // @todo remove this change https://www.drupal.org/node/2761121
    }
  
    /**
