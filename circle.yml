@@ -1,12 +1,13 @@
 # https://circleci.com/docs/configuration#machine
 machine:
-  php:
+  #php:
     # https://circleci.com/docs/environment#php
-    version: 5.5.11
+ #   version: 5.5.11
   environment:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
+    PATH: $PATH:~/search_api_pantheon/vendor/bin
 
 dependencies:
   cache_directories:
