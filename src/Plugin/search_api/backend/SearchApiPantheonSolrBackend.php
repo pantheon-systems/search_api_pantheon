@@ -43,25 +43,13 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * the only exportable, user-changable configuration is the schema file.
    */
   protected function internalConfiguration() {
-    return array(
+    $pantheon_specific_configuration = [
       'scheme' => 'https',
       'host' => pantheon_variable_get('pantheon_index_host'),
       'port' => pantheon_variable_get('pantheon_index_port'),
       'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
-      'schema' => '',
-      'core' => '',
-      'username' => '',
-      'password' => '',
-      'excerpt' => FALSE,
-      'retrieve_data' => FALSE,
-      'highlight_data' => FALSE,
-      'skip_schema_check' => FALSE,
-      'solr_version' => '',
-      'http_method' => 'AUTO',
-      'site_hash' => TRUE,
-      'autocorrect_spell' => TRUE,
-      'autocorrect_suggest_words' => TRUE,
-    );
+    ];
+    return $pantheon_specific_configuration + parent::defaultConfiguration();
   }
 
   /**
@@ -98,9 +86,10 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     $form['schema'] = array(
       '#type' => 'textfield',
-      '#title' => $this->t('schema location'),
+      '#title' => $this->t('Schema location (This field is not yet used)'),
       '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema. https://www.drupal.org/node/2763089'),
       '#default_value' => $this->configuration['schema'],
+      '#disabled' => TRUE,
     );
 
     return $form;
