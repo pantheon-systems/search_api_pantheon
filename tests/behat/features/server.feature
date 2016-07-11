@@ -12,6 +12,26 @@ Feature: Solr on Pantheon
     And I press the "Save" button
     # Here is the real verification of this scenario, that the server can be
     # reached.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    When I visit "admin/config/search/search-api/server/pantheon"
+
     Then I should see "The Solr server could be reached"
     Then I should see "The Solr core could be accessed (latency: "
 
