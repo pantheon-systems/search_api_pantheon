@@ -11,6 +11,10 @@ Feature: Solr on Pantheon
     And I select the radio button "Solr on Pantheon"
     And I press the "Save" button
     And print last response
+
+    And I visit "admin/config/search/search-api/server/pantheon/edit"
+    And I press the "Save" button
+
     # Here is the real verification of this scenario, that the server can be
     # reached.
 
