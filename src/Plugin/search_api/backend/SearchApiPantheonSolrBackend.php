@@ -34,10 +34,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SchemaPoster $schema_poster) {
-
-
-
-
     $configuration +=$this->internalConfiguration();
     parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
 
