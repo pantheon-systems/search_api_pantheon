@@ -10,6 +10,7 @@ Feature: Solr on Pantheon
     And I fill in "id" with "pantheon"
     And I select the radio button "Solr on Pantheon"
     And I press the "Save" button
+    And print last response
     # Here is the real verification of this scenario, that the server can be
     # reached.
 
