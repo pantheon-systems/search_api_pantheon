@@ -136,6 +136,9 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     // @todo, the schema will be set and posted here.
     // https://www.drupal.org/node/2763089
     $this->configuration = $this->defaultConfiguration();
+    \Drupal::logger('my_module')->notice('submit');
+    $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/schema.xml';
+    $this->schemaPoster->postSchema($schema_path);
   }
 
   /**
