@@ -6,6 +6,8 @@
 
 namespace Drupal\search_api_pantheon\Plugin\search_api\backend;
 
+
+
 use Drupal\Core\Config\Config;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -13,6 +15,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\search_api_solr\SolrBackendInterface;
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
 use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
+use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -30,14 +33,31 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SchemaPoster $schema_poster) {
 
     parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
 
     $this->configuration = $this->internalConfiguration();
     $solr_helper = new PantheonSolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
+    $this->schemaPoster = $schema_poster;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('module_handler'),
+      $container->get('config.factory')->get('search_api_solr.settings'),
+      $container->get('language_manager'),
+      $container->get('search_api_pantheon.schema_poster')
+    );
+  }
+
 
   /**
    * This configuration is needed by the parent class.
@@ -58,6 +78,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     return $pantheon_specific_configuration + parent::defaultConfiguration();
   }
+
 
   /**
    * {@inheritdoc}
