@@ -47,17 +47,13 @@ class SchemaPoster {
     \Drupal::logger('my_module')->notice('asdf');
     // Check for empty schema.
     if (filesize($schema) < 1) {
-      watchdog('pantheon_apachesolr', 'Empty schema !schema - not posting', array(
-        '!schema' => $schema,
-      ), WATCHDOG_ERROR);
+      $this->loggerFactory->get('search_api_pantheon')->error('Empty schema not posting');
       return NULL;
     }
     // Check for invalid XML.
     $schema_file = file_get_contents($schema);
     if (!@simplexml_load_string($schema_file)) {
-      watchdog('pantheon_apachesolr', 'Schema !schema is not XML - not posting', array(
-        '!schema' => $schema,
-      ), WATCHDOG_ERROR);
+      $this->loggerFactory->get('search_api_pantheon')->error('Schema is not XML - not posting');
       return NULL;
     }
 
@@ -91,15 +87,13 @@ class SchemaPoster {
       '204',
     );
 
-    \Drupal::logger('my_module')->notice(print_r($info, TRUE));
-
     $success = (in_array($info['http_code'], $success_codes));
     fclose($file);
     if (!$success) {
-      // @todo watchdog.
+      $this->loggerFactory->get('search_api_pantheon')->error('Schema failed to post');
     }
     else {
-      // variable_set('pantheon_apachesolr_schema', $schema);
+      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted');
     }
     return $success;
   }
