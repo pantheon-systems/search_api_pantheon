@@ -18,6 +18,10 @@ use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
 use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Extension\ExtensionDiscovery;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 
 /**
  * Apache Solr backend for search api.
@@ -107,6 +111,16 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     // new instance.
     $solr_helper = new PantheonSolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
+  }
+
+  public function findSchemaFiles() {
+    $return = [];
+    $directory = new RecursiveDirectoryIterator('modules');
+    $flattened = new RecursiveIteratorIterator($directory);
+    $files = new RegexIterator($flattened, '/schema.xml$/');
+    foreach($files as $file) {
+      $return[] = $file;
+    }
   }
 
   /**
