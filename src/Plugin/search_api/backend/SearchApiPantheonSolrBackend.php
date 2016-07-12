@@ -16,6 +16,10 @@ use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
 use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Extension\ExtensionDiscovery;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 
 /**
  * Apache Solr backend for search api.
@@ -104,17 +108,28 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $this->setSolrHelper($solr_helper);
   }
 
+  public function findSchemaFiles() {
+    $return = [];
+    $directory = new RecursiveDirectoryIterator('modules');
+    $flattened = new RecursiveIteratorIterator($directory);
+    $files = new RegexIterator($flattened, '/schema.xml$/');
+    foreach($files as $file) {
+      $return[ (string) $file] = $file;
+    }
+    return $return;
+  }
+
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
     $form['schema'] = array(
-      '#type' => 'textfield',
+      '#type' => 'radios',
       '#title' => $this->t('Schema location (This field is not yet used)'),
+      '#options' => $this->findSchemaFiles(),
       '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema. https://www.drupal.org/node/2763089'),
       '#default_value' => $this->configuration['schema'],
-      '#disabled' => TRUE,
     );
 
     return $form;
@@ -124,17 +139,18 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/0schema.xml';
-    $this->schemaPoster->postSchema($schema_path);
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // @todo, the schema will be set and posted here.
-    // https://www.drupal.org/node/2763089
-    $this->configuration = $this->defaultConfiguration();
+    // Setting the configuration here will allow the simple configuration,
+    // just the schema file, to be saved to the Search API server config entity.
+    // When this plugin is reloaded, $this->configuration, will be repopulated
+    // with $this->internalConfiguration().
+    $this->configuration = $form_state->getValues();
+    $this->schemaPoster->postSchema($this->configuration['schema']);
   }
 
   /**
