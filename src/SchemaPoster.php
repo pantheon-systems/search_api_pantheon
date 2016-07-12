@@ -92,7 +92,7 @@ class SchemaPoster {
       $this->loggerFactory->get('search_api_pantheon')->error('Schema failed to post');
     }
     else {
-      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted' . print_r($info, TRUE));
+      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted');
     }
     return $success;
   }

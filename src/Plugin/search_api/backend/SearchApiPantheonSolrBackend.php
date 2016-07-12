@@ -139,8 +139,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/0schema.xml';
-    $this->schemaPoster->postSchema($schema_path);
   }
 
   /**
@@ -152,6 +150,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     // When this plugin is reloaded, $this->configuration, will be repopulated
     // with $this->internalConfiguration().
     $this->configuration = $form_state->getValues();
+    $this->schemaPoster->postSchema($this->configuration['schema']);
   }
 
   /**
