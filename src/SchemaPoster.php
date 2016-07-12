@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Post a schema file to to the Pantheon Solr server.
+ */
+
 namespace Drupal\search_api_pantheon;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
@@ -17,25 +22,27 @@ class SchemaPoster {
    *
    * @var Drupal\Core\Logger\LoggerChannelFactory
    */
-  protected $logger_factory;
+  protected $loggerFactory;
 
   /**
    * GuzzleHttp\Client definition.
    *
    * @var GuzzleHttp\Client
    */
-  protected $http_client;
+  protected $httpClient;
+
   /**
    * Constructor.
    */
   public function __construct(LoggerChannelFactory $logger_factory, Client $http_client) {
-    $this->logger_factory = $logger_factory;
-    $this->http_client = $http_client;
+    $this->loggerFactory = $logger_factory;
+    $this->httpClient = $http_client;
   }
 
-
+  /**
+   * Post a schema file to to the Pantheon Solr server.
+   */
   public function postSchema($schema) {
-
 
     \Drupal::logger('my_module')->notice('asdf');
     // Check for empty schema.
@@ -58,11 +65,11 @@ class SchemaPoster {
     $host = getenv('PANTHEON_INDEX_HOST');
     $path = 'sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
 
-    $client_cert = '../certs/binding.pem';
+    $client_cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $url = 'https://' . $host . '/' . $path;
 
     $file = fopen($schema, 'r');
-// set URL and other appropriate options
+    // Set URL and other appropriate options.
     $opts = array(
       CURLOPT_URL => $url,
       CURLOPT_PORT => getenv('PANTHEON_INDEX_PORT'),
@@ -81,34 +88,20 @@ class SchemaPoster {
       '200',
       '201',
       '202',
-      '204'
+      '204',
     );
 
     \Drupal::logger('my_module')->notice(print_r($info, TRUE));
 
-
     $success = (in_array($info['http_code'], $success_codes));
     fclose($file);
     if (!$success) {
-/// @todo watchdog
+      // @todo watchdog.
     }
     else {
-      //variable_set('pantheon_apachesolr_schema', $schema);
+      // variable_set('pantheon_apachesolr_schema', $schema);
     }
-
     return $success;
-
-
-
-
   }
-
-
-
-
-
-
-
-
 
 }

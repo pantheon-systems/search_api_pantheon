@@ -6,8 +6,6 @@
 
 namespace Drupal\search_api_pantheon\Plugin\search_api\backend;
 
-
-
 use Drupal\Core\Config\Config;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -34,10 +32,8 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SchemaPoster $schema_poster) {
-    $configuration +=$this->internalConfiguration();
+    $configuration += $this->internalConfiguration();
     parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
-
-
     $solr_helper = new PantheonSolrHelper($this->configuration);
     $this->setSolrHelper($solr_helper);
     $this->schemaPoster = $schema_poster;
@@ -66,7 +62,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * the only exportable, user-changable configuration is the schema file.
    */
   protected function internalConfiguration() {
-
 
     $pantheon_specific_configuration = [];
     if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
@@ -140,8 +135,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     // @todo, the schema will be set and posted here.
     // https://www.drupal.org/node/2763089
     $this->configuration = $this->defaultConfiguration();
-
-
   }
 
   /**
