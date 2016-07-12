@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Post a schema file to to the Pantheon Solr server.
+ */
+
 namespace Drupal\search_api_pantheon;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
@@ -17,40 +22,38 @@ class SchemaPoster {
    *
    * @var Drupal\Core\Logger\LoggerChannelFactory
    */
-  protected $logger_factory;
+  protected $loggerFactory;
 
   /**
    * GuzzleHttp\Client definition.
    *
    * @var GuzzleHttp\Client
    */
-  protected $http_client;
+  protected $httpClient;
+
   /**
    * Constructor.
    */
   public function __construct(LoggerChannelFactory $logger_factory, Client $http_client) {
-    $this->logger_factory = $logger_factory;
-    $this->http_client = $http_client;
+    $this->loggerFactory = $logger_factory;
+    $this->httpClient = $http_client;
   }
 
-
+  /**
+   * Post a schema file to to the Pantheon Solr server.
+   */
   public function postSchema($schema) {
-
 
     \Drupal::logger('my_module')->notice('asdf');
     // Check for empty schema.
     if (filesize($schema) < 1) {
-      watchdog('pantheon_apachesolr', 'Empty schema !schema - not posting', array(
-        '!schema' => $schema,
-      ), WATCHDOG_ERROR);
+      $this->loggerFactory->get('search_api_pantheon')->error('Empty schema not posting');
       return NULL;
     }
     // Check for invalid XML.
     $schema_file = file_get_contents($schema);
     if (!@simplexml_load_string($schema_file)) {
-      watchdog('pantheon_apachesolr', 'Schema !schema is not XML - not posting', array(
-        '!schema' => $schema,
-      ), WATCHDOG_ERROR);
+      $this->loggerFactory->get('search_api_pantheon')->error('Schema is not XML - not posting');
       return NULL;
     }
 
@@ -58,11 +61,11 @@ class SchemaPoster {
     $host = getenv('PANTHEON_INDEX_HOST');
     $path = 'sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
 
-    $client_cert = '../certs/binding.pem';
+    $client_cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $url = 'https://' . $host . '/' . $path;
 
     $file = fopen($schema, 'r');
-// set URL and other appropriate options
+    // Set URL and other appropriate options.
     $opts = array(
       CURLOPT_URL => $url,
       CURLOPT_PORT => getenv('PANTHEON_INDEX_PORT'),
@@ -81,34 +84,18 @@ class SchemaPoster {
       '200',
       '201',
       '202',
-      '204'
+      '204',
     );
-
-    \Drupal::logger('my_module')->notice(print_r($info, TRUE));
-
 
     $success = (in_array($info['http_code'], $success_codes));
     fclose($file);
     if (!$success) {
-/// @todo watchdog
+      $this->loggerFactory->get('search_api_pantheon')->error('Schema failed to post');
     }
     else {
-      //variable_set('pantheon_apachesolr_schema', $schema);
+      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted');
     }
-
     return $success;
-
-
-
-
   }
-
-
-
-
-
-
-
-
 
 }
