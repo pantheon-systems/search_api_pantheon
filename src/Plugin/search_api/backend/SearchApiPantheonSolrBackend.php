@@ -58,7 +58,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     );
   }
 
-
   /**
    * This configuration is needed by the parent class.
    *
@@ -79,7 +78,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     return $pantheon_specific_configuration + parent::defaultConfiguration();
   }
-
 
   /**
    * {@inheritdoc}
@@ -119,7 +117,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $directory = new RecursiveDirectoryIterator('modules');
     $flattened = new RecursiveIteratorIterator($directory);
     $files = new RegexIterator($flattened, '/schema.xml$/');
-
 
     foreach ($files as $file) {
       $relative_path = str_replace(DRUPAL_ROOT . '/', '', $file->getRealPath());
@@ -171,6 +168,7 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
       // The parent method is overridden so that this alternate adapter class
       // can be set. This line is the only difference from the parent method.
       $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
+
       $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);
       $this->getSolrHelper()->setSolr($this->solr);
     }
