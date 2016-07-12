@@ -119,8 +119,11 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $directory = new RecursiveDirectoryIterator('modules');
     $flattened = new RecursiveIteratorIterator($directory);
     $files = new RegexIterator($flattened, '/schema.xml$/');
+
+
     foreach ($files as $file) {
-      $return[(string) $file] = $file;
+      $relative_path = str_replace(DRUPAL_ROOT . '/', '', $file->getRealPath());
+      $return[$relative_path] = $relative_path;
     }
     return $return;
   }
@@ -132,9 +135,9 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
 
     $form['schema'] = array(
       '#type' => 'radios',
-      '#title' => $this->t('Schema location (This field is not yet used)'),
+      '#title' => $this->t('Schema file'),
       '#options' => $this->findSchemaFiles(),
-      '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema. https://www.drupal.org/node/2763089'),
+      '#description' => $this->t('Select a Solr schema file to be POSTed to Pantheon\'s Solr server'),
       '#default_value' => $this->configuration['schema'],
     );
 
