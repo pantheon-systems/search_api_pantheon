@@ -114,8 +114,9 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $flattened = new RecursiveIteratorIterator($directory);
     $files = new RegexIterator($flattened, '/schema.xml$/');
     foreach($files as $file) {
-      $return[] = $file;
+      $return[ (string) $file] = $file;
     }
+    return $return;
   }
 
   /**
@@ -124,11 +125,11 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
     $form['schema'] = array(
-      '#type' => 'textfield',
+      '#type' => 'radios',
       '#title' => $this->t('Schema location (This field is not yet used)'),
+      '#options' => $this->findSchemaFiles(),
       '#description' => $this->t('@todo use this configuration form to set the location of the schema file. Use the the submit handler to post the schema. https://www.drupal.org/node/2763089'),
       '#default_value' => $this->configuration['schema'],
-      '#disabled' => TRUE,
     );
 
     return $form;
@@ -146,9 +147,11 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // @todo, the schema will be set and posted here.
-    // https://www.drupal.org/node/2763089
-    $this->configuration = $this->defaultConfiguration();
+    // Setting the configuration here will allow the simple configuration,
+    // just the schema file, to be saved to the Search API server config entity.
+    // When this plugin is reloaded, $this->configuration, will be repopulated
+    // with $this->internalConfiguration().
+    $this->configuration = $form_state->getValues();
   }
 
   /**

@@ -5,6 +5,6 @@
  * Implements hook_install().
  */
 function search_api_pantheon_install() {
-  $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/schema.xml';
-  \Drupal::service('search_api_pantheon.schema_poster')->postSchema($schema_path);
+ // $schema_path = drupal_get_path('module', 'search_api_solr') . '/solr-conf/4.x/schema.xml';
+ // \Drupal::service('search_api_pantheon.schema_poster')->postSchema($schema_path);
 }
