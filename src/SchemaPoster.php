@@ -44,7 +44,6 @@ class SchemaPoster {
    */
   public function postSchema($schema) {
 
-    \Drupal::logger('my_module')->notice('asdf');
     // Check for empty schema.
     if (filesize($schema) < 1) {
       $this->loggerFactory->get('search_api_pantheon')->error('Empty schema not posting');
@@ -93,7 +92,7 @@ class SchemaPoster {
       $this->loggerFactory->get('search_api_pantheon')->error('Schema failed to post');
     }
     else {
-      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted');
+      $this->loggerFactory->get('search_api_pantheon')->info('Schema posted' . print_r($info, TRUE));
     }
     return $success;
   }
