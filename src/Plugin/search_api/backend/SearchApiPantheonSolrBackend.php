@@ -108,13 +108,19 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     $this->setSolrHelper($solr_helper);
   }
 
+  /**
+   * Find schema files that can be posted to the Solr server.
+   *
+   * @return array
+   *   The returned array will be used by Form API.
+   */
   public function findSchemaFiles() {
     $return = [];
     $directory = new RecursiveDirectoryIterator('modules');
     $flattened = new RecursiveIteratorIterator($directory);
     $files = new RegexIterator($flattened, '/schema.xml$/');
-    foreach($files as $file) {
-      $return[ (string) $file] = $file;
+    foreach ($files as $file) {
+      $return[(string) $file] = $file;
     }
     return $return;
   }
