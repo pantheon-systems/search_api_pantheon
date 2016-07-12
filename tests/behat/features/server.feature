@@ -10,7 +10,6 @@ Feature: Solr on Pantheon
     And I fill in "id" with "pantheon"
     And I select the radio button "Solr on Pantheon"
     And I press the "Save" button
-    And print last response
 
     And I visit "admin/config/search/search-api/server/pantheon/edit"
     And I select the radio button "modules/search_api_solr/solr-conf/4.x/schema.xml"
