@@ -18,6 +18,7 @@ dependencies:
     # xdebug makes composer slower.
     - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/5.6.22/etc/conf.d/xdebug.ini
   override:
+    - composer global require "hirak/prestissimo:^0.3"
     - composer global require pantheon-systems/terminus
     - composer global require drush/drush:8.*
     - composer install
