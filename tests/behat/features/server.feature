@@ -31,7 +31,6 @@ Feature: Solr on Pantheon
     # back to the same form (with more options available, which aren't needed for
     # this test.)
     And I press the "Save" button
-    And print last response
     When I visit "admin/config/search/search-api/index/nodes/fields/add?datasource=entity%3Anode"
     And I press the "entity:node/title" button
     When I visit "admin/config/search/search-api/index/nodes/fields"
