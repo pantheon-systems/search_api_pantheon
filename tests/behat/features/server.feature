@@ -10,8 +10,9 @@ Feature: Solr on Pantheon
     And I fill in "id" with "pantheon"
     And I select the radio button "Solr on Pantheon"
     And I press the "Save" button
+    And print last response
 
-    And I visit "admin/config/search/search-api/server/pantheon/edit"
+    #And I visit "admin/config/search/search-api/server/pantheon/edit"
     And I select the radio button "modules/search_api_solr/solr-conf/4.x/schema.xml"
     And I press the "Save" button
 
@@ -24,11 +25,17 @@ Feature: Solr on Pantheon
   Scenario: Create Solr index configuration, index the title field.
     Given I am logged in as a user with the "administrator" role
     When I visit "admin/config/search/search-api/add-index"
+    And print last response
     And I fill in "name" with "nodes"
     And I fill in "id" with "nodes"
-    And I select "Content" from "datasources[]"
+    And I check "Content"
     And I select the radio button "pantheon"
     And I press the "Save" button
+    # Without JavaScript, The first pressing of the save button will redirect
+    # back to the same form (with more options available, which aren't needed for
+    # this test.)
+    And I press the "Save" button
+    And print last response
     When I visit "admin/config/search/search-api/index/nodes/fields/add?datasource=entity%3Anode"
     And I press the "entity:node/title" button
     When I visit "admin/config/search/search-api/index/nodes/fields"
