@@ -44,21 +44,35 @@ class SchemaPoster {
    */
   public function postSchema($schema) {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Check for empty schema.
-    if (filesize($schema) < 1) {
-      $this->loggerFactory->get('search_api_pantheon')->error('Empty schema not posting');
+    if (filesize($schema) < 1)                    {
+      $this->loggerFactory->get ('search_api_pantheon')->error('Empty schema not posting');
       return NULL;
     }
     // Check for invalid XML.
     $schema_file = file_get_contents($schema);
     if (!@simplexml_load_string($schema_file)) {
-      $this->loggerFactory->get('search_api_pantheon')->error('Schema is not XML - not posting');
+      $this->loggerFactory->get( 'search_api_pantheon')->error('Schema is not XML - not posting');
       return NULL;
     }
 
     $ch = curl_init();
     $host = getenv('PANTHEON_INDEX_HOST');
-    $path = 'sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index';
+    $path = 'sites/self/environments/' .$_ENV['PANTHEON_ENVIRONMENT'] . '/index';
 
     $client_cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $url = 'https://' . $host . '/' . $path;
@@ -71,7 +85,7 @@ class SchemaPoster {
       CURLOPT_RETURNTRANSFER => 1,
       CURLOPT_SSLCERT => $client_cert,
       CURLOPT_HTTPHEADER => array('Content-type:text/xml; charset=utf-8'),
-      CURLOPT_PUT => TRUE,
+CURLOPT_PUT => TRUE,
       CURLOPT_BINARYTRANSFER => 1,
       CURLOPT_INFILE => $file,
       CURLOPT_INFILESIZE => filesize($schema),
