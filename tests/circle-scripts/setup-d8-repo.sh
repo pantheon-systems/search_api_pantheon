@@ -16,7 +16,7 @@ composer require solarium/solarium:3.6.*
 composer require drupal/search_api_solr:1.x-dev --prefer-dist
 
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
-composer require drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
+composer require drupal/search_api_pantheon:dev-8.x-1.x#$CIRCLE_SHA1
 
 # Make sure submodules are not committed.
 rm -rf modules/search_api_solr/.git/
