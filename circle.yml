@@ -27,7 +27,7 @@ dependencies:
     - terminus auth login --machine-token=$TERMINUS_TOKEN
 test:
   pre:
-    - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=modules/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
+    - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
     # Make a new multidev env from a vanilla D8 site.
     - cd tests/circle-scripts && ./create-fresh-d8-site.sh
     # Set up the D8 site with contrib migrate contrib modules and enable
