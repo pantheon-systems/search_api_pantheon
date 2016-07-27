@@ -21,6 +21,7 @@ dependencies:
     - composer global require "hirak/prestissimo:^0.3"
     - composer global require pantheon-systems/terminus
     - composer global require drush/drush:8.*
+    - composer config minimum-stability dev
     - composer install
   post:
     - terminus auth login --machine-token=$TERMINUS_TOKEN
