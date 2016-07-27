@@ -6,14 +6,14 @@ cd drupal8
 git checkout -b $TERMINUS_ENV
 
 # Tell Composer where to find packages.
-composer config repositories.drupal composer https://packagist.drupal-composer.org
+composer config repositories.drupal composer https://packages.drupal.org/8
 
-composer require drupal/search_api:8.1.x-dev --prefer-dist
-composer require drupal/search_api_page:8.1.x-dev
+composer require drupal/search_api:1.x-dev --prefer-dist
+composer require drupal/search_api_page:1.x-dev
 
 #composer config repositories.solarium vcs git@github.com:stevector/solarium.git
 composer require solarium/solarium:3.6.*
-composer require drupal/search_api_solr:8.1.x-dev --prefer-dist
+composer require drupal/search_api_solr:1.x-dev --prefer-dist
 
 composer config repositories.search_api_pantheon vcs git@github.com:stevector/search_api_pantheon.git
 composer require  drupal/search_api_pantheon:dev-master#$CIRCLE_SHA1
