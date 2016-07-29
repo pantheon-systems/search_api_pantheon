@@ -1,3 +1,8 @@
 /vendor
-/drush
 /composer.lock
+# Some of these directories may be created during CircleCI testing.
+/drush
+/core/
+/drupal/
+/modules/
+/tests/circle-scripts/drupal8/
