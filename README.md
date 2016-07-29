@@ -21,25 +21,36 @@ First, register Drupal.org as a provider of Composer packages. This command shou
 composer config repositories.drupal composer https://packages.drupal.org/8
 ```
 
-Next, require this module:
+Next, register the git repository for this module. This extra step will soon be removed from the instructions. It is only necessary now because this module was only recently added to Drupal.org and it is not yet available through `https://packages.drupal.org/8` which was registered above.
+
+```
+composer config repositories.search_api_pantheon vcs https://git.drupal.org/project/search_api_pantheon.git
+```
+
+Next, require this module. These instructions currently show requiring the development branch of the repository. Once the module has been more widely tested and has an alpha release, this portion will be updated.
 
 ```
 composer require drupal/search_api_pantheon:dev-8.x-1.x
 ```
 
-Commit the changes and push your repository to Pantheon.
+Commit the changes and push your repository to Pantheon. Be sure not to commit `search_api_pantheon` as a git submodule. One way to do that is by removing the `.git` repository that may have come with it through Composer.
 
+```
+rm -r modules/search_api_pantheon/.git
+```
 
 ## Set up instructions
 
 See the [Drupal.org for complete documentation on Search API](https://www.drupal.org/node/1250878). To configure the connection with Pantheon, do the following steps on your Dev environment (or a Multidev):
-
+* **Enable Solr on your Pantheon site**
+  * Under "Settings" in your Pantheon site dashboard, enable Solr as an add on. This feature is available for sandbox sites as well as paid plans at the Professional level and above.
 * **Enable the modules**
   * Go to `admin/modules` and enable "Search API Pantheon." Doing so will also enable Search API and Search API Solr if they are not already enabled.
+* **OPTIONAL: Disable Drupal Core's search module**
+  * If you are using Search API, then you probably will not be using Drupal Core's Search module. Uninstall it to save same confusion in the further configuration steps: `admin/modules/uninstall`.
 * **Configure a Search API server**
   * Go to `/admin/config/search/search-api/add-server`
   * Enter "Pantheon" as the server name. (You can name the server anything you want but using something like "Pantheon" is a good way to remember where the connection goes.)
-  * Fill in the Description if you wish.
   * Under "Backend," select "Solr on Pantheon"
   * Having selected "Solr on Pantheon," you will then be presented with additional options. Choose the Solr schema file you wish to use. Search API Solr module provides an option for each version of Solr (4, 5, and 6). You can customize schema files by copying these examples to your own custom module and editing them. If you are just getting started, we recommend selecting the file for Solr 4.
   * Hit the Save button to save the configuration.
@@ -50,6 +61,7 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
   * Select "Pantheon" as the server.
   * Save the index.
   * For this index to be useable, you will also need to configure fields to be searched. Select the "fields" tab and choose fields to be included in the index. You may want to index many fields. "Title" is a good field to start with.
+  * After adding fields the configuration, make sure the index is full by clicking "Index now" or by running cron.
 * **Search the Index**
   * To actually search your index you will a module like [Search API Pages](https://www.drupal.org/project/search_api_page) which allows for the configuration of search forms on their own pages. Search API Pages will not have been downloaded by using `composer require` on Search API Pantheon. You can download it separately.
 * **Export your changes**
