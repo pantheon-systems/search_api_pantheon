@@ -12,16 +12,10 @@ Composer is the best way to install this module because this module relies on [S
 composer config repositories.drupal composer https://packages.drupal.org/8
 ```
 
-Next, register the git repository for this module. This extra step will soon be removed from the instructions. It is only necessary now because this module was only recently added to Drupal.org and it is not yet available through `https://packages.drupal.org/8` which was registered above.
-
-```
-composer config repositories.search_api_pantheon vcs https://git.drupal.org/project/search_api_pantheon.git
-```
-
 Next, require this module. These instructions currently show requiring the development branch of the repository. Once the module has been more widely tested and has an alpha release, this portion will be updated.
 
 ```
-composer require drupal/search_api_pantheon:dev-8.x-1.x
+composer require drupal/search_api_pantheon:1.x-dev
 ```
 
 You should now have this module along with Search API, Search API Solr, and Solarium. Commit the changes and push your repository to Pantheon. Be sure not to commit `search_api_pantheon` as a git submodule. One way to do that is by removing the `.git` repository that may have come with it through Composer.
