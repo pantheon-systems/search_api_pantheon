@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/pantheon-systems/search_api_pantheon/tree/8.x-1.x.svg?style=svg)](https://circleci.com/gh/pantheon-systems/search_api_pantheon/tree/8.x-1.x)
 
-This module is meant to simplify the usage of Search API and Search API Solr on Pantheon. Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options.
+This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_pantheon) on [Pantheon](https://pantheon.io). Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options.
 
 This module extends the plugin from Search API Solr to configure the connection options specific to Pantheon's Solr servers. The module also changes the connection information between Pantheon environments. Doing so eliminates the need to do extra work setting up Solr servers for each environment.
 
