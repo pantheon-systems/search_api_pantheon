@@ -1,4 +1,4 @@
-name: search_api_pantheon
+name: Search API Pantheon
 type: module
 description: Search API + Solr + Pantheon integration
 core: 8.x
