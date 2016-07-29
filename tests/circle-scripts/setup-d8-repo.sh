@@ -8,7 +8,7 @@ git checkout -b $TERMINUS_ENV
 # Tell Composer where to find packages.
 composer config repositories.drupal composer https://packages.drupal.org/8
 composer config repositories.search_api_pantheon vcs git@github.com:pantheon-systems/search_api_pantheon.git
-composer require drupal/search_api_pantheon:dev-composer-install#$CIRCLE_SHA1
+composer require drupal/search_api_pantheon:dev-8.x-1.x#$CIRCLE_SHA1
 composer require drupal/search_api_page:1.x-dev
 
 # These two lines are necessary only to force dev installs,
