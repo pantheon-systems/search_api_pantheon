@@ -38,3 +38,4 @@ test:
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - cd tests/circle-scripts && ./verify-solr.sh
+    - terminus site create-env --to-env=$TERMINUS_ENV-b --from-env=$TERMINUS_ENV
