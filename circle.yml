@@ -19,7 +19,7 @@ dependencies:
     - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/7.0.7/etc/conf.d/xdebug.ini
   override:
     - composer global require "hirak/prestissimo:^0.3"
-    - composer global require pantheon-systems/terminus
+    - composer global require pantheon-systems/terminus "<0.13.0"
     - composer global require drush/drush:8.*
     - composer config minimum-stability dev
     - composer install
