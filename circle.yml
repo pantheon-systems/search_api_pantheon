@@ -38,3 +38,13 @@ test:
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - cd tests/circle-scripts && ./verify-solr.sh
+deployment:
+  feature:
+    branch: 8.x-1.x-2761781-autopush
+    commands:
+      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
+      - git fetch drupalorg
+      # Make sure the full history from GitHub is present. If it is not,
+      # the push to drupal.org will fail.
+      - git fetch --unshallow
+      - git push drupalorg $CIRCLE_BRANCH
