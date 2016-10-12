@@ -40,7 +40,7 @@ test:
     - cd tests/circle-scripts && ./verify-solr.sh
 deployment:
   feature:
-    branch: 8.x-1.x-2761781-autopush
+    branch: 8.x-1.x
     commands:
       - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
       - git fetch drupalorg
