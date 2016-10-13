@@ -48,7 +48,6 @@ deployment:
       - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
       - git fetch drupalorg
       - git push  drupalorg $CIRCLE_BRANCH
-deployment:
   release:
     tag: /8.x-*/
     owner: pantheon-systems
