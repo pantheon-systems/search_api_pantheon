@@ -42,9 +42,20 @@ deployment:
   feature:
     branch: 8.x-1.x
     commands:
-      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
-      - git fetch drupalorg
       # Make sure the full history from GitHub is present. If it is not,
       # the push to drupal.org will fail.
       - git fetch --unshallow
-      - git push drupalorg $CIRCLE_BRANCH
+      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
+      - git fetch drupalorg
+      - git push  drupalorg $CIRCLE_BRANCH
+deployment:
+  release:
+    tag: /8.x-*/
+    owner: pantheon-systems
+    commands:
+      # Make sure the full history from GitHub is present. If it is not,
+      # the push to drupal.org will fail.
+      - git fetch --unshallow
+      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
+      - git fetch drupalorg
+      - git push  drupalorg --tags
