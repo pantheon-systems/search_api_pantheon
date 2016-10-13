@@ -49,7 +49,7 @@ deployment:
       - git fetch drupalorg
       - git push  drupalorg $CIRCLE_BRANCH
   release:
-    tag: /8.x-*/
+    tag: /8.x-.*/
     owner: pantheon-systems
     commands:
       # Make sure the full history from GitHub is present. If it is not,
