@@ -27,6 +27,7 @@ dependencies:
     - composer global require pantheon-systems/terminus "<0.13.0"
     - composer global require drush/drush:8.*
     - composer config minimum-stability dev
+    - composer remove drupal/search_api_solr --no-update
     - composer install
   post:
     - terminus auth login --machine-token=$TERMINUS_TOKEN
