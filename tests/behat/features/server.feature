@@ -9,7 +9,6 @@ Feature: Solr on Pantheon
     And I fill in "name" with "pantheon"
     And I fill in "id" with "pantheon"
     And I select the radio button "Solr"
-    And I press the "Save" button
     And I select the radio button "Pantheon"
     And I press the "Save" button
     And I select the radio button "modules/search_api_solr/solr-conf/4.x/schema.xml"
