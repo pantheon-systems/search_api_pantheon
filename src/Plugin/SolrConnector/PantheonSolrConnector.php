@@ -22,7 +22,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 
-
 /**
  * Standard Solr connector.
  *
@@ -33,7 +32,6 @@ use RegexIterator;
  * )
  */
 class PantheonSolrConnector extends StandardSolrConnector {
-
 
   /**
    * {@inheritdoc}
@@ -92,7 +90,6 @@ class PantheonSolrConnector extends StandardSolrConnector {
   public function getConfiguration() {
     return $this->configuration;
   }
-
 
   /**
    * Find schema files that can be posted to the Solr server.
