@@ -15,7 +15,7 @@ composer config repositories.drupal composer https://packages.drupal.org/8
 Next, require this module. These instructions currently show requiring the development branch of the repository. Once the module has been more widely tested and has an alpha release, this portion will be updated.
 
 ```
-composer require drupal/search_api_pantheon:1.x-dev
+composer require "drupal/search_api_pantheon ~1.0"
 ```
 
 You should now have this module along with Search API, Search API Solr, and Solarium. Commit the changes and push your repository to Pantheon. Be sure not to commit `search_api_pantheon` as a git submodule. One way to do that is by removing the `.git` repository that may have come with it through Composer.
