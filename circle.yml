@@ -1,4 +1,4 @@
-# https://circleci.com/docs/configuration#machine
+op# https://circleci.com/docs/configuration#machine
 machine:
   php:
     # https://circleci.com/docs/environment#php
@@ -17,16 +17,14 @@ dependencies:
     # Using > instead of >> will overwrite the file and disable xdebug.
     # xdebug makes composer slower.
     - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/7.0.7/etc/conf.d/xdebug.ini
-<<<<<<< HEAD
     - git config --global user.email "$GitEmail"
     - git config --global user.name "Circle CI"
-=======
+
     - echo "Setting GitHub OAuth token with suppressed ouput"
     - |
       {
         composer config -g github-oauth.github.com $GITHUB_TOKEN
       } &> /dev/null
->>>>>>> origin/8.x-1.x
   override:
     - composer global require "hirak/prestissimo:^0.3"
     - composer global require pantheon-systems/terminus "<0.13.0"
