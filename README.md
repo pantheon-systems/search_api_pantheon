@@ -36,8 +36,9 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
 * **Configure a Search API server**
   * Go to `/admin/config/search/search-api/add-server`
   * Enter "Pantheon" as the server name. (You can name the server anything you want but using something like "Pantheon" is a good way to remember where the connection goes.)
-  * Under "Backend," select "Solr on Pantheon".
-  * Having selected "Solr on Pantheon," you will then be presented with additional options. Choose the Solr schema file you wish to use. Search API Solr module provides an option for each version of Solr (4, 5, and 6). You can customize schema files by copying these examples to your own custom module and editing them. If you are just getting started, we recommend selecting the file for Solr 4.
+  * Under "Backend", select "Solr".
+  * Under "Solr Connector", select "Pantheon".
+  * Having selected "Pantheon", you will then be presented with additional options. Choose the Solr schema file you wish to use. Search API Solr module provides an option for each version of Solr (4, 5, and 6). You can customize schema files by copying these examples to your own custom module and editing them. If you are just getting started, we recommend selecting the file for Solr 4.
   * Hit the Save button to save the configuration.
 * **Use the server with an index**
   The following steps are not Pantheon-specific. This module only alters the the configuration of Search API servers. To use a server, you next need to create an index.
