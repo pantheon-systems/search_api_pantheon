@@ -12,6 +12,7 @@ machine:
 dependencies:
   cache_directories:
     - ~/.composer/cache
+    - vendor
   pre:
     # Set the PHP timezone so that Behat script does not fail.
     # Using > instead of >> will overwrite the file and disable xdebug.
