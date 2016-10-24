@@ -69,8 +69,8 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
       $pantheon_specific_configuration = [
         'scheme' => 'https',
-        'host' => pantheon_variable_get('pantheon_index_host'),
-        'port' => pantheon_variable_get('pantheon_index_port'),
+        'host' => $_ENV['PANTHEON_INDEX_HOST'],
+        'port' => $_ENV['PANTHEON_INDEX_PORT'],
         'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
       ];
     }

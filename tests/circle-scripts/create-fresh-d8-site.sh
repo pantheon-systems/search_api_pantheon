@@ -4,6 +4,7 @@
 # Also, it might be cleaner to create an entirely new D8 site rather than making
 # multidevs off of the same one repeatedly.
 terminus site create-env --to-env=$TERMINUS_ENV --from-env=dev
+yes | terminus site clone-content --to-env=$TERMINUS_ENV --from-env=dev --db-only
 
 # @todo, this command gives an error
 # [error] You must upgrade to a business or an elite plan to use Solr.
