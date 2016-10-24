@@ -1,4 +1,4 @@
-op# https://circleci.com/docs/configuration#machine
+# https://circleci.com/docs/configuration#machine
 machine:
   php:
     # https://circleci.com/docs/environment#php
@@ -19,7 +19,6 @@ dependencies:
     - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/7.0.7/etc/conf.d/xdebug.ini
     - git config --global user.email "$GitEmail"
     - git config --global user.name "Circle CI"
-
     - echo "Setting GitHub OAuth token with suppressed ouput"
     - |
       {
