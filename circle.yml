@@ -24,7 +24,7 @@ dependencies:
     - composer config minimum-stability dev
     - composer install
   post:
-    - terminus auth login --machine-token=$TERMINUS_TOKEN
+    - terminus auth:login --machine-token=$TERMINUS_TOKEN
 test:
   pre:
     - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
