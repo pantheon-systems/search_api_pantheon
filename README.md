@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/pantheon-systems/search_api_pantheon/tree/8.x-1.x.svg?style=svg)](https://circleci.com/gh/pantheon-systems/search_api_pantheon/tree/8.x-1.x)
 
-This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_pantheon) on [Pantheon](https://pantheon.io). Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes the connection information between Pantheon environments. Doing so eliminates the need to do extra work setting up Solr servers for each environment.
+This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_solr) on [Pantheon](https://pantheon.io). Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes the connection information between Pantheon environments. Doing so eliminates the need to do extra work setting up Solr servers for each environment.
 
 ## Composer
 
@@ -12,10 +12,10 @@ Composer is the best way to install this module because this module relies on [S
 composer config repositories.drupal composer https://packages.drupal.org/8
 ```
 
-Next, require this module. These instructions currently show requiring the development branch of the repository. Once the module has been more widely tested and has an alpha release, this portion will be updated.
+Next, require this module.
 
 ```
-composer require drupal/search_api_pantheon:1.x-dev
+composer require "drupal/search_api_pantheon ~1.0" --prefer-dist
 ```
 
 You should now have this module along with Search API, Search API Solr, and Solarium. Commit the changes and push your repository to Pantheon. Be sure not to commit `search_api_pantheon` as a git submodule. One way to do that is by removing the `.git` repository that may have come with it through Composer.
