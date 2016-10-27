@@ -15,6 +15,6 @@
         }
     },
     "require": {
-        "drupal/search_api_solr": "~1.0-alpha5"
+        "drupal/search_api_solr": "~1.0-beta1"
     }
 }
