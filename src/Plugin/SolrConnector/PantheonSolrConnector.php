@@ -177,13 +177,13 @@ class PantheonSolrConnector extends StandardSolrConnector {
     // If the ping fails, there is a good chance it is because the code
     // is being run on a new multidev environment in which the schema has not
     // yet been posted.
-    if (!$ping) {
+    if ($ping === FALSE) {
       $this->postSchema();
       // Try again after posting the schema.
       return $this->doPing(['handler' => 'admin/system'], 'server');
     }
     else {
-      return TRUE;
+      return $ping;
     }
   }
 
