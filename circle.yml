@@ -7,7 +7,7 @@ machine:
     # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
-    PATH: $PATH:~/search_api_pantheon/vendor/bin
+    PATH: $PATH:~/search_api_pantheon/vendor/bin:~/terminus/bin
 
 dependencies:
   cache_directories:
@@ -20,7 +20,8 @@ dependencies:
   override:
     - composer global require "hirak/prestissimo:^0.3"
     - composer global require drush/drush:8.*
-    - cd ~ ; mkdir terminus ; cd terminus ; echo '{"minimum-stability": "dev", "prefer-stable": true}' > composer.json ; composer require pantheon-systems/terminus dev-master ; echo 'alias terminus=~/terminus/vendor/bin/terminus'>>~/.bash_profile ; source ~/.bash_profile
+    - git clone https://github.com/pantheon-systems/terminus.git ~/terminus
+    - cd ~/terminus && composer install
     - composer config minimum-stability dev
     - composer install
   post:
