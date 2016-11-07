@@ -1,45 +1,44 @@
 <?php
+
 /**
  * @file
- * Override Solr connection configuration from Search API Solr module.
+ * Provide a connection to Pantheon's Solr instance.
  */
 
-namespace Drupal\search_api_pantheon\Plugin\search_api\backend;
+namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
-use Drupal\Core\Config\Config;
-use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
+use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\search_api_solr\Annotation\SolrConnector;
+use Solarium\Core\Client\Endpoint;
+use Solarium\Core\Client\Request;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\search_api_pantheon\SchemaPoster;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\search_api_solr\SolrBackendInterface;
-use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
-use Drupal\search_api_pantheon\search_api_solr\PantheonSolrHelper;
-use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Extension\ExtensionDiscovery;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 
 /**
- * Apache Solr backend for search api.
+ * Standard Solr connector.
  *
- * @SearchApiBackend(
- *   id = "search_api_pantheon_solr",
- *   label = @Translation("Solr on Pantheon"),
- *   description = @Translation("Index items using Solr on Pantheon.")
+ * @SolrConnector(
+ *   id = "pantheon",
+ *   label = @Translation("Pantheon"),
+ *   description = @Translation("A connector for Pantheon's Solr server")
  * )
  */
-class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrBackendInterface {
+class PantheonSolrConnector extends StandardSolrConnector {
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SchemaPoster $schema_poster) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, SchemaPoster $schema_poster) {
     $configuration += $this->internalConfiguration();
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $search_api_solr_settings, $language_manager);
-    $solr_helper = new PantheonSolrHelper($this->configuration);
-    $this->setSolrHelper($solr_helper);
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->schemaPoster = $schema_poster;
   }
 
@@ -47,15 +46,13 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('module_handler'),
-      $container->get('config.factory')->get('search_api_solr.settings'),
-      $container->get('language_manager'),
-      $container->get('search_api_pantheon.schema_poster')
-    );
+    $plugin = new static($configuration, $plugin_id, $plugin_definition, $container->get('search_api_pantheon.schema_poster'));
+
+    /** @var \Drupal\Core\StringTranslation\TranslationInterface $translation */
+    $translation = $container->get('string_translation');
+    $plugin->setStringTranslation($translation);
+
+    return $plugin;
   }
 
   /**
@@ -69,8 +66,8 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
     if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
       $pantheon_specific_configuration = [
         'scheme' => 'https',
-        'host' => pantheon_variable_get('pantheon_index_host'),
-        'port' => pantheon_variable_get('pantheon_index_port'),
+        'host' => $_ENV['PANTHEON_INDEX_HOST'],
+        'port' => $_ENV['PANTHEON_INDEX_PORT'],
         'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
       ];
     }
@@ -92,17 +89,6 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
    */
   public function getConfiguration() {
     return $this->configuration;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setConfiguration(array $configuration) {
-    $this->configuration = $this->internalConfiguration();
-    // Update the configuration of the solrHelper as well by replacing it by a
-    // new instance.
-    $solr_helper = new PantheonSolrHelper($this->configuration);
-    $this->setSolrHelper($solr_helper);
   }
 
   /**
@@ -159,18 +145,29 @@ class SearchApiPantheonSolrBackend extends SearchApiSolrBackend implements SolrB
   }
 
   /**
-   * {@inheritdoc}
+   * Prepares the connection to the Solr server.
    */
   protected function connect() {
     if (!$this->solr) {
       $this->solr = new Client();
+
       // The parent method is overridden so that this alternate adapter class
       // can be set. This line is the only difference from the parent method.
       $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
 
       $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);
-      $this->getSolrHelper()->setSolr($this->solr);
+      $this->attachServerEndpoint();
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function pingServer() {
+    // The path used in the parent class, admin/info/system, fails.
+    // I don't know why.
+    // @todo, remove this entire class: https://www.drupal.org/node/2761121
+    return $this->doPing(['handler' => 'admin/system'], 'server');
   }
 
 }
