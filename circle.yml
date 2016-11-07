@@ -8,7 +8,6 @@ machine:
     TERMINUS_SITE: search-api-solr-d8
     PATH: $PATH:~/terminus/bin
 
-
 dependencies:
   cache_directories:
     - ~/.composer/cache
@@ -33,7 +32,6 @@ dependencies:
     - composer remove drupal/search_api_solr --no-update
     - composer install
   post:
-    - terminus list
     - terminus auth:login --machine-token=$TERMINUS_TOKEN
 test:
   pre:
