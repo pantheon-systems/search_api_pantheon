@@ -6,7 +6,6 @@ default:
     default:
       paths:
         - %paths.base%/features
-        - %paths.base%/common-features
       contexts:
         #- FeatureContext
         - Drupal\DrupalExtension\Context\DrupalContext
