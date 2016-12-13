@@ -4,10 +4,9 @@ machine:
     # https://circleci.com/docs/environment#php
     version: 7.0.7
   environment:
-    # DB config. Using default CircleCI's database.
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
-    PATH: $PATH:~/search_api_pantheon/vendor/bin
+    PATH: $PATH:~/terminus/bin
 
 dependencies:
   cache_directories:
@@ -17,24 +16,49 @@ dependencies:
     # Using > instead of >> will overwrite the file and disable xdebug.
     # xdebug makes composer slower.
     - echo "date.timezone = 'US/Central'"  >  /opt/circleci/php/7.0.7/etc/conf.d/xdebug.ini
+    - git config --global user.email "$GitEmail"
+    - git config --global user.name "Circle CI"
+    - echo "Setting GitHub OAuth token with suppressed ouput"
+    - |
+      {
+        composer config -g github-oauth.github.com $GITHUB_TOKEN
+      } &> /dev/null
   override:
     - composer global require "hirak/prestissimo:^0.3"
-    - composer global require pantheon-systems/terminus "<0.13.0"
     - composer global require drush/drush:8.*
+    - git clone https://github.com/pantheon-systems/terminus.git ~/terminus
+    - cd ~/terminus && composer install
     - composer config minimum-stability dev
+    - composer remove drupal/search_api_solr --no-update
     - composer install
   post:
-    - terminus auth login --machine-token=$TERMINUS_TOKEN
+    - terminus auth:login --machine-token=$TERMINUS_TOKEN
 test:
   pre:
     - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
     # Make a new multidev env from a vanilla D8 site.
     - cd tests/circle-scripts && ./create-fresh-d8-site.sh
-    # Set up the D8 site with contrib migrate contrib modules and enable
-    # those modules on Panetheon.
     - cd tests/circle-scripts && ./setup-d8-repo.sh
-
-    # Configure the migration, creating exportable, re-runnable configuration.
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - cd tests/circle-scripts && ./verify-solr.sh
+deployment:
+  feature:
+    branch: 8.x-1.x
+    commands:
+      # Make sure the full history from GitHub is present. If it is not,
+      # the push to drupal.org will fail.
+      - git fetch --unshallow
+      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
+      - git fetch drupalorg
+      - git push  drupalorg $CIRCLE_BRANCH
+  release:
+    tag: /8.x-.*/
+    owner: pantheon-systems
+    commands:
+      # Make sure the full history from GitHub is present. If it is not,
+      # the push to drupal.org will fail.
+      - git fetch --unshallow
+      - git remote add drupalorg stevector@git.drupal.org:project/search_api_pantheon.git
+      - git fetch drupalorg
+      - git push  drupalorg --tags

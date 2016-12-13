@@ -5,10 +5,7 @@
         "drupal/coder": "2.0-beta1",
         "squizlabs/php_codesniffer": "2.0.*@dev",
         "drush-ops/behat-drush-endpoint": "*",
-        "drupal/drupal-extension": "dev-master",
-        "drupal/drupal-driver": "dev-master",
-        "drush/drush": "8.*",
-        "pantheon-systems/terminus": "^0.11.2"
+        "drupal/drupal-extension": "dev-master"
     },
     "repositories": {
         "drupal": {
@@ -17,6 +14,6 @@
         }
     },
     "require": {
-        "drupal/search_api_solr": "~1.0-alpha5"
+        "drupal/search_api_solr": "~1.0-beta1"
     }
 }

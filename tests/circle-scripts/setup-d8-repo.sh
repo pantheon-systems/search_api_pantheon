@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Bring the code down to Circle so that modules can be added via composer.
-git clone $(terminus site connection-info --field=git_url) drupal8
+git clone $(terminus connection:info $TERMINUS_SITE.$TERMINUS_ENV --field=git_url) drupal8
 cd drupal8
 git checkout -b $TERMINUS_ENV
 
@@ -24,8 +24,6 @@ rm -rf modules/search_api_pantheon/.git/
 rm -rf vendor/solarium/solarium/.git/
 
 # Make a git commit
-git config user.email "$GitEmail"
-git config user.name "Circle CI"
 git add .
 git commit -m 'Result of build step'
 git push --set-upstream origin $TERMINUS_ENV
