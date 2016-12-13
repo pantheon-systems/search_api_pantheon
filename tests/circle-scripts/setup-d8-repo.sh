@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # Bring the code down to Circle so that modules can be added via composer.
 git clone $(terminus connection:info $TERMINUS_SITE.$TERMINUS_ENV --field=git_url) drupal8
 cd drupal8
