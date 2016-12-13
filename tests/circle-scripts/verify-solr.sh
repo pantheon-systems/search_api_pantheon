@@ -3,7 +3,7 @@
 set -ex
 
 # Create a drush alias file so that Behat tests can be executed against Pantheon.
-terminus sites aliases
+terminus aliases
 # Drush Behat driver fails without this option.
 echo "\$options['strict'] = 0;" >> ~/.drush/pantheon.aliases.drushrc.php
 
