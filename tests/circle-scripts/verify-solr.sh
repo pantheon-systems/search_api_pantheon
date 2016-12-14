@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# @todo, This step should not be necessary.
+# It should be taken care of in terminus aliases
+mkdir ~/.drush
+
 # Create a drush alias file so that Behat tests can be executed against Pantheon.
 terminus aliases
 # Drush Behat driver fails without this option.
