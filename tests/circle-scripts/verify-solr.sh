@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -ex
-
 # Create a drush alias file so that Behat tests can be executed against Pantheon.
 terminus aliases
 # Drush Behat driver fails without this option.
