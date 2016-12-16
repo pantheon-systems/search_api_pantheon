@@ -25,7 +25,7 @@ dependencies:
       } &> /dev/null
   override:
     - composer global require "hirak/prestissimo:^0.3"
-    - git clone --branch ensure-dir https://github.com/stevector/terminus.git ~/terminus
+    - git clone --branch ensure-dir--and-site-env-lookup https://github.com/stevector/terminus.git ~/terminus
     - cd ~/terminus && composer install
     - composer global require drush/drush:8.*
     - composer config minimum-stability dev
