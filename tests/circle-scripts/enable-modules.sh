@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 terminus drush "cache-rebuild"
 terminus drush "pml"
 # Uninstall core search to reduce confusion in the UI.
