@@ -6,6 +6,7 @@ machine:
   environment:
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
+    SITE_ENV: $TERMINUS_SITE.$TERMINUS_ENV
     PATH: $PATH:~/terminus/bin
 
 dependencies:
