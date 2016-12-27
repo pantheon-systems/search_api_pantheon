@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -x
 
 # @todo, pull in upstream updates, wipe and install drupal.
 # Also, it might be cleaner to create an entirely new D8 site rather than making
