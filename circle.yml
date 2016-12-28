@@ -28,6 +28,8 @@ dependencies:
     - composer global require "hirak/prestissimo:^0.3"
     - git clone --branch master https://github.com/pantheon-systems/terminus.git ~/terminus
     - cd ~/terminus && composer install
+    - mkdir -p ~/.terminus/plugins
+    - composer create-project -d ~/.terminus/plugins pantheon-systems/terminus-composer-plugin:~1
     - composer global require drush/drush:8.*
     - composer config minimum-stability dev
     - composer remove drupal/search_api_solr --no-update
