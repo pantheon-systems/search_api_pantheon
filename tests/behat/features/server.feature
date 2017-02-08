@@ -8,7 +8,10 @@ Feature: Solr on Pantheon
     When I visit "admin/config/search/search-api/add-server"
     And I fill in "name" with "pantheon"
     And I fill in "id" with "pantheon"
-    And I select the radio button "Solr"
+    # On 2017-02-08, this step stopped working when additional description text
+    # started to display on the form. Because "Solr" is already selected
+    # (and the only option for the field) it is not necessary.
+    # And I select the radio button "Solr"
     And I select the radio button "Pantheon"
     And I press the "Save" button
     And I select the radio button "modules/search_api_solr/solr-conf/4.x/schema.xml"
