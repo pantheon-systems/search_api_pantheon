@@ -7,7 +7,7 @@
 
 namespace Drupal\search_api_pantheon;
 
-use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use GuzzleHttp\Client;
 
 /**
@@ -34,7 +34,7 @@ class SchemaPoster {
   /**
    * Constructor.
    */
-  public function __construct(LoggerChannelFactory $logger_factory, Client $http_client) {
+  public function __construct(LoggerChannelFactoryInterface $logger_factory, Client $http_client) {
     $this->loggerFactory = $logger_factory;
     $this->httpClient = $http_client;
   }
