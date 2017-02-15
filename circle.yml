@@ -7,6 +7,7 @@ machine:
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
     SITE_ENV: $TERMINUS_SITE.$TERMINUS_ENV
+    MULTIDEV_DELETE_PATTERN: ^ci-
     PATH: $PATH:~/terminus/bin
 
 dependencies:
@@ -28,6 +29,8 @@ dependencies:
     - composer global require "hirak/prestissimo:^0.3"
     - git clone --branch master https://github.com/pantheon-systems/terminus.git ~/terminus
     - cd ~/terminus && composer install
+    - mkdir -p ~/.terminus/plugins
+    - composer create-project -d ~/.terminus/plugins pantheon-systems/terminus-composer-plugin:~1
     - composer global require drush/drush:8.*
     - composer config minimum-stability dev
     - composer remove drupal/search_api_solr --no-update
@@ -38,6 +41,7 @@ test:
   pre:
     - ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
     # Make a new multidev env from a vanilla D8 site.
+    - cd tests/circle-scripts && ./delete-old-multidevs.sh
     - cd tests/circle-scripts && ./create-fresh-d8-site.sh
     - cd tests/circle-scripts && ./setup-d8-repo.sh
     - cd tests/circle-scripts && ./enable-modules.sh
