@@ -14,7 +14,7 @@ Feature: Solr on Pantheon
     # And I select the radio button "Solr"
     And I select the radio button "Pantheon"
     And I press the "Save" button
-    And I select the radio button "modules/search_api_solr/solr-conf/4.x/schema.xml"
+    And I select the radio button "modules/contrib/search_api_solr/solr-conf/4.x/schema.xml"
     And I press the "Save" button
 
     # Here is the real verification of this scenario, that the server can be
@@ -35,7 +35,7 @@ Feature: Solr on Pantheon
     # back to the same form (with more options available, which aren't needed for
     # this test.)
     And I press the "Save" button
-    When I visit "admin/config/search/search-api/index/nodes/fields/add?datasource=entity%3Anode"
+    When I visit "admin/config/search/search-api/index/nodes/fields/add/nojs"
     And I press the "entity:node/title" button
     When I visit "admin/config/search/search-api/index/nodes/fields"
     And I select "Fulltext" from "fields[title][type]"
@@ -64,7 +64,7 @@ Feature: Solr on Pantheon
     When I visit "admin/content"
     Then I should see the text "Test article"
     When I visit "admin/reports/status"
-    And I follow "run cron manually"
+    And I follow "Run cron"
     When I visit "admin/config/search/search-api/index/nodes"
     Then I should see "100%" in the "index_percentage" region
     # And I break
