@@ -64,7 +64,7 @@ Feature: Solr on Pantheon
     When I visit "admin/content"
     Then I should see the text "Test article"
     When I visit "admin/reports/status"
-    And I follow "run cron manually"
+    And I follow "Run cron"
     When I visit "admin/config/search/search-api/index/nodes"
     Then I should see "100%" in the "index_percentage" region
     # And I break
