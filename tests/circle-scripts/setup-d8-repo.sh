@@ -21,6 +21,10 @@ rm -rf modules/search_api_solr/.git/
 rm -rf modules/search_api/.git/
 rm -rf modules/search_api_page/.git/
 rm -rf modules/search_api_pantheon/.git/
+rm -rf modules/contrib/search_api_solr/.git/
+rm -rf modules/contrib/search_api/.git/
+rm -rf modules/contrib/search_api_page/.git/
+rm -rf modules/contrib/search_api_pantheon/.git/
 rm -rf vendor/solarium/solarium/.git/
 
 # Make a git commit
