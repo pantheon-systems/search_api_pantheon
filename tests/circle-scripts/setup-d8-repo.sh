@@ -11,11 +11,6 @@ composer config repositories.search_api_pantheon vcs git@github.com:pantheon-sys
 composer require drupal/search_api_pantheon:dev-8.x-1.x#$CIRCLE_SHA1
 composer require drupal/search_api_page:1.x-dev
 
-# These two lines are necessary only to force dev installs,
-# otherwise the latest releases would be used.
-composer require drupal/search_api_solr:1.x-dev --prefer-dist
-composer require drupal/search_api:1.x-dev --prefer-dist
-
 # Make sure submodules are not committed.
 rm -rf modules/contrib/search_api_solr/.git/
 rm -rf modules/contrib/search_api/.git/
