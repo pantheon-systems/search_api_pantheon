@@ -2,7 +2,7 @@
 machine:
   php:
     # https://circleci.com/docs/environment#php
-    version: 7.0.8
+    version: 7.1.6
   environment:
     TERMINUS_ENV: ci-$CIRCLE_BUILD_NUM
     TERMINUS_SITE: search-api-solr-d8
