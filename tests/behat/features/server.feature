@@ -60,7 +60,8 @@ Feature: Solr on Pantheon
     Given I am logged in as a user with the "administrator" role
     When I visit "node/add/article"
     And I fill in "title[0][value]" with "Test article title"
-    And I press the "Save and publish" button
+    And I check the box "Publishing status"
+    And I press "Save"
     When I visit "admin/content"
     Then I should see the text "Test article"
     When I visit "admin/reports/status"
