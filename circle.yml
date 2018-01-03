@@ -43,6 +43,8 @@ test:
     - cd tests/circle-scripts && ./enable-modules.sh
   override:
     - cd tests/circle-scripts && ./verify-solr.sh
+  post:
+    - terminus env:list --field=id $TERMINUS_SITE | grep "^ci-" | sort -k1.4n | tail -r | sed 1,5d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 deployment:
   feature:
     branch: 8.x-1.x
