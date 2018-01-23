@@ -150,6 +150,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
   protected function connect() {
     if (!$this->solr) {
       $this->solr = new Client();
+      $this->solr->registerQueryType('mlt', "Drupal\search_api_pantheon\Solarium\MoreLikeThisQuery");
 
       // The parent method is overridden so that this alternate adapter class
       // can be set. This line is the only difference from the parent method.
