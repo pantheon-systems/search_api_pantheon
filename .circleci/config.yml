@@ -14,6 +14,8 @@ jobs:
             - run:
                 name: log in
                 command: |
+                  git config --global user.email "$GitEmail"
+                  git config --global user.name "Circle CI"
                   mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
                   terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
                   terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
