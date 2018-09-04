@@ -37,7 +37,7 @@ jobs:
                   export TERMINUS_ENV=$CIRCLE_BUILD_NUM
                   export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
                   ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
-                  cd .circleci/tests
+                  cd .circleci
                   ./create-fresh-d8-site.sh
                   ./setup-d8-repo.sh
                   ./enable-modules.sh
