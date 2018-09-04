@@ -18,18 +18,18 @@ jobs:
                   terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
                   terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
-            - restore_cache:
-                key: dependency-cache-{{ checksum "composer.lock" }}
+#            - restore_cache:
+#                key: dependency-cache-{{ checksum "composer.lock" }}
             - run:
                 name: Composer install
                 command: |
                   composer remove drupal/search_api_solr --no-update
                   composer install
                   drush help
-            - save_cache:
-                key: dependency-cache-{{ checksum "composer.lock" }}
-                paths:
-                  - ~/.composer/cache
+#            - save_cache:
+#                key: dependency-cache-{{ checksum "composer.lock" }}
+#                paths:
+#                  - ~/.composer/cache
 
             - run:
                 name: all the things
