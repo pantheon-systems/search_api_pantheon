@@ -6,4 +6,4 @@ terminus aliases
 echo "\$options['strict'] = 0;" >> ~/.drush/pantheon.aliases.drushrc.php
 
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io/"}, "Drupal\\DrupalExtension" : {"drush" :   {  "alias":  "@pantheon.'$TERMINUS_SITE'.'$TERMINUS_ENV'" }}}}'
-cd ../../ && ./vendor/bin/behat --config=tests/behat/behat-pantheon.yml
+ ./../vendor/bin/behat --config=tests/behat/behat-pantheon.yml
