@@ -8,7 +8,7 @@ jobs:
         environment:
             BASH_ENV: ~/.bashrc
             TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-            TERMINUS_SITE: search-api-solr-d8
+            TERMINUS_SITE: search-api-pantheon-d8
         steps:
             - checkout
             - run:
