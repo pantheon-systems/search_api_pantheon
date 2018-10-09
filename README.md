@@ -60,7 +60,7 @@ The version of Solr on Pantheon is Apache Solr v3.6. To accommodate this older v
 
 ### Pantheon environments
 
-Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. So indexing and searching in one environment does not impact any other environment. This also means that the schema file has to be posted to each environment's Solr server. Do to so, resave the search API server. [Before this module is released as a Beta, reposting will be done automatically.](https://www.drupal.org/node/2775549)
+Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
 
 ### Feedback and collaboration
 
