@@ -1,22 +1,11 @@
 <?php
 
-/**
- * @file
- * Provide a connection to Pantheon's Solr instance.
- */
-
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
 use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
 use Drupal\Core\Annotation\Translation;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\search_api_solr\Annotation\SolrConnector;
-use Solarium\Core\Client\Endpoint;
-use Solarium\Core\Client\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\SchemaPoster;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\search_api_solr\SolrBackendInterface;
 use Solarium\Client;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -79,9 +68,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array(
+    return [
       'schema' => '',
-    );
+    ];
   }
 
   /**
@@ -115,13 +104,13 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
-    $form['schema'] = array(
+    $form['schema'] = [
       '#type' => 'radios',
       '#title' => $this->t('Schema file'),
       '#options' => $this->findSchemaFiles(),
-      '#description' => $this->t('Select a Solr schema file to be POSTed to Pantheon\'s Solr server'),
+      '#description' => $this->t("Select a Solr schema file to be POSTed to Pantheon's Solr server"),
       '#default_value' => $this->configuration['schema'],
-    );
+    ];
 
     return $form;
   }
@@ -197,4 +186,5 @@ class PantheonSolrConnector extends StandardSolrConnector {
     $this->pingServer();
     return parent::getDataFromHandler($endpoint, $handler, $reset = FALSE);
   }
+
 }
