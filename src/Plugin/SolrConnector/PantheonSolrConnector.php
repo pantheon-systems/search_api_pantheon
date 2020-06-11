@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
 use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
+use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
