@@ -1,13 +1,12 @@
 <?php
 
-/**
- * @file
- * Override Solarium so that more options can be set before executing curl.
- */
-
 namespace Drupal\search_api_pantheon\Solarium;
+
 use Solarium\Core\Client\Adapter\Curl;
 
+/**
+ * This class exists to add a certificate to the curl made to Solr.
+ */
 class PantheonCurl extends Curl {
 
   /**
@@ -22,4 +21,5 @@ class PantheonCurl extends Curl {
     }
     return $handler;
   }
+
 }
