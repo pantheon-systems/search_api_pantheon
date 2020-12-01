@@ -6,6 +6,7 @@
  */
 
 namespace Drupal\search_api_pantheon\Solarium;
+use Solarium\Core\Client\Adapter\AdapterHelper;
 use Solarium\Core\Client\Adapter\Curl;
 
 class PantheonCurl extends Curl {
@@ -16,6 +17,9 @@ class PantheonCurl extends Curl {
   public function createHandle($request, $endpoint) {
     $handler = parent::createHandle($request, $endpoint);
     if (defined('PANTHEON_ENVIRONMENT')) {
+      $uri = AdapterHelper::buildUri($request, $endpoint);
+      $uri = str_replace('/solr/.', '', $uri);
+      curl_setopt($handler, CURLOPT_URL, $uri);
       curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, FALSE);
       $client_cert = $_SERVER['HOME'] . '/certs/binding.pem';
       curl_setopt($handler, CURLOPT_SSLCERT, $client_cert);
