@@ -7,4 +7,4 @@ terminus drush $SITE_ENV -- pml
 terminus drush $SITE_ENV -- pm-uninstall search -y
 terminus drush $SITE_ENV -- en -y search_api_pantheon search_api_solr search_api_page search_api
 # @todo, would this test benefit from exporting/committing config?
-terminus connection:set $SITE_ENV sftp
+#terminus connection:set $SITE_ENV sftp
