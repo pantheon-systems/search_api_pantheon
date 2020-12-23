@@ -22,9 +22,9 @@ jobs:
 
        #     - restore_cache:
        #         key: dependency-cache-{{ checksum "composer.json" }}
-       #     - run:
-       #         name: Composer install
-       #         command: |
+            - run:
+                name: Composer install
+                command: |
        #           # Remove this dependency before install because it will lead to installing all of Drupal core.
        #           composer remove drupal/search_api_solr --no-update
                   composer install
