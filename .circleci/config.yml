@@ -25,18 +25,8 @@ jobs:
             - run:
                 name: Composer install
                 command: |
-       #           # Remove this dependency before install because it will lead to installing all of Drupal core.
-       #           composer remove drupal/search_api_solr --no-update
                   composer install
                   drush help
-       #     - save_cache:
-       #         key: dependency-cache-{{ checksum "composer.json" }}
-       #         paths:
-       #            - ~/.composer/cache
-       # Commenting out PHP sniffing as standards have changed.
-       #     - run:
-       #         name: Code sniff
-       #         command: ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
 
             - run:
                 name: Behavioral tests
