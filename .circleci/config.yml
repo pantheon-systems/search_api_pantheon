@@ -27,8 +27,8 @@ jobs:
        #         command: |
        #           # Remove this dependency before install because it will lead to installing all of Drupal core.
        #           composer remove drupal/search_api_solr --no-update
-       #           composer install
-       #           drush help
+                  composer install
+                  drush help
        #     - save_cache:
        #         key: dependency-cache-{{ checksum "composer.json" }}
        #         paths:
