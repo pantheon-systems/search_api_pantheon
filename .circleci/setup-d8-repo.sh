@@ -12,7 +12,9 @@ composer require --dev drush-ops/behat-drush-endpoint
 
 composer require drupal/search_api_solr:"1.6"
 
-composer config repositories.search_api_pantheon  --json '{"canonical":true, "type": "vcs", "url": "git@github.com:pantheon-systems/search_api_pantheon.git"}'
+composer config repositories.search_api_pantheon vcs git@github.com:pantheon-systems/search_api_pantheon.git
+# --json needs composer 2
+# composer config repositories.search_api_pantheon  --json '{"canonical":true, "type": "vcs", "url": "git@github.com:pantheon-systems/search_api_pantheon.git"}'
 composer require drupal/search_api_pantheon:"dev-8.x-1.x#$CIRCLE_SHA1"
 composer require drupal/search_api_page:1.x-dev
 
