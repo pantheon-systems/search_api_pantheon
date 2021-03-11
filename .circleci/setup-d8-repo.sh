@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Bring the code down to Circle so that modules can be added via composer.
-git clone $(terminus connection:info $SITE_ENV --field=git_url) drupal8
-cd drupal8
+git clone $(terminus connection:info $SITE_ENV --field=git_url) drupal
+cd drupal
 git checkout -b $TERMINUS_ENV
 
 # Composer is erroring when there is an empty require-dev attribute.
