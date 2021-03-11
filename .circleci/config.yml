@@ -3,7 +3,7 @@ version: 2
 jobs:
     build:
         docker:
-            - image: quay.io/pantheon-public/build-tools-ci:1.x
+            - image: quay.io/pantheon-public/build-tools-ci:6.x
         working_directory: ~/working
         environment:
             BASH_ENV: ~/.bashrc
@@ -38,5 +38,28 @@ jobs:
                   ./setup-d8-repo.sh
                   ./enable-modules.sh
                   ./verify-solr.sh
+
+
+# Drupal 9 CI steps
+
+# Update Drupal Core
+
+# Make multidev
+
+# Install Drupal Umami profile
+
+# Git clone to local (CI container)
+
+# Composer add search_api_pantheon (which should bring along everything else (search_api_solr, solarium))
+
+# Push to pantheon multidev
+
+# Enable modules
+
+# Configure search
+
+# run indexing
+
+# do a search
 
 
