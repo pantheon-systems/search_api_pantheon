@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -x
 
 #terminus upstream:updates:apply $TERMINUS_SITE
