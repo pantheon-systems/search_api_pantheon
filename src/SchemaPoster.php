@@ -15,14 +15,14 @@ class SchemaPoster {
   /**
    * Drupal\Core\Logger\LoggerChannelFactory definition.
    *
-   * @var Drupal\Core\Logger\LoggerChannelFactory
+   * @var \Drupal\Core\Logger\LoggerChannelFactory
    */
   protected $loggerFactory;
 
   /**
    * GuzzleHttp\Client definition.
    *
-   * @var GuzzleHttp\Client
+   * @var \GuzzleHttp\Client
    */
   protected $httpClient;
 
