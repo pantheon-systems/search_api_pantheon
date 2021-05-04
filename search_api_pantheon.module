@@ -13,6 +13,7 @@ function search_api_pantheon_search_api_solr_query_alter(SolariumQueryInterface 
     $edismax = $solarium_query->getEDisMax();
     $query_fields = $edismax->getQueryFields();
     $solarium_query->addParam('qf', $query_fields);
+    $solarium_query->addParam('defType', 'edismax');
   }
 }
 
@@ -31,6 +32,5 @@ function search_api_pantheon_search_api_solr_converted_query_alter(SolariumQuery
     }
 
     $solarium_query->setOptions($options);
-    $solarium_query->addParam('defType', 'edismax');
   }
 }
