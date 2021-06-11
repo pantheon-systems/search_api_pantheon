@@ -1,24 +1,15 @@
 <?php
 
-/**
- * @file
- * Provide a connection to Pantheon's Solr instance.
- */
-
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\search_api_pantheon\Solarium\PantheonCurl;
-use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\search_api_solr\Annotation\SolrConnector;
 use Drupal\search_api_solr\Solarium\EventDispatcher\Psr14Bridge;
 use Drupal\search_api_solr_legacy\Plugin\SolrConnector\Solr36Connector;
 use Solarium\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\SchemaPoster;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
 
 /**
  * Pantheon Solr connector.
@@ -32,6 +23,15 @@ use RegexIterator;
 class PantheonSolrConnector extends Solr36Connector {
 
   /**
+   * The event dispatcher.
+   *
+   * @var \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher
+   */
+  protected $eventDispatcher;
+
+  /**
+   * Variable SchemaPoster.
+   *
    * @var \Drupal\search_api_pantheon\SchemaPoster
    */
   protected $schemaPoster;
@@ -39,20 +39,31 @@ class PantheonSolrConnector extends Solr36Connector {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, SchemaPoster $schema_poster) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, SchemaPoster $schema_poster, ContainerAwareEventDispatcher $eventDispatcher) {
     $configuration += $this->internalConfiguration();
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->schemaPoster = $schema_poster;
+    if (class_exists('\Drupal\Component\EventDispatcher\Event')) {
+      // Drupal >= 9.1.
+      $this->eventDispatcher = $eventDispatcher;
+    }
+    else {
+      // Drupal <= 9.0.
+      $this->eventDispatcher = new Psr14Bridge($eventDispatcher);
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    $plugin = new static($configuration, $plugin_id, $plugin_definition, $container->get('search_api_pantheon.schema_poster'));
-    $plugin->eventDispatcher = new Psr14Bridge();
-
-    return $plugin;
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('search_api_pantheon.schema_poster'),
+      $container->get('event_dispatcher')
+    );
   }
 
   /**
@@ -100,9 +111,9 @@ class PantheonSolrConnector extends Solr36Connector {
    */
   public function findSchemaFiles() {
     $return = [];
-    $directory = new RecursiveDirectoryIterator('modules');
-    $flattened = new RecursiveIteratorIterator($directory);
-    $files = new RegexIterator($flattened, '/schema.xml$/');
+    $directory = new \RecursiveDirectoryIterator('modules');
+    $flattened = new \RecursiveIteratorIterator($directory);
+    $files = new \RegexIterator($flattened, '/schema.xml$/');
 
     foreach ($files as $file) {
       $relative_path = str_replace(DRUPAL_ROOT . '/', '', $file->getRealPath());
@@ -120,7 +131,7 @@ class PantheonSolrConnector extends Solr36Connector {
       '#type' => 'radios',
       '#title' => $this->t('Schema file'),
       '#options' => $this->findSchemaFiles(),
-      '#description' => $this->t('Select a Solr schema file to be POSTed to Pantheon\'s Solr server'),
+      '#description' => $this->t("Select a Solr schema file to be POSTed to Pantheon's Solr server"),
       '#default_value' => $this->configuration['schema'],
     ];
 
@@ -181,4 +192,5 @@ class PantheonSolrConnector extends Solr36Connector {
     $this->pingServer();
     return parent::getDataFromHandler($handler, $reset);
   }
+
 }
