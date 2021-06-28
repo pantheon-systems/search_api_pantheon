@@ -6,9 +6,8 @@
  */
 
 /**
- * Ensure legacy solr api module is installed.
+ * Ensure that the Search API Solr Legacy module is installed.
  */
 function search_api_pantheon_update_8001() {
   \Drupal::service('module_installer')->install(['search_api_solr_legacy']);
 }
-

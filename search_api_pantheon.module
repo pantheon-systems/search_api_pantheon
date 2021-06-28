@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Primary hook implementations for Search API Pantheon.
+ */
+
 use Drupal\search_api\Query\QueryInterface;
 use Solarium\Core\Query\QueryInterface as SolariumQueryInterface;
 

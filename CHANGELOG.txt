@@ -5,4 +5,5 @@ Search API Patheon 8.x-1.x-alpha2
 
 Search API Patheon 8.x-1.x-alpha1
 --------------------------------------------------
-- Issue #2821769 by stevector: Initial release. Compatible with Search API Solr alpha6.
+- Issue #2821769 by stevector: Initial release. Compatible with Search API Solr
+  alpha6.
