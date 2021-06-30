@@ -60,6 +60,12 @@ The version of Solr on Pantheon is Apache Solr v3.6. To accommodate this older v
 
 Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
 
+## Troubleshooting
+
+* The site indexes content but no results are displayed when content is searched.
+
+  This happens when the wrong schema.xml file is used. Make sure that the schema.xml file provided by this module is the one used on the server's configuration, not one of the ones provided by Search API Solr.
+
 ## Feedback and collaboration
 
 Bug reports, feature requests and feedback should be posted in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All). For code changes, please submit merge requests on those issues or pull requests against the [GitHub repository](https://github.com/pantheon-systems/search_api_pantheon), as opposed to patch files.
