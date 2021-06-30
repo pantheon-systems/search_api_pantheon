@@ -4,6 +4,14 @@
 
 This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_solr) on [Pantheon](https://pantheon.io). Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes the connection information between Pantheon environments. Doing so eliminates the need to do extra work setting up Solr servers for each environment.
 
+## Solr versions and schemas
+
+The version of Solr on Pantheon is Apache Solr v3.6. To accommodate this older version of Solr, use the 4.x branch of [Search API Solr](https://www.drupal.org/project/search_api_solr), its "Search API Solr Legacy" submodule and use the 3.x schema file provided by this module.
+
+## Pantheon environments
+
+Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
+
 ## Composer
 
 Composer is the best way to install this module because this module relies on [Solarium](http://www.solarium-project.org/). Solarium is a Solr client library for PHP and is not Drupal-specific. First, register Drupal.org as a provider of Composer packages. This command should be run locally from the root directory of your Drupal 8 or 9 git repository.
@@ -50,15 +58,6 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
       * When using Views to build a search page, use the data source named "Index [name of index]", e.g. following the example above "Index Content".
 * **Export your changes**
   * It is a best practice in Drupal 8 & 9 to export your changes to `yml` files. Using Terminus while in SFTP mode, you can run `terminus --env=dev drush "config-export -y"` to export the configuration changes you have made. Once committed, these changes can be deployed out to Test and Live environments.
-
-
-## Solr versions and schemas
-
-The version of Solr on Pantheon is Apache Solr v3.6. To accommodate this older version of Solr, use the 4.x branch of [Search API Solr](https://www.drupal.org/project/search_api_solr), its "Search API Solr Legacy" submodule and use the 3.x schema file provided by this module.
-
-## Pantheon environments
-
-Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
 
 ## Troubleshooting
 
