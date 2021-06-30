@@ -33,7 +33,7 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
   * Enter "Pantheon" as the server name. (You can name the server anything you want but using something like "Pantheon" is a good way to remember where the connection goes.)
   * Under "Backend", select "Solr".
   * Under "Solr Connector", select "Pantheon".
-  * Having selected "Pantheon" you will then be presented with additional options. Choose the item that most closely matches the following: `modules/contrib/search_api_solr/modules/search_api_solr_legacy/solr-conf-templates/3.x/schema.xml` (the exact full path will depend upon where the module is installed in the codebase).
+  * Having selected "Pantheon" you will then be presented with additional options. Choose the item that most closely matches the following: `modules/contrib/search_api_pantheon/solr_conf/schema.xml` (the exact full path will depend upon where the module is installed in the codebase).
   * Optional: It is suggested to also expand the "Multi-site Compatibility" fieldset and enable the "Retrieve results for this site only" option, this may resolve problems with incorrect data showing in the search results.
   * Click the "Save" button to save the configuration.
 * **Use the server with an index**
