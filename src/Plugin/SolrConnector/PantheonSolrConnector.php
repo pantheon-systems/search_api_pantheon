@@ -55,9 +55,12 @@ class PantheonSolrConnector extends StandardSolrConnector {
     if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
       $pantheon_specific_configuration = [
         'scheme' => 'https',
-        'host' => $_ENV['PANTHEON_INDEX_HOST'],
-        'port' => $_ENV['PANTHEON_INDEX_PORT'],
-        'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
+        'host' => getenv('PANTHEON_INDEX_HOST'),
+        'port' => getenv('PANTHEON_INDEX_PORT'),
+        'path' => sprintf('/v1/site/%s/environment/%s/index',
+          getenv('PANTHEON_SITE'),
+          getenv('PANTHEON_ENVIRONMENT')
+        ),
       ];
     }
 
