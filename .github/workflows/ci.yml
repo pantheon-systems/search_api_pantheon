@@ -7,11 +7,12 @@ on:
     - cron: '0 0 * * *'
 jobs:
   # Checkout in separate job because docker image is alpine based and checkout action doesn't work.
-  prepare:
+  build_test:
     runs-on: ubuntu-latest
     container:
       image: quay.io/pantheon-public/build-tools-ci:7.4.x
-    name: Prepare everything
+      options: --user root
+    name: Build and test
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
