@@ -18,7 +18,7 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      TERMINUS_SITE: search-api-pantheon-d8
+      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
     steps:
       - name: Checkout
