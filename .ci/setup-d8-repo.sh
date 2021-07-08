@@ -10,7 +10,7 @@ git checkout -b $TERMINUS_ENV
 composer require --dev drush-ops/behat-drush-endpoint
 # Tell Composer where to find packages.
 composer config repositories.search_api_pantheon vcs git@github.com:pantheon-systems/search_api_pantheon.git
-composer require drupal/search_api_pantheon:"dev-8.x-1.x#$CIRCLE_SHA1"
+composer require drupal/search_api_pantheon:"dev-8.x-1.x#$COMMIT_SHA"
 composer require drupal/search_api_page:1.x-dev
 
 # Make sure submodules are not committed.

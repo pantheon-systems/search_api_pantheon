@@ -1,0 +1,53 @@
+name: Search API Pantheon
+on:
+  push:
+  pull_request:
+  repository_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+jobs:
+  # Checkout in separate job because docker image is alpine based and checkout action doesn't work.
+  prepare:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:7.4.x
+    name: Prepare everything
+    env:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      TERMINUS_SITE: search-api-pantheon-d8
+      COMMIT_SHA: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Login
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "Github Actions"
+          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
+          terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
+
+      # @todo: Cache ~/.composer/cache
+      - name: Composer install
+        run: |
+          # Remove this dependency before install because it will lead to installing all of Drupal core.
+          composer remove drupal/search_api_solr --no-update
+          composer install
+          drush help
+
+      - name: Code sniff
+        run: ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
+
+      - name: Behavioral tests
+        command: |
+          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
+          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
+          cd .ci
+          ./create-fresh-d8-site.sh
+          ./setup-d8-repo.sh
+          ./enable-modules.sh
+          ./verify-solr.sh
