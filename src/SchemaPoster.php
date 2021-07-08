@@ -6,7 +6,7 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use GuzzleHttp\Client;
 
 /**
- * Class SchemaPoster.
+ * Class used to post Solr schema to Pantheon infrastructure.
  *
  * @package Drupal\search_api_pantheon
  */
