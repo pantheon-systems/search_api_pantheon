@@ -38,7 +38,6 @@ jobs:
           # Remove this dependency before install because it will lead to installing all of Drupal core.
           composer remove drupal/search_api_solr --no-update
           composer install
-          drush help
 
       - name: Code sniff
         run: ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
