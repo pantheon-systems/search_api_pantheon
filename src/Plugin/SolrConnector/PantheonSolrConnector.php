@@ -7,9 +7,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\SchemaPoster;
 use Solarium\Client;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
 
 /**
  * Standard Solr connector.
