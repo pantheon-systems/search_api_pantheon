@@ -43,7 +43,7 @@ jobs:
         run: ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
 
       - name: Behavioral tests
-        command: |
+        run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           cd .ci
