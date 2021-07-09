@@ -33,16 +33,6 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
-      - name: Prepare git ref
-        run: |
-          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-            BRANCH=`echo $GITHUB_REF | cut -c12-`
-            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
-          else
-            TAG=`echo $GITHUB_REF | cut -c11-`
-            export GIT_REF=${TAG}
-          fi
-
       # @todo: Cache ~/.composer/cache
       - name: Composer install
         run: |
@@ -61,6 +51,13 @@ jobs:
           chmod 600 ../private.key
           eval `ssh-agent -s`
           ssh-add ../private.key
+          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
+            BRANCH=`echo $GITHUB_REF | cut -c12-`
+            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
+          else
+            TAG=`echo $GITHUB_REF | cut -c11-`
+            export GIT_REF=${TAG}
+          fi
           cd .ci
           ./create-fresh-d8-site.sh
           ./setup-d8-repo.sh
