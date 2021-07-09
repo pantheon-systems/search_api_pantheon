@@ -53,9 +53,6 @@ jobs:
       - name: Code sniff
         run: ./vendor/bin/phpcs --report=full --extensions=php,module,inc,theme,info,install --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor,modules,core,drush,patches,tests
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Behavioral tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
