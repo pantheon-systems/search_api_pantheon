@@ -40,7 +40,7 @@ jobs:
             BRANCH=${BRANCH:10}
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
           else
-            TAG=${BRANCH:9}"
+            TAG=${BRANCH:9}
             export GIT_REF=${TAG}
           fi
           echo "GIT REF: ${GIT_REF}"
