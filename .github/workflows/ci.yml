@@ -33,7 +33,18 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
-      # @todo: Cache ~/.composer/cache
+      - name: Cache composer cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-cache
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
       - name: Composer install
         run: |
           # Remove this dependency before install because it will lead to installing all of Drupal core.
