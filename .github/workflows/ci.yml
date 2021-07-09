@@ -29,7 +29,7 @@ jobs:
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
-          mkdir -p $HOME/.ssh && echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
@@ -39,14 +39,12 @@ jobs:
       - name: Prepare git ref
         run: |
           if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-            echo 'MATCH!'
             BRANCH=`echo $GITHUB_REF | cut -c12-`
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
           else
             TAG=`echo $GITHUB_REF | cut -c11-`
             export GIT_REF=${TAG}
           fi
-          echo "GIT REF: ${GIT_REF}"
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > ../private.key
