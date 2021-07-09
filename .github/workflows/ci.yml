@@ -34,6 +34,9 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Prepare git ref
         run: |
           if [ -n "$( echo $BRANCH | sed -n '/heads/p')" ] ; then
