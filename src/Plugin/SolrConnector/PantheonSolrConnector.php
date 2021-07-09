@@ -88,9 +88,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function findSchemaFiles() {
     $return = [];
-    $directory = new RecursiveDirectoryIterator('modules');
-    $flattened = new RecursiveIteratorIterator($directory);
-    $files = new RegexIterator($flattened, '/schema.xml$/');
+    $directory = new \RecursiveDirectoryIterator('modules');
+    $flattened = new \RecursiveIteratorIterator($directory);
+    $files = new \RegexIterator($flattened, '/schema.xml$/');
 
     foreach ($files as $file) {
       $relative_path = str_replace(DRUPAL_ROOT . '/', '', $file->getRealPath());
