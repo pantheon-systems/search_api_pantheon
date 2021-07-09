@@ -21,6 +21,8 @@ jobs:
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
+      BRANCH: ${{ github.ref }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,6 +34,22 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
+      - name: Prepare git ref
+        run: |
+          if [[ $BRANCH == *"refs/heads/"* ]]; then
+            BRANCH=${BRANCH:10}
+            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
+          else
+            TAG=${BRANCH:9}"
+            export GIT_REF=${TAG}
+          fi
+          echo "GIT REF: ${GIT_REF}"
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > ../private.key
+          chmod 600 ../private.key
+          eval `ssh-agent -s`
+          ssh-add ../private.key
       # @todo: Cache ~/.composer/cache
       - name: Composer install
         run: |
