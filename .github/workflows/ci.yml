@@ -39,10 +39,11 @@ jobs:
       - name: Prepare git ref
         run: |
           if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-            BRANCH=${GITHUB_REF:11}
+            echo 'MATCH!'
+            BRANCH=`echo $GITHUB_REF | cut -c12-`
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
           else
-            TAG=${GITHUB_REF:10}
+            TAG=`echo $GITHUB_REF | cut -c11-`
             export GIT_REF=${TAG}
           fi
           echo "GIT REF: ${GIT_REF}"
