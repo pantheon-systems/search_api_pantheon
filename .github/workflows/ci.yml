@@ -21,7 +21,6 @@ jobs:
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
-      BRANCH: ${{ github.ref }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout
@@ -34,16 +33,13 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
           terminus env:list --field=id $TERMINUS_SITE | grep -v '[a-z]' | grep -Eo '[0-9]{1,9}' | sort --numeric-sort --reverse | sed 1,7d | xargs -n1 -I ENV terminus env:delete --yes $TERMINUS_SITE.ENV
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Prepare git ref
         run: |
-          if [ -n "$( echo $BRANCH | sed -n '/heads/p')" ] ; then
-            BRANCH=${BRANCH:11}
+          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
+            BRANCH=${GITHUB_REF:11}
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
           else
-            TAG=${BRANCH:10}
+            TAG=${GITHUB_REF:10}
             export GIT_REF=${TAG}
           fi
           echo "GIT REF: ${GIT_REF}"
