@@ -1,19 +1,26 @@
 {
-    "name": "drupal/search_api_pantheon",
-    "type": "drupal-module",
-    "require-dev": {
-        "drupal/coder": "^8.3",
-        "squizlabs/php_codesniffer": "^3.5",
-        "drush-ops/behat-drush-endpoint": "*",
-        "drupal/drupal-extension": "^3.4"
+    "name": "org/search_api_pantheon",
+    "type": "drupal-drush",
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "drupal/search_api_solr": "^4.2",
+        "ricardofiorani/guzzle-psr18-adapter": "^1.0",
+        "guzzlehttp/guzzle": "^6.5.2",
+        "http-interop/http-factory-guzzle": "^1.0"
     },
-    "repositories": {
-        "drupal": {
-            "type": "composer",
-            "url": "https://packages.drupal.org/8"
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^10"
+            }
         }
     },
-    "require": {
-        "drupal/search_api_solr": "^4.2"
+    "process-timeout": 0,
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "platform": {
+        "php": "7.4"
     }
 }

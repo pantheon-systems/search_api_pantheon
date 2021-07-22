@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - search_api
+    - search_api_solr
+    - search_api_pantheon
+id: pantheon_solr8
+name: Pantheon NextGen Solr 8
+description: ''
+backend: search_api_solr
+backend_config:
+  connector: pantheon
+  disabled_field_types: {  }
+  disabled_caches: {  }
+  disabled_request_handlers: { }
+  disabled_request_dispatchers: { }
+  connector_config: {  }
+  rows: 10
+  index_single_documents_fallback_count: 10
+  retrieve_data: false
+  highlight_data: false
+  fallback_multiple: false
+  server_prefix: ''
+  domain: generic
+  environment: default
+  optimize: false
+  site_hash: false
