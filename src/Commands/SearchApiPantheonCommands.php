@@ -4,8 +4,11 @@ namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Utility\Cores;
+use Drupal\search_api_pantheon\Utility\SolrGuzzle;
+use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
+use GuzzleHttp\Psr7\Request;
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
@@ -24,6 +27,62 @@ use Solarium\Core\Query\Result\ResultInterface;
  */
 class SearchApiPantheonCommands extends DrushCommands
 {
+
+  /**
+   * search_api_pantheon:postSchema
+   *
+   * @usage search_api_pantheon:postSchema
+   *   post the latest schema to the default pantheon solr server
+   *
+   * @command search_api_pantheon:postSchema
+   * @aliases sapps
+   */
+  public function postSchema()
+  {
+    $servers = \Drupal::entityTypeManager()
+      ->getStorage('search_api_server')
+      ->loadMultiple();
+    $server = reset($servers);
+    $solr_configset_controller = new SolrConfigSetController();
+    $solr_configset_controller->setServer($server);
+    try {
+      $files = $solr_configset_controller->getConfigFiles();
+      $client = SolrGuzzle::getConfiguredClientInterface();
+      foreach ($files as $fileName => $fileContents) {
+        $response = $client->post(Cores::getBaseCoreUri() . 'update', [
+          'headers' => [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/xml'
+          ],
+          'query' =>[
+            'wt' => 'xml',
+            'file' => $fileName,
+            'contentType' => 'text/xml',
+            'charset' => 'utf8'
+          ],
+          'body' => $fileContents,
+          'debug' => $this->output()->isVerbose(),
+        ]);
+        $this->output()->writeln(vsprintf('File: %s, Status code: %d',[
+          $fileName,
+          $response->getStatusCode()
+        ]));
+      }
+    } catch (\Exception $e) {
+      $this->output()->write((string) $e);
+    }
+  }
+
+  protected function outputFiles(array $files) {
+    $tempDir = ( $_SERVER['TMPDIR'] ?? getcwd() ) . DIRECTORY_SEPARATOR . uniqid( 'search_api_pantheon-');
+    $this->output()->writeln("outputingg files to $tempDir");
+    mkdir($tempDir);
+    foreach ($files as $filename => $filecontents) {
+      file_put_contents($tempDir . DIRECTORY_SEPARATOR . $filename, $filecontents);
+    }
+  }
+
+
   /**
    * search_api_pantheon:test
    *

@@ -1,6 +1,6 @@
 {
-    "name": "org/search_api_pantheon",
-    "type": "drupal-drush",
+    "name": "pantheon-systems/search_api_pantheon",
+    "type": "drupal-module",
     "require": {
         "php": ">=7.4",
         "ext-curl": "*",

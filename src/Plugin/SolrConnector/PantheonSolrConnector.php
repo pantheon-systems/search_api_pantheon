@@ -50,7 +50,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @var object|null
    */
-  protected ?object $eventDispatcher;
+  protected $eventDispatcher;
 
   /**
    * @var \Drupal\search_api_pantheon\SchemaPoster
@@ -72,7 +72,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $plugin_definition
 
     );
-    $this->eventDispatcher = Drupal::getContainer()->get('event_dispatcher');
+    if (!isset($this->eventDispatcher)) {
+      $this->eventDispatcher = Drupal::getContainer()->get('event_dispatcher');
+    }
     $this->logger = Drupal::logger('PantheonSolr');
     $this->solr = new \Solarium\Client(
       SolrGuzzle::getPsr18Adapter(),
@@ -996,9 +998,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     string $lucene_match_version,
     string $server_id = ''
   ) {
-    if (!empty($this->configuration['jmx'])) {
-      $files['solrconfig_extra.xml'] .= "<jmx />\n";
-    }
   }
 
   /**
