@@ -16,7 +16,6 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
 use Drupal\search_api\LoggerTrait;
 use Drupal\search_api_pantheon\Endpoint;
-use Drupal\search_api_pantheon\SchemaPoster;
 use Drupal\search_api_pantheon\Utility\SolrGuzzle;
 use Drupal\search_api_solr\Solarium\Autocomplete\Query as AutocompleteQuery;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
@@ -53,18 +52,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected $eventDispatcher;
 
   /**
-   * @var \Drupal\search_api_pantheon\SchemaPoster
-   */
-  protected $schemaPoster;
-
-  /**
    * {@inheritdoc}
    */
   public function __construct(
     array $configuration,
     $plugin_id,
-    array $plugin_definition,
-    SchemaPoster $schema_poster = null
+    array $plugin_definition
   ) {
     parent::__construct(
        $configuration,
@@ -81,7 +74,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $this->eventDispatcher,
       $configuration
     );
-    $this->schemaPoster = $schema_poster ?? \Drupal::getContainer()->get('search_api_pantheon.schema_poster');
     $endpoint = new Endpoint([
       'collection' => null,
       'leader' => false,
@@ -1021,16 +1013,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   public function setLogger(LoggerInterface $logger): void
   {
     $this->logger = $logger;
-  }
-
-  /**
-   * @param $schema
-   *
-   * @return bool
-   */
-  public function postSchema($schema)
-  {
-    return $this->schemaPoster->postSchema($schema);
   }
 
   /**

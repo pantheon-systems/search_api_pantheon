@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Utility\Cores;
+use Drupal\search_api_pantheon\Utility\SchemaPoster;
 use Drupal\search_api_pantheon\Utility\SolrGuzzle;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use Drupal\search_api_solr\SolrConnectorInterface;
@@ -31,57 +32,44 @@ class SearchApiPantheonCommands extends DrushCommands
   /**
    * search_api_pantheon:postSchema
    *
-   * @usage search_api_pantheon:postSchema
-   *   post the latest schema to the default pantheon solr server
+   * @usage search_api_pantheon:postSchema {$server_id}
+   *   Post the latest schema to the given Server. Default server ID = pantheon_solr8.
    *
-   * @command search_api_pantheon:postSchema
+   * @command search_api_pantheon:postSchema ${$server_id}
    * @aliases sapps
    */
-  public function postSchema()
+  public function postSchema(string $server_id = 'pantheon_solr8')
   {
-    $servers = \Drupal::entityTypeManager()
-      ->getStorage('search_api_server')
-      ->loadMultiple();
-    $server = reset($servers);
-    $solr_configset_controller = new SolrConfigSetController();
-    $solr_configset_controller->setServer($server);
     try {
-      $files = $solr_configset_controller->getConfigFiles();
-      $client = SolrGuzzle::getConfiguredClientInterface();
-      foreach ($files as $fileName => $fileContents) {
-        $response = $client->post(Cores::getBaseCoreUri() . 'update', [
-          'headers' => [
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/xml'
-          ],
-          'query' =>[
-            'wt' => 'xml',
-            'file' => $fileName,
-            'contentType' => 'text/xml',
-            'charset' => 'utf8'
-          ],
-          'body' => $fileContents,
-          'debug' => $this->output()->isVerbose(),
-        ]);
-        $this->output()->writeln(vsprintf('File: %s, Status code: %d',[
-          $fileName,
-          $response->getStatusCode()
-        ]));
-      }
+      $schema_poster = \Drupal::service('search_api_pantheon.schema_poster');
+      $schema_poster->postSchema($server_id);
     } catch (\Exception $e) {
-      $this->output()->write((string) $e);
+      $this->logger()->error((string)$e);
     }
   }
 
-  protected function outputFiles(array $files) {
-    $tempDir = ( $_SERVER['TMPDIR'] ?? getcwd() ) . DIRECTORY_SEPARATOR . uniqid( 'search_api_pantheon-');
-    $this->output()->writeln("outputingg files to $tempDir");
-    mkdir($tempDir);
-    foreach ($files as $filename => $filecontents) {
-      file_put_contents($tempDir . DIRECTORY_SEPARATOR . $filename, $filecontents);
+  /**
+   * search_api_pantheon:getSchemaFiles
+   *
+   * @usage search_api_pantheon:getSchemaFiles
+   *   get the latest schema for the default pantheon solr server
+   *
+   * @command search_api_pantheon:getSchemaFiles
+   * @aliases sapgsf
+   */
+  public function outputFiles(array $files)
+  {
+    $files = $this->getSolrFiles();
+    $temp_dir = ($_SERVER['TMPDIR'] ?? getcwd()) . DIRECTORY_SEPARATOR . uniqid('search_api_pantheon-');
+    $this->output()->writeln("outputingg files to $temp_dir");
+    $zip_archive = new \ZipArchive();
+    $zip_archive->open($temp_dir . '.zip', \ZipArchive::CREATE);
+    foreach ($files as $filename => $file_contents) {
+      $zip_archive->addFromString($filename, $file_contents);
     }
+    $zip_archive->close();
+    return $temp_dir;
   }
-
 
   /**
    * search_api_pantheon:test
@@ -148,6 +136,8 @@ class SearchApiPantheonCommands extends DrushCommands
     );
   }
 
+
+
   protected function pingSolrHost()
   {
     $config = [
@@ -178,16 +168,16 @@ class SearchApiPantheonCommands extends DrushCommands
         $config
       );
       $endpoint = new Endpoint([
-        'collection' => null,
-        'leader' => false,
-        'timeout' => 5,
-        'solr_version' => '8',
-        'http_method' => 'AUTO',
-        'commit_within' => 1000,
-        'jmx' => false,
-        'solr_install_dir' => '',
-        'skip_schema_check' => false,
-      ]);
+                                 'collection' => null,
+                                 'leader' => false,
+                                 'timeout' => 5,
+                                 'solr_version' => '8',
+                                 'http_method' => 'AUTO',
+                                 'commit_within' => 1000,
+                                 'jmx' => false,
+                                 'solr_install_dir' => '',
+                                 'skip_schema_check' => false,
+                               ]);
       $endpoint->setKey('pantheon');
       $solr->addEndpoint($endpoint);
       $ping = $solr->createPing();
@@ -198,4 +188,5 @@ class SearchApiPantheonCommands extends DrushCommands
       exit($t->getMessage());
     }
   }
+
 }
