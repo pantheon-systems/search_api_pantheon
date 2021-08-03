@@ -1,5 +1,5 @@
 {
-    "name": "drupal/search_api_pantheon",
+    "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
     "require-dev": {
         "drupal/coder": "^8.3",
@@ -14,6 +14,6 @@
         }
     },
     "require": {
-        "drupal/search_api_solr": "~1.0-beta1"
+        "drupal/search_api_solr": "^1"
     }
 }
