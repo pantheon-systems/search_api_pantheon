@@ -4,9 +4,11 @@ namespace Drupal\search_api_pantheon\Utility;
 
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
-use RicardoFiorani\GuzzlePsr18Adapter\Client;
+use Psr\Http\Client\ClientInterface;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
+
+use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
 
 /**
  * Class SolrGuzzle
@@ -20,7 +22,7 @@ class SolrGuzzle {
   /**
    * @return \Psr\Http\Client\ClientInterface
    */
-  public static function getConfiguredClientInterface(): Client
+  public static function getConfiguredClientInterface(): ClientInterface
   {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $guzzleConfig = [
@@ -32,9 +34,7 @@ class SolrGuzzle {
     if (is_file($cert)) {
       $guzzleConfig['cert'] = $cert;
     }
-    return new \RicardoFiorani\GuzzlePsr18Adapter\Client(
-      $guzzleConfig
-    );
+    return GuzzleAdapter::createWithConfig($guzzleConfig);
   }
 
 

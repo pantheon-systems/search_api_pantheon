@@ -1,5 +1,4 @@
 services:
   search_api_pantheon.schema_poster:
-    class: Drupal\search_api_pantheon\SchemaPoster
-    arguments: ["@logger.factory" ]
+    class: Drupal\search_api_pantheon\Utility\SchemaPoster
 

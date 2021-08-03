@@ -1,13 +1,15 @@
 {
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
+    "description": "Connection to drupal's SOLR server for the search_api_solr drupal module.",
+    "version": "8.x-dev",
     "require": {
         "php": ">=7.4",
         "ext-curl": "*",
         "drupal/search_api_solr": "^4.2",
-        "ricardofiorani/guzzle-psr18-adapter": "^1.0",
         "guzzlehttp/guzzle": "^6.5.2",
-        "http-interop/http-factory-guzzle": "^1.0"
+        "http-interop/http-factory-guzzle": "^1.0",
+        "php-http/guzzle6-adapter": "^2.0"
     },
     "extra": {
         "drush": {
