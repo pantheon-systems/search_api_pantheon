@@ -9,6 +9,8 @@ use Drupal\search_api\ServerInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Utility\SolrGuzzle;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -79,19 +81,18 @@ class PostSolrSchema extends FormBase
     $file_to_view = $form_state->getValue('file_to_view');
     if ($file_to_view) {
       $client = SolrGuzzle::getConfiguredClientInterface();
-      $response = $client->get(Cores::getBaseCoreUri() . 'admin/file', [
-        'query' => [
-          'file' => $file_to_view,
-          'action' => 'LIST',
-        ],
-        'http_errors' => false,
-        'debug' => false,
+      $uri = new Uri(Cores::getBaseCoreUri() . 'admin/file');
+      $uri->withQuery(http_build_query([
+                                         'file' => $file_to_view,
+                                         'action' => 'LIST',
+                                       ]));
+      $request = new Request('get', $uri);
+      $response = $client->sendRequest($request);
+      $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+      $this->getLogger()->{$logFunction}('File: {filename}, Status code: {status_code} - {reason}', [
+        'status_code' => $response->getStatusCode(),
+        'reason' => $response->getReasonPhrase(),
       ]);
-      if (!in_array($response->getStatusCode(), [200, 201, 202, 203])) {
-        $this->messenger()
-          ->addError('Requested File: ' . $file_to_view. ' error: ' . $response->getReasonPhrase());
-      }
-
       $response_body = (string)$response->getBody();
 
       \Kint::dump(get_defined_vars());

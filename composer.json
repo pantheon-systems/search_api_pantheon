@@ -1,8 +1,7 @@
 {
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
-    "description": "Connection to drupal's SOLR server for the search_api_solr drupal module.",
-    "version": "8.x-dev",
+    "version": "8.x-8.x-dev",
     "require": {
         "php": ">=7.4",
         "ext-curl": "*",

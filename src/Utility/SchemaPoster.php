@@ -4,7 +4,9 @@ namespace Drupal\search_api_pantheon\Utility;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Uri;
+use Psr\Http\Client\ClientInterface as PSR18Interface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
@@ -29,9 +31,9 @@ class SchemaPoster
   /**
    * GuzzleHttp\Client definition.
    *
-   * @var GuzzleHttp\Client
+   * @var PSR18Interface
    */
-  protected ClientInterface $client;
+  protected PSR18Interface $client;
 
   /**
    * Constructor.
@@ -45,28 +47,27 @@ class SchemaPoster
   /**
    * Post a schema file to to the Pantheon Solr server.
    */
-  public function postSchema(string $server_id):array
+  public function postSchema(string $server_id): array
   {
     $files = $this->getSolrFiles($server_id);
     $toReturn = [];
     foreach ($files as $filename => $file_contents) {
       try {
         $response = $this->uploadASchemaFile($filename, $file_contents);
-        $success = in_array($response->getStatusCode(), [200, 201, 202, 203]);
-        if (!$success) {
-          $this->getLogger()
-            ->error('Schema failed to post: {reason}',
-                    ['reason' => $response->getReasonPhrase()]);
-          $toReturn[] = sprintf('%s was not posted', $filename);
-        } else {
-          $this->getLogger()
-            ->info('Schema posted');
-          $toReturn[] = sprintf('%s posted', $filename);
-        }
-      } catch (\Exception $e) {
-        $this->getLogger()
-          ->error('Schema failed to post {reason}',
-                  ['reason' => $e->getMessage()]);
+        $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+        $message = vsprintf('File: %s, Status code: %d - %s', [
+          'filename' => $filename,
+          'status_code' => $response->getStatusCode(),
+          'reason' => $response->getReasonPhrase(),
+        ]);
+        $toReturn[] = $message;
+        $this->getLogger()->{$logFunction}($message);
+      } catch(\Exception $e){
+        $toReturn[] = vsprintf('File: %s, Status code: %d - %s', [
+          'filename' => $filename,
+          'status_code' => $e->getCode(),
+          'reason' => $e->getMessage(),
+        ]);
       }
     }
     return $toReturn;
@@ -100,6 +101,7 @@ class SchemaPoster
    * @param string $file_contents
    *
    * @return \Psr\Http\Message\ResponseInterface|null
+   * @throws \Psr\Http\Client\ClientExceptionInterface
    */
   protected function uploadASchemaFile(string $filename, string $file_contents): ?ResponseInterface
   {
@@ -108,26 +110,44 @@ class SchemaPoster
     if ($path_info['extension'] == 'xml') {
       $content_type = 'application/xml';
     }
-    $request_config = [
-      'headers' => [
-        'Accept' => 'application/json',
-        'Content-Type' => $content_type,
-      ],
-      'query' => [
-        'action' => 'UPLOAD',
-        'file' => $filename,
-        'contentType' => $content_type,
-        'charset' => 'utf8',
-      ],
-      'body' => $file_contents,
-      'debug' => $this->isVerbose(),
-    ];
-    $response = $this->getClient()->post(Cores::getBaseCoreUri() . 'admin/file', $request_config);
-    $this->getLogger()->notice('File: {filename}, Status code: {status_code}', [
+
+    $uri = new Uri(Cores::getBaseCoreUri() . 'admin/file');
+    $uri->withQuery(
+      http_build_query([
+                         'action' => 'UPLOAD',
+                         'file' => $filename,
+                         'contentType' => $content_type,
+                         'charset' => 'utf8',
+                       ])
+    );
+    $request = new Request('POST', $uri, [
+      'Accept' => 'application/json',
+      'Content-Type' => $content_type,
+    ],                     $file_contents);
+    $response = $this->getClient()->sendRequest($request);
+    $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+    $this->getLogger()->{$logFunction}('File: {filename}, Status code: {status_code} - {reason}', [
       'filename' => $filename,
       'status_code' => $response->getStatusCode(),
+      'reason' => $response->getReasonPhrase(),
     ]);
     return $response;
+  }
+
+  /**
+   * @return PSR18Interface
+   */
+  public function getClient(): PSR18Interface
+  {
+    return $this->client;
+  }
+
+  /**
+   * @param PSR18Interface $client
+   */
+  public function setClient(PSR18Interface $client): void
+  {
+    $this->client = $client;
   }
 
   /**
@@ -146,7 +166,13 @@ class SchemaPoster
     $this->logger = $logger;
   }
 
-
+  /**
+   * @param bool $isVerbose
+   */
+  public function setVerbose(bool $isVerbose): void
+  {
+    $this->_isVerbose = $isVerbose;
+  }
 
   /**
    * @return bool
@@ -154,30 +180,6 @@ class SchemaPoster
   protected function isVerbose(): bool
   {
     return $this->_isVerbose;
-  }
-
-  /**
-   * @return \GuzzleHttp\ClientInterface
-   */
-  public function getClient()
-  {
-    return $this->client;
-  }
-
-  /**
-   * @param \GuzzleHttp\ClientInterface $client
-   */
-  public function setClient(ClientInterface $client): void
-  {
-    $this->client = $client;
-  }
-
-  /**
-   * @param bool $isVerbose
-   */
-  public function setVerbose(bool $isVerbose): void
-  {
-    $this->_isVerbose = $isVerbose;
   }
 
 

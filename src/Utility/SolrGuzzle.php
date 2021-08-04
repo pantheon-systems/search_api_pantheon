@@ -22,7 +22,7 @@ class SolrGuzzle {
   /**
    * @return \Psr\Http\Client\ClientInterface
    */
-  public static function getConfiguredClientInterface(): ClientInterface
+  public static function getConfiguredClientInterface(bool $verbose = false): ClientInterface
   {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $guzzleConfig = [
