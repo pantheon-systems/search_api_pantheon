@@ -7,7 +7,6 @@ use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
-
 use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
 
 /**
@@ -17,38 +16,37 @@ use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
  *
  * @package Drupal\search_api_pantheon\Utility
  */
-class SolrGuzzle {
+class SolrGuzzle
+{
 
   /**
    * @return \Psr\Http\Client\ClientInterface
    */
-  public static function getConfiguredClientInterface(bool $verbose = false): ClientInterface
-  {
-    $cert = $_SERVER['HOME'] . '/certs/binding.pem';
-    $guzzleConfig = [
-      'base_uri' => Cores::getBaseUri(),
-      'http_errors' => false,
-      'debug' => false,
-      'verify' => false,
-    ];
-    if (is_file($cert)) {
-      $guzzleConfig['cert'] = $cert;
+    public static function getConfiguredClientInterface(bool $verbose = false): ClientInterface
+    {
+        $cert = $_SERVER['HOME'] . '/certs/binding.pem';
+        $guzzleConfig = [
+        'base_uri' => Cores::getBaseUri(),
+        'http_errors' => false,
+        'debug' => $verbose,
+        'verify' => false,
+        ];
+        if (is_file($cert)) {
+            $guzzleConfig['cert'] = $cert;
+        }
+        return GuzzleAdapter::createWithConfig($guzzleConfig);
     }
-    return GuzzleAdapter::createWithConfig($guzzleConfig);
-  }
 
 
   /**
    * @return \Solarium\Core\Client\Adapter\AdapterInterface
    */
-  public static function getPsr18Adapter(): AdapterInterface
-  {
-    return new Psr18Adapter(
-      static::getConfiguredClientInterface(),
-      new RequestFactory(),
-      new StreamFactory()
-    );
-  }
-
-
+    public static function getPsr18Adapter(bool $verbose = false): AdapterInterface
+    {
+        return new Psr18Adapter(
+            static::getConfiguredClientInterface($verbose),
+            new RequestFactory(),
+            new StreamFactory()
+        );
+    }
 }

@@ -6,7 +6,7 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
-use Drupal\search_api_pantheon\PantheonSearchApiException;
+use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
 use Drupal\search_api_pantheon\Services\SolrConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

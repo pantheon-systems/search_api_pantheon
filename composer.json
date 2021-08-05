@@ -1,14 +1,28 @@
 {
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
-    "version": "8.x-8.x-dev",
-    "require": {
-        "php": ">=7.4",
-        "ext-curl": "*",
-        "drupal/search_api_solr": "^4.2",
-        "guzzlehttp/guzzle": "^6.5.2",
-        "http-interop/http-factory-guzzle": "^1.0",
-        "php-http/guzzle6-adapter": "^2.0"
+    "description": "Connection module for Pantheon's nextgen solr service",
+    "license": "MIT",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "config": {
+        "process-timeout": 0,
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform": {
+            "php": "8.0"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\search_api_pantheon\\" : "./src",
+            "Drupal\\search_api_pantheon\\tests\\" : "./tests"
+        }
     },
     "extra": {
         "drush": {
@@ -17,11 +31,35 @@
             }
         }
     },
-    "process-timeout": 0,
-    "optimize-autoloader": true,
-    "preferred-install": "dist",
-    "sort-packages": true,
-    "platform": {
-        "php": "7.4"
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "drupal/search_api_solr": "^4.2",
+        "guzzlehttp/guzzle": "^6.5.2",
+        "http-interop/http-factory-guzzle": "^1.0",
+        "php-http/guzzle6-adapter": "^2.0"
+    },
+    "require-dev": {
+        "psy/psysh": "@stable",
+        "kint-php/kint": "@stable",
+        "phpunit/phpunit": "@stable",
+        "squizlabs/php_codesniffer": "@stable"
+    },
+    "scripts": {
+        "code:test" : [
+            "phpunit -c ./phpunit.xml"
+        ],
+        "code:fix": [
+            "phpcbf --standard=psr12 src/* tests/Unit/*"
+        ],
+        "code:lint": [
+            "phpcs --standard=psr12 src tests/Unit"
+        ],
+        "pre-commit": [
+            "composer validate --strict",
+            "@code:fix",
+            "@code:lint",
+            "@code:test"
+        ]
     }
 }
