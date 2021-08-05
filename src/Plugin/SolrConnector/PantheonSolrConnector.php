@@ -71,16 +71,16 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
             $configuration
         );
         $endpoint = new Endpoint([
-        'collection' => null,
-        'leader' => false,
-        'timeout' => 5,
-        'solr_version' => '8',
-        'http_method' => 'AUTO',
-        'commit_within' => 1000,
-        'jmx' => false,
-        'solr_install_dir' => '',
-        'skip_schema_check' => false,
-        ]);
+                               'collection' => null,
+                               'leader' => false,
+                               'timeout' => 5,
+                               'solr_version' => '8',
+                               'http_method' => 'AUTO',
+                               'commit_within' => 1000,
+                               'jmx' => false,
+                               'solr_install_dir' => '',
+                               'skip_schema_check' => false,
+                             ]);
         $endpoint->setKey(PANTHEON_SOLR_DEFAULT_ENDPOINT);
         $this->solr->setEndpoints([$endpoint]);
     }
@@ -193,9 +193,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $server_uri = Drupal\search_api_pantheon\Utility\Cores::getBaseCoreUri();
 
         $query = $this->solr->createApi([
-        'handler' => $handler,
-        'version' => Request::API_V1,
-        ]);
+                                      'handler' => $handler,
+                                      'version' => Request::API_V1,
+                                    ]);
       // TODO: implement query caching with redis
 
         $this->getLogger()->debug(print_r($query, true));
@@ -301,10 +301,18 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-    public function getSchemaVersion($reset = false)
+    public function getEndpoint($key = PANTHEON_SOLR_DEFAULT_ENDPOINT)
+    {
+        return $this->solr->getEndpoint($key);
+    }
+
+  /**
+   * {@inheritdoc}
+   */
+    public function getSchemaTargetedSolrBranch($reset = false)
     {
         $parts = explode('-', $this->getSchemaVersionString($reset));
-        return $parts[1];
+        return $parts[3];
     }
 
   /**
@@ -321,15 +329,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     public function getCoreInfo($reset = false)
     {
         return $this->getDataFromHandler('admin/system', $reset);
-    }
-
-  /**
-   * {@inheritdoc}
-   */
-    public function getSchemaTargetedSolrBranch($reset = false)
-    {
-        $parts = explode('-', $this->getSchemaVersionString($reset));
-        return $parts[3];
     }
 
   /**
@@ -404,54 +403,32 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $query->setResponseWriter(Query::WT_PHPS);
         $query->setHandler('admin/mbeans?stats=true');
         $stats = $this->execute($query)->getData();
+        $indexStats = SolrGuzzle::getIndexStats();
         if (!empty($stats)) {
             $solr_version = $this->getSolrVersion(true);
             $max_time = -1;
-            if (version_compare($solr_version, '7.0', '>=')) {
-                $update_handler_stats =
-                $stats['solr-mbeans']['UPDATE']['updateHandler']['stats'];
-                $summary['@pending_docs'] =
-                (int)$update_handler_stats['UPDATE.updateHandler.docsPending'];
-                if (
-                    isset(
-                        $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
-                    )
-                ) {
-                    $max_time =
-                    (int)$update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
-                }
-                $summary['@deletes_by_id'] =
-                (int)$update_handler_stats['UPDATE.updateHandler.deletesById'];
-                $summary['@deletes_by_query'] =
-                (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'];
-                $summary['@core_name'] =
-                $stats['solr-mbeans']['CORE']['core']['stats']['CORE.coreName'] ??
-                $this->t('No information available.');
-                $summary['@index_size'] =
-                $stats['solr-mbeans']['CORE']['core']['stats']['INDEX.size'] ??
-                $this->t('No information available.');
-            } else {
-                $update_handler_stats =
-                $stats['solr-mbeans']['UPDATEHANDLER']['updateHandler']['stats'];
-                $summary['@pending_docs'] = (int)$update_handler_stats['docsPending'];
-                $max_time = (int)$update_handler_stats['autocommit maxTime'];
-                $summary['@deletes_by_id'] = (int)$update_handler_stats['deletesById'];
-                $summary['@deletes_by_query'] =
-                (int)$update_handler_stats['deletesByQuery'];
-                $summary['@core_name'] =
-                $stats['solr-mbeans']['CORE']['core']['stats']['coreName'] ??
-                $this->t('No information available.');
-                if (version_compare($solr_version, '6.4', '>=')) {
-                  // @see https://issues.apache.org/jira/browse/SOLR-3990
-                    $summary['@index_size'] =
-                    $stats['solr-mbeans']['CORE']['core']['stats']['size'] ??
-                    $this->t('No information available.');
-                } else {
-                    $summary['@index_size'] =
-                    $stats['solr-mbeans']['QUERYHANDLER']['/replication']['stats']['indexSize']
-                      ?? $this->t('No information available.');
-                }
+            $update_handler_stats =
+            $stats['solr-mbeans']['UPDATE']['updateHandler']['stats'];
+            $summary['@pending_docs'] =
+            (int)$update_handler_stats['UPDATE.updateHandler.docsPending'];
+            if (
+                isset(
+                    $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
+                )
+            ) {
+                $max_time =
+                (int)$update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
             }
+            $summary['@deletes_by_id'] =
+            (int)$update_handler_stats['UPDATE.updateHandler.deletesById'];
+            $summary['@deletes_by_query'] =
+            (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'];
+            $summary['@core_name'] =
+            $stats['solr-mbeans']['CORE']['core']['stats']['CORE.coreName'] ??
+            $this->t('No information available.');
+            $summary['@index_size'] =
+            $indexStats['numDocs'] ??
+            $this->t('No information available.');
 
             $summary['@autocommit_time_seconds'] = $max_time / 1000;
             $summary['@autocommit_time'] = \Drupal::service(
@@ -516,12 +493,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         ?\Solarium\Core\Client\Endpoint $endpoint = null
     ) {
         $query = $this->solr->createApi([
-        'handler' => $handler,
-        'accept' => 'application/json',
-        'contenttype' => 'application/json',
-        'method' => $method,
-        'rawdata' => Request::METHOD_POST == $method ? $command_json : null,
-        ]);
+                                      'handler' => $handler,
+                                      'accept' => 'application/json',
+                                      'contenttype' => 'application/json',
+                                      'method' => $method,
+                                      'rawdata' => Request::METHOD_POST == $method ? $command_json : null,
+                                    ]);
 
         $response = $this->execute($query, $endpoint);
         $output = $response->getData();
@@ -898,14 +875,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-    public function getEndpoint($key = PANTHEON_SOLR_DEFAULT_ENDPOINT)
-    {
-        return $this->solr->getEndpoint($key);
-    }
-
-  /**
-   * {@inheritdoc}
-   */
     public function createEndpoint(
         string $key,
         array $additional_configuration = []
@@ -928,8 +897,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     public function getFile($file = null)
     {
         $query = $this->solr->createApi([
-        'handler' => 'admin/file',
-        ]);
+                                      'handler' => 'admin/file',
+                                    ]);
         if ($file) {
             $query->addParam('file', $file);
         }
@@ -946,11 +915,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
 
         $toReturn[] = [
         "label" => "Pantheon Sitename",
-        "info" => Drupal\search_api_pantheon\Utility\Cores::getMyCoreName()
+        "info" => Drupal\search_api_pantheon\Utility\Cores::getMyCoreName(),
         ];
         $toReturn[] = [
         'label' => 'Pantheon Environment',
-        'info' => Drupal\search_api_pantheon\Utility\Cores::getMyEnvironment()
+        'info' => Drupal\search_api_pantheon\Utility\Cores::getMyEnvironment(),
         ];
         $toReturn[] = [
         'label' => 'Schema Version',
@@ -966,6 +935,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
             }
         }
         return $toReturn;
+    }
+
+  /**
+   * {@inheritdoc}
+   */
+    public function getSchemaVersion($reset = false)
+    {
+        $parts = explode('-', $this->getSchemaVersionString($reset));
+        return $parts[1];
     }
 
   /**

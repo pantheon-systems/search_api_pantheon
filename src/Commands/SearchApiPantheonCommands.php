@@ -139,7 +139,7 @@ class SearchApiPantheonCommands extends DrushCommands
         'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
         'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
         ]);
-        $indexedStats = $this->getIndexStats();
+        $indexedStats = SolrGuzzle::getIndexStats();
         $this->logger()->notice('Solr Index Stats: {stats}', [
         'stats' => print_r($indexedStats, true),
         ]);
@@ -167,34 +167,7 @@ class SearchApiPantheonCommands extends DrushCommands
         }
     }
 
-  /**
-   * @return \Solarium\Client
-   */
-    protected function getSolrClient(): Client
-    {
-        $config = [
-        'endpoint' => [],
-        ];
-        $solr = new Client(
-            SolrGuzzle::getPsr18Adapter(true),
-            new EventDispatcher(),
-            $config
-        );
-        $endpoint = new Endpoint([
-                               'collection' => null,
-                               'leader' => false,
-                               'timeout' => 5,
-                               'solr_version' => '8',
-                               'http_method' => 'AUTO',
-                               'commit_within' => 1000,
-                               'jmx' => false,
-                               'solr_install_dir' => '',
-                               'skip_schema_check' => false,
-                             ]);
-        $endpoint->setKey('pantheon');
-        $solr->addEndpoint($endpoint);
-        return $solr;
-    }
+
 
   /**
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Update\Result
@@ -238,25 +211,6 @@ class SearchApiPantheonCommands extends DrushCommands
         $query->addCommit();
 
       // run it, the result should be a new document in the Solr index
-        return $this->getSolrClient()->update($query);
-    }
-
-    public function getIndexStats(): array
-    {
-        $client = SolrGuzzle::getConfiguredClientInterface();
-        $uri = new Uri(Cores::getBaseCoreUri() . 'admin/luke?stats=true');
-        $this->logger()->notice("Url: " . (string) $uri);
-        $request = new Request('get', $uri);
-        $response = $client->sendRequest($request);
-        if ($response->getStatusCode() !== 200) {
-            throw new Exception($response->getReasonPhrase());
-        }
-        $stats = json_decode(
-            $response->getBody(),
-            true,
-            512,
-            JSON_THROW_ON_ERROR
-        );
-        return $stats['index'] ?? [];
+        return SolrGuzzle::getSolrClient()->update($query);
     }
 }

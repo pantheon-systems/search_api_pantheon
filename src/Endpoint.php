@@ -19,8 +19,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
 
     public function __construct($options = [])
     {
-        $this->logger = \Drupal::logger(__CLASS__);
-        $this->logger->debug(__METHOD__);
         $this->options = array_merge([
           'scheme' => getenv('PANTHEON_INDEX_SCHEME') ?? 'https',
           'host' => getenv('PANTHEON_INDEX_HOST') ?? 'solr8',
@@ -44,7 +42,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
    */
     public function getCoreBaseUri(): string
     {
-        $this->logger->debug(__METHOD__ . ' => ' . Cores::getBaseCoreUri());
         return Cores::getBaseCoreUri();
     }
 
@@ -57,7 +54,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
    */
     public function getBaseUri(): string
     {
-        $this->logger->debug(__METHOD__ . ' => ' . Cores::getBaseCoreUri());
         return Cores::getBaseCoreUri();
     }
 
@@ -70,7 +66,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
    */
     public function getV1BaseUri(): string
     {
-        $this->logger->debug(__METHOD__ . ' => ' . Cores::getBaseCoreUri());
         return Cores::getBaseCoreUri();
     }
 
@@ -83,7 +78,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
    */
     public function getV2BaseUri(): string
     {
-        $this->logger->debug(__METHOD__ . ' => ' . Cores::getBaseCoreUri());
         return $this->getCoreBaseUri() . '/api/';
     }
 
@@ -94,7 +88,6 @@ class Endpoint extends \Solarium\Core\Client\Endpoint
    */
     public function getServerUri(): string
     {
-        $this->logger->debug(__METHOD__ . ' => ' . Cores::getBaseCoreUri());
         return Cores::getBaseUri();
     }
 }
