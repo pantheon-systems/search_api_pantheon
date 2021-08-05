@@ -1,4 +1,5 @@
 services:
   search_api_pantheon.schema_poster:
     class: Drupal\search_api_pantheon\Utility\SchemaPoster
-
+  search_api_pantheon.solr_config:
+    class: Drupal\search_api_pantheon\Services\SolrConfig
