@@ -157,7 +157,7 @@ class SearchApiPantheonCommands extends DrushCommands
     protected function pingSolrHost()
     {
         try {
-            $solr = $this->getSolrClient();
+            $solr = SolrGuzzle::getSolrClient();
             $ping = $solr->createPing();
             return $solr->ping($ping);
         } catch (\Exception $e) {
