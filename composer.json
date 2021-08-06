@@ -40,6 +40,7 @@
         "php-http/guzzle6-adapter": "^2.0"
     },
     "require-dev": {
+        "drupal/coder": "@stable",
         "psy/psysh": "@stable",
         "kint-php/kint": "@stable",
         "phpunit/phpunit": "@stable",
@@ -50,10 +51,12 @@
             "phpunit -c ./phpunit.xml"
         ],
         "code:fix": [
-            "phpcbf --standard=psr12 src/* tests/Unit/*"
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "phpcbf --standard=Drupal,DrupalPractice src/* tests/Unit/*"
         ],
         "code:lint": [
-            "phpcs --standard=psr12 src tests/Unit"
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "phpcs --standard=Drupal,DrupalPractice src tests/Unit"
         ],
         "pre-commit": [
             "composer validate --strict",

@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
 use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
+use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolrConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -22,13 +23,13 @@ class PantheonSolrAdminForm extends FormBase {
    *
    * @var \Drupal\search_api_pantheon\Services\SolrConfig
    */
-  protected SolrConfig $solrConfig;
+  protected PantheonGuzzle $pantheonGuzzle;
 
   /**
    * Constructs a new EntityController.
    */
-  public function __construct(SolrConfig $solr_config) {
-    $this->solrConfig = $solr_config;
+  public function __construct(PantheonGuzzle $pantheonGuzzle) {
+    $this->pantheonGuzzle = $pantheonGuzzle;
   }
 
   /**
@@ -36,7 +37,7 @@ class PantheonSolrAdminForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('search_api_pantheon.solr_config'),
+      $container->get('search_api_pantheon.pantheon_guzzle'),
     );
   }
 
@@ -74,7 +75,7 @@ class PantheonSolrAdminForm extends FormBase {
       '#title' => t('Mbeans'),
       '#group' => 'status',
     ];
-    $form['mbeans'] = array_merge($form['mbeans'], $this->getRenderableSolrConfig('admin/mbeans?stats=true'));
+    $form['mbeans'] = array_merge($form['mbeans'], $this->getRenderableSolrConfig('admin/mbeans', 'solr-mbeans'));
 
     return $form;
   }
@@ -89,21 +90,20 @@ class PantheonSolrAdminForm extends FormBase {
    *
    * @param string $path
    *   The config path.
-   * @param string|null $config_name
+   * @param string|Uri $config_name
    *   The config name.
    *
    * @return array
    *   The renderable array.
    */
-  protected function getRenderableSolrConfig(string $path, ?string $config_name = NULL): array {
+  protected function getRenderableSolrConfig( $path, ?string $config_name = NULL): array {
     $output = [];
 
     try {
-      $config = $this->solrConfig->get($path, $config_name);
+      $config = $this->pantheonGuzzle->getQueryResult($path)[$config_name] ?? null;
     }
     catch (PantheonSearchApiException $e) {
       $this->messenger()->addError($e->getMessage());
-
       return $output;
     }
 

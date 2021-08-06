@@ -1,0 +1,3 @@
+<?php
+
+define('PANTHEON_SOLR_DEFAULT_ENDPOINT', 'pantheon_solr8');

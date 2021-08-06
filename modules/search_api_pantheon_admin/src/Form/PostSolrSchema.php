@@ -6,6 +6,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
+use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Utility\SolrGuzzle;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
@@ -51,12 +52,12 @@ class PostSolrSchema extends FormBase
    * @return array
    * @throws \JsonException
    */
-  public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL)
+  public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = null)
   {
     $schema_poster = \Drupal::service('search_api_pantheon.schema_poster');
     $messages = $schema_poster->postSchema($search_api_server->id());
     $form['results'] = [
-      '#markup' => join('<br>', $messages)
+      '#markup' => join('<br>', $messages),
     ];
     return $form;
   }
@@ -78,83 +79,7 @@ class PostSolrSchema extends FormBase
    */
   public function submitForm(array &$form, FormStateInterface $form_state)
   {
-    $file_to_view = $form_state->getValue('file_to_view');
-    if ($file_to_view) {
-      $client = SolrGuzzle::getConfiguredClientInterface();
-      $uri = new Uri(Cores::getBaseCoreUri() . 'admin/file');
-      $uri->withQuery(http_build_query([
-                                         'file' => $file_to_view,
-                                         'action' => 'LIST',
-                                       ]));
-      $request = new Request('get', $uri);
-      $response = $client->sendRequest($request);
-      $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
-      $this->getLogger()->{$logFunction}('File: {filename}, Status code: {status_code} - {reason}', [
-        'status_code' => $response->getStatusCode(),
-        'reason' => $response->getReasonPhrase(),
-      ]);
-      $response_body = (string)$response->getBody();
-
-      \Kint::dump(get_defined_vars());
-      exit();
-    }
-
-  }
-
-  /**
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return \Drupal\Core\Ajax\AjaxResponse
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\search_api\SearchApiException
-   */
-  public function uploadSchema(array $form, FormStateInterface $form_state)
-  {
-    $ajax_response = new AjaxResponse();
-    $responses = [];
-    $servers = \Drupal::entityTypeManager()
-      ->getStorage('search_api_server')
-      ->loadMultiple();
-    $server = reset($servers);
-    $solr_configset_controller = new SolrConfigSetController();
-    $solr_configset_controller->setServer($server);
-    try {
-      $files = $solr_configset_controller->getConfigFiles();
-      $client = SolrGuzzle::getConfiguredClientInterface();
-      foreach ($files as $fileName => $fileContents) {
-        $response = $client->post(Cores::getBaseCoreUri() . 'update', [
-          'headers' => [
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/xml',
-          ],
-          'query' => [
-            'wt' => 'xml',
-            'file' => $fileName,
-            'contentType' => 'text/xml',
-            'charset' => 'utf8',
-          ],
-          'body' => $fileContents,
-          'debug' => false,
-          'http_errors' => false,
-        ]);
-        $responses[] = vsprintf('File: %s, Status code: %d', [
-          $fileName,
-          $response->getStatusCode(),
-        ]);
-      }
-    } catch (\Exception $e) {
-      $this->getLogger('search_api_pantheon_admin')->error($e->getMessage());
-      $ajax_response->addCommand(new HtmlCommand('#post-schema-result', $e->getMessage()));
-    } catch (\Throwable $t) {
-      $this->getLogger('search_api_pantheon_admin')->error($t->getMessage());
-      $ajax_response->addCommand(new HtmlCommand('#post-schema-result', $t->getMessage()));
-    }
-    $ajax_response->addCommand(
-      new HtmlCommand('#post-schema-result', join('<br>', $responses))
-    );
-    return $ajax_response;
+    return $form;
   }
 
 }
