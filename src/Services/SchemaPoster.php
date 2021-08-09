@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\Psr7\Request;
@@ -39,7 +40,7 @@ class SchemaPoster {
   /**
    * Constructor.
    */
-  public function __construct(LoggerChannelFactory $loggerChannelFactory, PantheonGuzzle $pantheonGuzzle) {
+  public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, PantheonGuzzle $pantheonGuzzle) {
     $this->logger = $loggerChannelFactory->get('PantheonSolr');
     $this->client = $pantheonGuzzle;
   }
