@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Utility\Cores;
@@ -28,7 +29,7 @@ class PantheonGuzzle extends Client implements ClientInterface {
   /**
    * @param \Drupal\Core\Logger\LoggerChannelInterface $loggerChannel
    */
-  public function __construct(LoggerChannelFactory $loggerChannel) {
+  public function __construct(LoggerChannelFactoryInterface $loggerChannel) {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => Cores::getBaseUri(),
