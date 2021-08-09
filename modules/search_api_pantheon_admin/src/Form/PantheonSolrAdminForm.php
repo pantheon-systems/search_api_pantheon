@@ -6,9 +6,7 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
-use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\SolrConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -19,9 +17,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class PantheonSolrAdminForm extends FormBase {
 
   /**
-   * The Pantheon SolrConfig service.
+   * The PantheonGuzzle service.
    *
-   * @var \Drupal\search_api_pantheon\Services\SolrConfig
+   * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
    */
   protected PantheonGuzzle $pantheonGuzzle;
 
@@ -90,19 +88,19 @@ class PantheonSolrAdminForm extends FormBase {
    *
    * @param string $path
    *   The config path.
-   * @param string|Uri $config_name
+   * @param string|null $config_name
    *   The config name.
    *
    * @return array
    *   The renderable array.
    */
-  protected function getRenderableSolrConfig( $path, ?string $config_name = NULL): array {
+  protected function getRenderableSolrConfig(string $path, ?string $config_name = NULL): array {
     $output = [];
 
     try {
-      $config = $this->pantheonGuzzle->getQueryResult($path)[$config_name] ?? null;
+      $config = $this->pantheonGuzzle->getQueryResult($path)[$config_name] ?? NULL;
     }
-    catch (PantheonSearchApiException $e) {
+    catch (\Exception $e) {
       $this->messenger()->addError($e->getMessage());
       return $output;
     }
