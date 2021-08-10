@@ -180,7 +180,7 @@ class SchemaPoster {
    *
    * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-  protected function uploadSchemaFile(string $filename, string $file_contents): ?ResponseInterface {
+  public function uploadSchemaFile(string $filename, string $file_contents): ?ResponseInterface {
     $content_type = 'text/plain';
     $path_info = pathinfo($filename);
     if ($path_info['extension'] == 'xml') {

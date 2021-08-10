@@ -222,6 +222,30 @@ class SearchApiPantheonCommands extends DrushCommands {
   /**
    * View a Schema File.
    *
+   * @command search_api_pantheon:post_file
+   * @aliases sappf
+   * @usage sappf schema.xml
+   * @usage search_api_pantheon:post_file elevate.xml
+   *
+   * @param string $filename
+   *   Filename to post.
+   *
+   * @throws \Exception
+   */
+  public function postSingleSchemaFile($filename = 'schema.xml')
+  {
+    $contents = file_get_contents($filename);
+    $schemaPoster = \Drupal::service('search_api_pantheon.schema_poster');
+    if (!$schemaPoster instanceof SchemaPoster) {
+      throw new \Exception('Cant get Schema Poster class. Something is wrong with the container.');
+    }
+    $currentSchema = $schemaPoster->uploadSchemaFile(basename($filename), $contents);
+    $this->logger()->notice($currentSchema);
+  }
+
+  /**
+   * View a Schema File.
+   *
    * @command search_api_pantheon:view_schema
    * @aliases sapvs
    * @usage sapvs schema.xml

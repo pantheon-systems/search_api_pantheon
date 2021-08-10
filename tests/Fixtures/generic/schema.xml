@@ -3,7 +3,7 @@
   <!ENTITY extrafields SYSTEM "schema_extra_fields.xml">
   <!ENTITY extratypes SYSTEM "schema_extra_types.xml">
   ]>
-<schema name="test-schema-to-validate-pantheon-search_api-module" version=".99">
+<schema name="test-schema-to-validate-pantheon-search_api-module" version="1.0">
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
   <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" docValues="true"/>
