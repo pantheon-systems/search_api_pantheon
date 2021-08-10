@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
+use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
@@ -27,7 +28,8 @@ class SearchApiPantheonCommands extends DrushCommands {
    * Search_api_pantheon:postSchema.
    *
    * @usage search_api_pantheon:postSchema {$server_id}
-   *   Post the latest schema to the given Server. Default server ID = pantheon_solr8.
+   *   Post the latest schema to the given Server.
+   *   Default server ID = pantheon_solr8.
    *
    * @command search_api_pantheon:postSchema ${$server_id}
    * @aliases sapps
@@ -215,6 +217,28 @@ class SearchApiPantheonCommands extends DrushCommands {
     $pg = \Drupal::service('search_api_pantheon.pantheon_guzzle');
     // Run it, the result should be a new document in the Solr index.
     return $pg->getSolrClient()->update($query);
+  }
+
+  /**
+   * View a Schema File.
+   *
+   * @command search_api_pantheon:view_schema
+   * @aliases sapvs
+   * @usage sapvs schema.xml
+   * @usage search_api_pantheon:view_schema elevate.xml
+   *
+   * @param string $filename
+   *   Filename to retrieve.
+   *
+   * @throws \Exception
+   */
+  public function viewSchema($filename = "schema.xml") {
+    $schemaPoster = \Drupal::service('search_api_pantheon.schema_poster');
+    if (!$schemaPoster instanceof SchemaPoster) {
+      throw new \Exception('Cant get Schema Poster class. Something is wrong with the container.');
+    }
+    $currentSchema = $schemaPoster->viewSchema('pantheon_solr8', $filename);
+    $this->logger()->notice($currentSchema);
   }
 
 }

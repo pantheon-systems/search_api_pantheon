@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
 use Drupal\search_api_solr\SearchApiSolrException;

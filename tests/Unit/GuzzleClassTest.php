@@ -2,20 +2,26 @@
 
 namespace Drupal\search_api_pantheon\tests\Unit;
 
-use Drupal\search_api_pantheon\Utility\SolrGuzzle;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use PHPUnit\Framework\TestCase;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 
 /**
+ * Guzzle Class Test.
  *
+ * @package \Drupal\search_api_pantheon
  */
 class GuzzleClassTest extends TestCase {
 
   /**
+   * Test the Pantheon Guzzle Client.
    *
+   * @test
    */
   public function testGuzzleClient() {
+
     // Create a new document.
     $document = new UpdateDocument();
 
@@ -52,11 +58,14 @@ class GuzzleClassTest extends TestCase {
     $query = new UpdateQuery();
     $query->addDocument($document);
     $query->addCommit();
+    $loggerChannel = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
     // Run it, the result should be a new document in the Solr index.
-    $queryResult = SolrGuzzle::getSolrClient()->update($query);
+    $guzzle = new PantheonGuzzle($loggerChannel);
+    $queryResult = $guzzle->getSolrClient()->update($query);
     $this->assertTrue($queryResult->getResponse->getStatusCode() == 200);
-    $indexStats = SolrGuzzle::getIndexStats();
-    $this->assertGreaterThan(0, $indexStats['numDocs']);
   }
 
 }

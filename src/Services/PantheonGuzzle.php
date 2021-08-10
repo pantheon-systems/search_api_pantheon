@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
@@ -20,20 +19,25 @@ use Solarium\Core\Client\Adapter\Psr18Adapter;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
+ * Pantheon-specific extension of the Guzzle http query class.
  *
+ * @package \Drupal\search_api_pantheon
  */
 class PantheonGuzzle extends Client implements ClientInterface {
 
   use LoggerAwareTrait;
 
   /**
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $loggerChannel
+   * Class constructor.
+   *
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannel
+   *   Logger channel to which this class will log itself.
    */
   public function __construct(LoggerChannelFactoryInterface $loggerChannel) {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => Cores::getBaseUri(),
-      'http_errors' => FALSE,
+      'http_errors' => TRUE,
       'debug' => (PHP_SAPI == 'cli'),
       'verify' => FALSE,
     ];
@@ -46,9 +50,14 @@ class PantheonGuzzle extends Client implements ClientInterface {
   }
 
   /**
+   * Send a guzzle request.
+   *
    * @param \Psr\Http\Message\RequestInterface $request
+   *   A PSR 7 request.
    *
    * @return \Psr\Http\Message\ResponseInterface
+   *   Response from the guzzle send.
+   *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function sendRequest(RequestInterface $request): ResponseInterface {
@@ -56,10 +65,15 @@ class PantheonGuzzle extends Client implements ClientInterface {
   }
 
   /**
+   * Make a query and return the JSON results.
+   *
    * @param string $path
-   * @param array $options
+   *   URL path to add to the query.
+   * @param array $guzzleOptions
+   *   Options to pass to the Guzzle client.
    *
    * @return \Psr\Http\Message\ResponseInterface
+   *   Response from the query.
    */
   public function getQueryResult(
     string $path,
@@ -76,7 +90,10 @@ class PantheonGuzzle extends Client implements ClientInterface {
   }
 
   /**
+   * Create a Solarium client.
+   *
    * @return \Solarium\Client
+   *   The Solarium client in question.
    */
   public function getSolrClient(): SolrClient {
     $config = [
@@ -104,7 +121,10 @@ class PantheonGuzzle extends Client implements ClientInterface {
   }
 
   /**
+   * Get a PSR adapter interface based on this class.
+   *
    * @return \Solarium\Core\Client\Adapter\AdapterInterface
+   *   The interface in question.
    */
   public function getPsr18Adapter(): AdapterInterface {
     return new Psr18Adapter(

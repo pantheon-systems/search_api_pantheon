@@ -6,11 +6,13 @@ use Drupal\search_api_pantheon\Utility\Cores;
 use PHPUnit\Framework\TestCase;
 
 /**
- *
+ * Class to test the Cores class.
  */
 class CoresClassTest extends TestCase {
 
   /**
+   * Test Cores URL formation class.
+   *
    * @test
    */
   public function testCoresClass() {

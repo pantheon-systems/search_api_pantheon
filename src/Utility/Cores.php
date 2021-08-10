@@ -10,7 +10,13 @@ namespace Drupal\search_api_pantheon\Utility;
 class Cores {
 
   /**
+   * Get Core Name.
+   *
+   * Core names in pantheon environment are specific to
+   * both the site and environment.
+   *
    * @return string
+   *   Core name for Solr query URL's.
    */
   public static function getMyCoreName(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
@@ -23,7 +29,13 @@ class Cores {
   }
 
   /**
+   * Get the current environment name.
+   *
+   * Get My environment name. 'env' is provided for
+   * compatibility with development environments.
+   *
    * @return string
+   *   Environment Name.
    */
   public static function getMyEnvironment(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
@@ -32,14 +44,24 @@ class Cores {
   }
 
   /**
+   * Get the base URI plus core information.
+   *
    * @return string
+   *   URL for making Query Calls.
    */
   public static function getBaseCoreUri(): string {
     return vsprintf('%s/%s/', [static::getBaseUri(), static::getMyCoreName()]);
   }
 
   /**
+   * Get the base URI from environment variables.
+   *
+   * FYI: We only use PANTHEON_INDEX_SCHEME for development environments
+   * where https is disabled. Default is https.  Only HOST and PORT are
+   * available in the pantheon environments.
+   *
    * @return string
+   *   Base URL with scheme and port.
    */
   public static function getBaseUri(): string {
     return sprintf(
