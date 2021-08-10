@@ -154,7 +154,7 @@ class SchemaPoster {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  protected function getSolrFiles(string $server_id = 'pantheon_solr8') {
+  public function getSolrFiles(string $server_id = 'pantheon_solr8') {
     $server = \Drupal::entityTypeManager()
       ->getStorage('search_api_server')
       ->load($server_id);

@@ -54,7 +54,8 @@ class SearchApiPantheonCommands extends DrushCommands {
    * @aliases sapgsf
    */
   public function outputFiles(array $files) {
-    $files = $this->getSolrFiles();
+    $schema_poster = \Drupal::service('search_api_pantheon.schema_poster');
+    $files = $schema_poster->getSolrFiles();
     $temp_dir = ($_SERVER['TMPDIR'] ?? getcwd()) . DIRECTORY_SEPARATOR . uniqid('search_api_pantheon-');
     $this->output()->writeln("outputingg files to $temp_dir");
     $zip_archive = new \ZipArchive();
