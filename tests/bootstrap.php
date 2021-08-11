@@ -1,8 +1,11 @@
 <?php
 
+/**
+ * @file
+ * Bootstrap routines for testing.
+ */
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
-
 
 if (
   !isset($_SERVER['PANTHEON_INDEX_SCHEME'])
