@@ -53,7 +53,7 @@ class SearchApiPantheonCommands extends DrushCommands {
    * @command search_api_pantheon:getSchemaFiles
    * @aliases sapgsf
    */
-  public function outputFiles(array $files) {
+  public function outputFiles() {
     $schema_poster = \Drupal::service('search_api_pantheon.schema_poster');
     $files = $schema_poster->getSolrFiles();
     $temp_dir = ($_SERVER['TMPDIR'] ?? getcwd()) . DIRECTORY_SEPARATOR . uniqid('search_api_pantheon-');
@@ -75,6 +75,10 @@ class SearchApiPantheonCommands extends DrushCommands {
    *
    * @command search_api_pantheon:test
    * @aliases sapt
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   * @throws \JsonException
+   * @throws \Exception
    */
   public function testInstall() {
     $this->logger()->notice('Index SCHEME Value: {var}', [
@@ -159,7 +163,10 @@ class SearchApiPantheonCommands extends DrushCommands {
   }
 
   /**
+   * Pings the Solr host.
+   *
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void
+   *   The result.
    */
   protected function pingSolrHost() {
     try {
@@ -176,7 +183,10 @@ class SearchApiPantheonCommands extends DrushCommands {
   }
 
   /**
+   * Indexes a single item.
+   *
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Update\Result
+   *   The result.
    */
   protected function indexSingleItem() {
     // Create a new document.
@@ -223,18 +233,18 @@ class SearchApiPantheonCommands extends DrushCommands {
   /**
    * View a Schema File.
    *
+   * @param string $filename
+   *   Filename to post.
+   *
    * @command search_api_pantheon:post_file
    * @aliases sappf
    * @usage sappf schema.xml
    * @usage search_api_pantheon:post_file elevate.xml
    *
-   * @param string $filename
-   *   Filename to post.
-   *
    * @throws \Exception
+   * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-  public function postSingleSchemaFile($filename = 'schema.xml')
-  {
+  public function postSingleSchemaFile(string $filename = 'schema.xml') {
     $contents = file_get_contents($filename);
     $schemaPoster = \Drupal::service('search_api_pantheon.schema_poster');
     if (!$schemaPoster instanceof SchemaPoster) {
@@ -247,17 +257,18 @@ class SearchApiPantheonCommands extends DrushCommands {
   /**
    * View a Schema File.
    *
+   * @param string $filename
+   *   Filename to retrieve.
+   *
    * @command search_api_pantheon:view_schema
    * @aliases sapvs
    * @usage sapvs schema.xml
    * @usage search_api_pantheon:view_schema elevate.xml
    *
-   * @param string $filename
-   *   Filename to retrieve.
-   *
    * @throws \Exception
+   * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-  public function viewSchema($filename = "schema.xml") {
+  public function viewSchema(string $filename = 'schema.xml') {
     $schemaPoster = \Drupal::service('search_api_pantheon.schema_poster');
     if (!$schemaPoster instanceof SchemaPoster) {
       throw new \Exception('Cant get Schema Poster class. Something is wrong with the container.');

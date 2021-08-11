@@ -35,6 +35,7 @@
         "php": ">=7.4",
         "ext-curl": "*",
         "ext-json": "*",
+        "ext-zip": "*",
         "drupal/search_api_solr": "^4.2",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
