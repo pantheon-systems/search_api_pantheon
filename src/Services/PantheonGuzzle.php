@@ -115,7 +115,7 @@ class PantheonGuzzle extends Client implements ClientInterface {
       'solr_install_dir' => '',
       'skip_schema_check' => FALSE,
     ]);
-    $endpoint->setKey(PantheonSolrConnector::$PANTHEON_SOLR_DEFAULT_ENDPOINT);
+    $endpoint->setKey(PantheonSolrConnector::getDefaultEndpoint());
     $solr->addEndpoint($endpoint);
     return $solr;
   }
