@@ -72,7 +72,10 @@ class PantheonGuzzle extends Client implements ClientInterface {
    * @param array $guzzleOptions
    *   Options to pass to the Guzzle client.
    *
-   * @return \Psr\Http\Message\ResponseInterface
+   * @throws \JsonException
+   * @throws \Exception
+   *
+   * @return mixed
    *   Response from the query.
    */
   public function getQueryResult(
@@ -115,7 +118,7 @@ class PantheonGuzzle extends Client implements ClientInterface {
       'solr_install_dir' => '',
       'skip_schema_check' => FALSE,
     ]);
-    $endpoint->setKey(PantheonSolrConnector::$PANTHEON_SOLR_DEFAULT_ENDPOINT);
+    $endpoint->setKey(PantheonSolrConnector::getDefaultEndpoint());
     $solr->addEndpoint($endpoint);
     return $solr;
   }

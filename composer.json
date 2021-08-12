@@ -35,6 +35,7 @@
         "php": ">=7.4",
         "ext-curl": "*",
         "ext-json": "*",
+        "ext-zip": "*",
         "drupal/search_api_solr": "^4.2",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
@@ -56,8 +57,7 @@
             "phpcbf --standard=Drupal,DrupalPractice src/* tests/Unit/*"
         ],
         "code:lint": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "phpcs --standard=Drupal,DrupalPractice src tests/Unit"
+            "vendor/bin/phpcs --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor"
         ],
         "pre-commit": [
             "composer validate --strict",
