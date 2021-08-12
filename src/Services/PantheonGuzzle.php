@@ -72,7 +72,10 @@ class PantheonGuzzle extends Client implements ClientInterface {
    * @param array $guzzleOptions
    *   Options to pass to the Guzzle client.
    *
-   * @return \Psr\Http\Message\ResponseInterface
+   * @throws \JsonException
+   * @throws \Exception
+   *
+   * @return mixed
    *   Response from the query.
    */
   public function getQueryResult(
