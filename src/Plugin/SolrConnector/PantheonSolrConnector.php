@@ -255,10 +255,18 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
+  public function coreRestGet($path, ?Endpoint $endpoint = NULL) {
+    // @todo Utilize $this->configuration['core'] to get rid of this.
+    return $this->restRequest(ltrim($path, '/'), Request::METHOD_GET, '', $endpoint);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function coreRestPost($path, $command_json = '', ?Endpoint $endpoint = NULL) {
     // @todo Utilize $this->configuration['core'] to get rid of this.
     return $this->restRequest(
-      Cores::getBaseCoreUri() . '/' . ltrim($path, '/'),
+      ltrim($path, '/'),
       Request::METHOD_POST,
       $command_json,
       $endpoint
