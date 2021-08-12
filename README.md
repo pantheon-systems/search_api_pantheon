@@ -6,7 +6,7 @@ This module is meant to simplify the usage of [Search API](https://www.drupal.or
 
 ## Composer
 
-Composer is the best way to install this module because this module relies on [Solarium](http://www.solarium-project.org/). Solarium is a Solr client library for PHP and is not Drupal-specific. First, register Drupal.org as a provider of Composer packages. This command should be run locally from the root directory of your Drupal 8 git repository.
+Composer is the best way to install this module because this module relies on [Solarium](http://www.solarium-project.org/). Solarium is a Solr client library for PHP and is not Drupal-specific. First, register Drupal.org as a provider of Composer packages. This command should be run locally from the root directory of your Drupal 9 git repository.
 
 ```
 composer config repositories.drupal composer https://packages.drupal.org/8
@@ -28,7 +28,7 @@ rm -r modules/search_api_pantheon/.git
 
 See the [Drupal.org for complete documentation on Search API](https://www.drupal.org/node/1250878). To configure the connection with Pantheon, do the following steps on your Dev environment (or a Multidev):
 * **Enable Solr on your Pantheon site**
-  * Under "Settings" in your Pantheon site dashboard, enable Solr as an add on. This feature is available for sandbox sites as well as paid plans at the Professional level and above.
+  * Under "Settings" in your Pantheon site dashboard, enable Solr as an add on. This feature is available for sandbox sites as well as paid plans at the Performance plans and above.
 * **Enable the modules**
   * Go to `admin/modules` and enable "Search API Pantheon." Doing so will also enable Search API and Search API Solr if they are not already enabled.
 * **OPTIONAL: Disable Drupal Core's search module**
@@ -47,11 +47,11 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
   * Select "Pantheon" as the server.
   * Save the index.
   * For this index to be useable, you will also need to configure fields to be searched. Select the "fields" tab and choose fields to be included in the index. You may want to index many fields. "Title" is a good field to start with.
-  * After adding fields the configuration, make sure the index is full by clicking "Index now" or by running cron.
+  * After adding fields to the configuration, make sure the index is full by clicking "Index now" or by running cron.
 * **Search the Index**
   * To actually search your index you will need a module like [Search API Pages](https://www.drupal.org/project/search_api_page) which allows for the configuration of search forms on their own pages. Search API Pages will not have been downloaded by using `composer require` on Search API Pantheon. You can download it separately.
 * **Export your changes**
-  * It is a best practice in Drupal 8 to export your changes to `yml` files. Using Terminus while in SFTP mode, you can run `terminus --env=dev drush "config-export -y"` to export the configuration changes you have made. Once committed, these changes can be deployed out to Test and Live environments.
+  * It is a best practice in Drupal 9 to export your changes to `yml` files. Using Terminus while in SFTP mode, you can run `terminus --env=dev drush "config-export -y"` to export the configuration changes you have made. Once committed, these changes can be deployed out to Test and Live environments.
 
 
 ### Solr versions and schemas
