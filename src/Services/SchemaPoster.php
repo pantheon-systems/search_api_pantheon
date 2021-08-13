@@ -83,7 +83,7 @@ class SchemaPoster {
           'reason' => $response->getReasonPhrase(),
         ]);
         $output[] = $message;
-        $this->logger->info($message);
+        $this->logger->debug($message);
       }
       catch (\Throwable $e) {
         $message = vsprintf('File: %s, Status code: %d - %s', [
@@ -127,7 +127,7 @@ class SchemaPoster {
         'status_code' => $response->getStatusCode(),
         'reason' => $response->getReasonPhrase(),
       ]);
-      $this->logger->info($message);
+      $this->logger->debug($message);
 
       return $response->getBody();
     }
