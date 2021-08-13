@@ -23,7 +23,6 @@ jobs:
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       BASH_ENV: ~/.bashrc
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -35,8 +34,11 @@ jobs:
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
+      - name: Composer install
+        run: composer install --ignore-platform-req=php
+
       - name: Code sniff
-        run: ./vendor/bin/phpcs --report=full --standard=vendor/drupal/coder/coder_sniffer/Drupal . --ignore=vendor
+        run: composer run-script code:lint
 
       - name: Tests
         run: |
