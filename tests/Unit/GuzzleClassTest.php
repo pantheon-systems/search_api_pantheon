@@ -59,9 +59,11 @@ class GuzzleClassTest extends TestCase {
     $query->addCommit();
 
     // Run it, the result should be a new document in the Solr index.
-    $guzzle = new PantheonGuzzle();
-    $queryResult = $guzzle->getSolrClient()->update($query);
-    $this->assertTrue($queryResult->getResponse->getStatusCode() == 200);
+    $pantheon_guzzle = new PantheonGuzzle();
+
+    $query_result = $pantheon_guzzle->getSolrClient()->update($query);
+
+    $this->assertTrue($query_result->getResponse()->getStatusCode() === 200);
   }
 
 }
