@@ -55,6 +55,11 @@ class PostSolrSchema extends FormBase {
    * @param \Drupal\search_api\ServerInterface|null $search_api_server
    *   The search api server machine name.
    *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\search_api\SearchApiException
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   *
    * @return array
    *   The form structure.
    */
