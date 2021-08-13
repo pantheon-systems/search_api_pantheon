@@ -109,7 +109,6 @@ See the [Drupal.org for complete documentation on Search API](https://www.drupal
     to export the configuration changes you have made. Once committed, these changes
     can be deployed out to Test and Live environments.
 
-
 ### Pantheon environments
 
 Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.

@@ -10,6 +10,22 @@ namespace Drupal\search_api_pantheon\Utility;
 class Cores {
 
   /**
+   * Get URL in pantheon environment to upload schema files.
+   *
+   * @return string
+   */
+  public static function getSchemaUploadUri(): string
+  {
+    return isset($_ENV['PANTHEON_ENVIRONMENT'])
+      ? sprintf(
+        'v1/site/%s/environment/%s/configs',
+        getenv('PANTHEON_SITE'),
+        static::getMyEnvironment()
+      )
+      : 'solr/admin/config/' . self::getMyCoreName();
+  }
+
+  /**
    * Get Core Name.
    *
    * Core names in pantheon environment are specific to
