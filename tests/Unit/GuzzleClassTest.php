@@ -58,12 +58,9 @@ class GuzzleClassTest extends TestCase {
     $query = new UpdateQuery();
     $query->addDocument($document);
     $query->addCommit();
-    $loggerChannel = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
 
     // Run it, the result should be a new document in the Solr index.
-    $guzzle = new PantheonGuzzle($loggerChannel);
+    $guzzle = new PantheonGuzzle();
     $queryResult = $guzzle->getSolrClient()->update($query);
     $this->assertTrue($queryResult->getResponse->getStatusCode() == 200);
   }

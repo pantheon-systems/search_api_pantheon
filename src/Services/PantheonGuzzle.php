@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Utility\Cores;
@@ -12,7 +11,6 @@ use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Log\LoggerAwareTrait;
 use Solarium\Client as SolrClient;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
@@ -25,15 +23,10 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PantheonGuzzle extends Client implements ClientInterface {
 
-  use LoggerAwareTrait;
-
   /**
    * Class constructor.
-   *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannel
-   *   Logger channel to which this class will log itself.
    */
-  public function __construct(LoggerChannelFactoryInterface $loggerChannel) {
+  public function __construct() {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => Cores::getBaseUri(),
@@ -44,9 +37,8 @@ class PantheonGuzzle extends Client implements ClientInterface {
     if (is_file($cert)) {
       $config['cert'] = $cert;
     }
-    parent::__construct($config);
 
-    $this->setLogger($loggerChannel->get('PantheonGuzzle'));
+    parent::__construct($config);
   }
 
   /**

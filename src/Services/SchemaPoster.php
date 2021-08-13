@@ -30,7 +30,7 @@ class SchemaPoster {
   protected bool $verbose = FALSE;
 
   /**
-   * The injected Logger Factory interface.
+   * The Logger.
    *
    * @var \Psr\Log\LoggerInterface
    */
