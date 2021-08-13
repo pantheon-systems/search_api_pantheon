@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
+use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drupal\search_api_pantheon\Utility\Cores;
@@ -34,7 +35,11 @@ class SearchApiPantheonCommands extends DrushCommands {
    * @command search_api_pantheon:postSchema ${$server_id}
    * @aliases sapps
    */
-  public function postSchema(string $server_id = 'pantheon_solr8') {
+  public function postSchema(?string $server_id = NULL) {
+    if (!$server_id) {
+      $server_id = PantheonSolrConnector::getDefaultEndpoint();
+    }
+
     try {
       $schema_poster = \Drupal::service('search_api_pantheon.schema_poster');
       $schema_poster->postSchema($server_id);
@@ -273,7 +278,7 @@ class SearchApiPantheonCommands extends DrushCommands {
     if (!$schemaPoster instanceof SchemaPoster) {
       throw new \Exception('Cant get Schema Poster class. Something is wrong with the container.');
     }
-    $currentSchema = $schemaPoster->viewSchema('pantheon_solr8', $filename);
+    $currentSchema = $schemaPoster->viewSchema($filename);
     $this->logger()->notice($currentSchema);
   }
 
