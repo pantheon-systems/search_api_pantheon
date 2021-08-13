@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE schema [
+  <!ENTITY extrafields SYSTEM "schema_extra_fields.xml">
+  <!ENTITY extratypes SYSTEM "schema_extra_types.xml">
+  ]>
+<schema name="test-schema-to-validate-pantheon-search_api-module" version="1.0">
+  <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
+  <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" docValues="true"/>
+  <field name="index_id" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
+  <field name="timestamp" type="pdate" indexed="true" stored="false" default="NOW" multiValued="false" docValues="true"/>
+  <field name="site" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
+  <field name="hash" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
+  <field name="boost_document" type="pfloat" indexed="true" stored="false" multiValued="false" docValues="true"/>
+  <field name="boost_term" type="boost_term_payload" indexed="true" stored="false" multiValued="true"/>
+  <field name="sm_context_tags" type="string" indexed="true" stored="true" multiValued="true" docValues="false"/>
+  <dynamicField name="is_*"  type="plong"    indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="im_*"  type="plong"    indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
+  <dynamicField name="fs_*"  type="pfloat"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="fm_*"  type="pfloat"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="ps_*"  type="pdouble"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="pm_*"  type="pdouble"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="bm_*"  type="boolean" indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
+  <dynamicField name="bs_*"  type="boolean" indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="ss_*"  type="string"  indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="sm_*"  type="string"  indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
+  <dynamicField name="tws_*" type="text_ws" indexed="true" stored="true" multiValued="false"/>
+  <dynamicField name="twm_*" type="text_ws" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="ds_*"  type="pdate"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="dm_*"  type="pdate"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="drs_*" type="date_range" indexed="true" stored="true" multiValued="false"/>
+  <dynamicField name="drm_*" type="date_range" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="its_*" type="plong"   indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="itm_*" type="plong"   indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
+  <dynamicField name="fts_*" type="pfloat"  indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="ftm_*" type="pfloat"  indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="pts_*" type="pdouble" indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="ptm_*" type="pdouble" indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="xs_*"  type="binary"  indexed="false" stored="true" multiValued="false"/>
+  <dynamicField name="xm_*"  type="binary"  indexed="false" stored="true" multiValued="true"/>
+  <dynamicField name="dds_*" type="pdate"    indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="ddm_*" type="pdate"    indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="hs_*" type="pint" indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="hm_*" type="pint" indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="hts_*" type="pint"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="htm_*" type="pint"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="zs_*" type="string"   indexed="false"  stored="true" multiValued="false"/>
+  <dynamicField name="zm_*" type="string"   indexed="false"  stored="true" multiValued="true"/>
+  <dynamicField name="points_*" type="point" indexed="true"  stored="true" multiValued="false"/>
+  <dynamicField name="pointm_*" type="point" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="locs_*" type="location" indexed="true"  stored="true" multiValued="false"/>
+  <dynamicField name="locm_*" type="location" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="geos_*" type="location" indexed="true"  stored="true" multiValued="false"/>
+  <dynamicField name="geom_*" type="location" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="bboxs_*" type="bbox" indexed="true" stored="true" multiValued="false" />
+  <dynamicField name="bboxm_*" type="bbox" indexed="true" stored="true" multiValued="true" />
+  <dynamicField name="rpts_*" type="location_rpt" indexed="true" stored="true" multiValued="false" />
+  <dynamicField name="rptm_*" type="location_rpt" indexed="true" stored="true" multiValued="true" />
+  <dynamicField name="eff_*" type="file"/>
+  <dynamicField name="random_*" type="random" indexed="true" stored="true"/>
+  <dynamicField name="access_*" type="pint" indexed="true" stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="*" type="ignored" multiValued="true" />
+  <fieldType name="string" class="solr.StrField"/>
+  <fieldType name="boolean" class="solr.BoolField"/>
+  <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
+  <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
+  <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
+  <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+  <fieldType name="file" keyField="id" defVal="1" stored="false" indexed="false" class="solr.ExternalFileField"/>
+  <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+  <fieldType name="date_range" class="solr.DateRangeField"/>
+  <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="random" class="solr.RandomSortField" indexed="true" />
+  <fieldType name="text_ws" class="solr.TextField" omitNorms="true" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="boost_term_payload" stored="false" indexed="true" class="solr.TextField" >
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LengthFilterFactory" min="2" max="100"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+      <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
+  <fieldType name="point" class="solr.PointType" dimension="2" subFieldType="pdouble"/>
+  <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
+  <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType"
+             geo="true" distErrPct="0.025" maxDistErr="0.001" distanceUnits="kilometers" />
+  <fieldType name="bbox" class="solr.BBoxField"
+             geo="true" distanceUnits="kilometers" numberType="_bbox_coord" />
+  <fieldType name="_bbox_coord" class="solr.DoublePointField" docValues="true" stored="false"/>
+  &extrafields;
+  &extratypes;
+  <uniqueKey>id</uniqueKey>
+</schema>

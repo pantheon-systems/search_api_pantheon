@@ -4,7 +4,7 @@
 /drush
 /core/
 /drupal/
-/modules/
 /tests/circle-scripts/drupal8/
 .DS_Store
 /.idea
+

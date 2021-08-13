@@ -2,17 +2,20 @@
 
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
-use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
+use Drupal\search_api_pantheon\Utility\Cores;
+use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\search_api_pantheon\SchemaPoster;
-use Solarium\Client;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
+use Drupal\Core\Link;
+use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Url;
+use Drupal\search_api\LoggerTrait;
+use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
+use Drupal\search_api_solr\SolrConnectorInterface;
+use Solarium\Core\Client\Endpoint;
+use Solarium\Core\Client\Request;
 
 /**
- * Standard Solr connector.
+ * Pantheon Solr connector.
  *
  * @SolrConnector(
  *   id = "pantheon",
@@ -20,171 +23,333 @@ use RegexIterator;
  *   description = @Translation("A connector for Pantheon's Solr server")
  * )
  */
-class PantheonSolrConnector extends StandardSolrConnector {
+class PantheonSolrConnector extends SolrConnectorPluginBase implements
+    SolrConnectorInterface,
+    PluginFormInterface {
+  use LoggerTrait;
 
   /**
-   * {@inheritdoc}
-   */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, SchemaPoster $schema_poster) {
-    $configuration += $this->internalConfiguration();
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->schemaPoster = $schema_poster;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    $plugin = new static($configuration, $plugin_id, $plugin_definition, $container->get('search_api_pantheon.schema_poster'));
-
-    /** @var \Drupal\Core\StringTranslation\TranslationInterface $translation */
-    $translation = $container->get('string_translation');
-    $plugin->setStringTranslation($translation);
-
-    return $plugin;
-  }
-
-  /**
-   * This configuration is needed by the parent class.
+   * Pantheon pre-configured guzzle client for Solr Server for this site/env.
    *
-   * However, as far as the Drupal Config Management sysytem is concerned
-   * the only exportable, user-changable configuration is the schema file.
+   * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
    */
-  protected function internalConfiguration() {
-    $pantheon_specific_configuration = [];
-    if (!empty($_ENV['PANTHEON_ENVIRONMENT'])) {
-      $pantheon_specific_configuration = [
-        'scheme' => 'https',
-        'host' => $_ENV['PANTHEON_INDEX_HOST'],
-        'port' => $_ENV['PANTHEON_INDEX_PORT'],
-        'path' => '/sites/self/environments/' . $_ENV['PANTHEON_ENVIRONMENT'] . '/index',
-      ];
-    }
+  protected PantheonGuzzle $pantheonGuzzleClient;
 
-    return $pantheon_specific_configuration + parent::defaultConfiguration();
+  /**
+   * Class Constructor.
+   *
+   * @param array $configuration
+   *   Plugin configuration.
+   * @param string $plugin_id
+   *   Plugin ID.
+   * @param array $plugin_definition
+   *   Plugin Definition.
+   *
+   * @throws \Exception
+   */
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    array $plugin_definition
+  ) {
+    parent::__construct(
+      $configuration,
+      $plugin_id,
+      $plugin_definition
+    );
+
+    // @todo move these to dependency injection
+    $this->logger = \Drupal::logger('PantheonSolr');
+    $this->pantheonGuzzleClient = \Drupal::service('search_api_pantheon.pantheon_guzzle');
+    if (!$this->pantheonGuzzleClient instanceof PantheonGuzzle) {
+      throw new \Exception('Cannot instantiate the pantheon-specific guzzle service');
+    }
+    $this->solr = $this->pantheonGuzzleClient->getSolrClient();
+  }
+
+  /**
+   * Returns the default endpoint name.
+   *
+   * @return string
+   *   The endpoint name.
+   */
+  public static function getDefaultEndpoint() {
+    return 'pantheon_solr8';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration() {
+  public function label() {
+    // @todo Setup via pluginDefinition.
+    return 'Pantheon Solr Connection';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return "Connection to Pantheon's Nextgen Solr 8 server interface";
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): ?array {
     return [
-      'schema' => '',
+      'endpoint' => [],
     ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getConfiguration() {
-    return $this->configuration;
+  public function isCloud() {
+    return FALSE;
   }
 
   /**
-   * Find schema files that can be posted to the Solr server.
+   * {@inheritdoc}
+   */
+  public function getServerLink() {
+    $url_path = Cores::getBaseUri();
+    $url = Url::fromUri($url_path);
+
+    return Link::fromTextAndUrl($url_path, $url);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCoreLink() {
+    $url_path = Cores::getBaseCoreUri();
+    $url = Url::fromUri($url_path);
+
+    return Link::fromTextAndUrl($url_path, $url);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLuke() {
+    // @todo Try to get rid of this.
+    return $this->getDataFromHandler('admin/luke', TRUE);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDataFromHandler($handler, $reset = FALSE) {
+    $query = $this->solr->createApi([
+      'handler' => $handler,
+      'version' => Request::API_V1,
+    ]);
+    // @todo Implement query caching with redis.
+    return $this->execute($query)->getData();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEndpoint($key = NULL) {
+    $key = $key ?? self::getDefaultEndpoint();
+
+    return $this->solr->getEndpoint($key);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCoreInfo($reset = FALSE) {
+    // @todo Try to get rid of this.
+    return $this->getDataFromHandler('admin/system', $reset);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function connect() {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getServerInfo($reset = FALSE) {
+    return $this->getDataFromHandler('admin/system', $reset);
+  }
+
+  /**
+   * {@inheritdoc}
    *
-   * @return array
-   *   The returned array will be used by Form API.
+   * @throws \JsonException
    */
-  public function findSchemaFiles() {
-    $return = [];
-    $directory = new RecursiveDirectoryIterator('modules');
-    $flattened = new RecursiveIteratorIterator($directory);
-    $files = new RegexIterator($flattened, '/schema.xml$/');
+  public function getStatsSummary() {
+    $summary = [
+      '@pending_docs' => '',
+      '@autocommit_time_seconds' => '',
+      '@autocommit_time' => '',
+      '@deletes_by_id' => '',
+      '@deletes_by_query' => '',
+      '@deletes_total' => '',
+      '@schema_version' => '',
+      '@core_name' => '',
+      '@index_size' => '',
+    ];
+    $mbeans = new \ArrayIterator($this->pantheonGuzzleClient->getQueryResult('admin/mbeans', ['query' => ['stats' => 'true']])['solr-mbeans']) ?? NULL;
+    $indexStats = $this->pantheonGuzzleClient->getQueryResult('admin/luke', ['query' => ['stats' => 'true']])['index'] ?? NULL;
+    $stats = [];
+    if (!empty($mbeans) && !empty($indexStats)) {
+      for ($mbeans->rewind(); $mbeans->valid(); $mbeans->next()) {
+        $current = $mbeans->current();
+        $mbeans->next();
+        $next = $mbeans->current();
+        $stats[$current] = $next;
+      }
+      $max_time = -1;
+      $update_handler_stats = $stats['UPDATE']['updateHandler']['stats'];
 
-    foreach ($files as $file) {
-      $relative_path = str_replace(DRUPAL_ROOT . '/', '', $file->getRealPath());
-      $return[$relative_path] = $relative_path;
+      $summary['@pending_docs'] = (int) $update_handler_stats['UPDATE.updateHandler.docsPending'];
+      if (
+        isset(
+          $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
+        )
+      ) {
+        $max_time =
+          (int) $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
+      }
+      $summary['@deletes_by_id'] =
+        (int) $update_handler_stats['UPDATE.updateHandler.deletesById'];
+      $summary['@deletes_by_query'] =
+        (int) $update_handler_stats['UPDATE.updateHandler.deletesByQuery'];
+      $summary['@core_name'] =
+        $stats['CORE']['core']['class'] ??
+        $this->t('No information available.');
+      $summary['@index_size'] =
+        $indexStats['numDocs'] ??
+        $this->t('No information available.');
+
+      $summary['@autocommit_time_seconds'] = $max_time / 1000;
+      $summary['@autocommit_time'] = \Drupal::service(
+        'date.formatter'
+      )->formatInterval($max_time / 1000);
+      $summary['@deletes_total'] =
+        $summary['@deletes_by_id'] + $summary['@deletes_by_query'];
+      $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
     }
-    return $return;
+    return $summary;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   */
+  public function getSolrVersion($force_auto_detect = FALSE) {
+    $serverInfo = $this->getServerInfo();
+    if (isset($serverInfo['lucene']['solr-spec-version'])) {
+      return $serverInfo['lucene']['solr-spec-version'];
+    }
+
+    return '8.8.1';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function coreRestGet($path, ?Endpoint $endpoint = NULL) {
+    // @todo Utilize $this->configuration['core'] to get rid of this.
+    return $this->restRequest(ltrim($path, '/'), Request::METHOD_GET, '', $endpoint);
+  }
 
-    $form['schema'] = [
-      '#type' => 'radios',
-      '#title' => $this->t('Schema file'),
-      '#options' => $this->findSchemaFiles(),
-      '#description' => $this->t("Select a Solr schema file to be POSTed to Pantheon's Solr server"),
-      '#default_value' => $this->configuration['schema'],
+  /**
+   * {@inheritdoc}
+   */
+  public function coreRestPost($path, $command_json = '', ?Endpoint $endpoint = NULL) {
+    // @todo Utilize $this->configuration['core'] to get rid of this.
+    return $this->restRequest(
+      ltrim($path, '/'),
+      Request::METHOD_POST,
+      $command_json,
+      $endpoint
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function useTimeout(string $timeout = self::QUERY_TIMEOUT, ?Endpoint $endpoint = NULL) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getOptimizeTimeout(?Endpoint $endpoint = NULL) {
+    // @todo Check - do we really need this override (to return "0" instead on the default NULL)?
+    return parent::getOptimizeTimeout($endpoint) ?? 0;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFile($file = NULL) {
+    // @todo Again, something wrong with $this->configuration['core']. Fix to remove this override.
+    $query = $this->solr->createApi([
+      'handler' => 'admin/file',
+    ]);
+    if ($file) {
+      $query->addParam('file', $file);
+    }
+
+    return $this->execute($query)->getResponse();
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   */
+  public function viewSettings() {
+    $view_settings = [];
+
+    $view_settings[] = [
+      'label' => 'Pantheon Sitename',
+      'info' => Cores::getMyCoreName(),
+    ];
+    $view_settings[] = [
+      'label' => 'Pantheon Environment',
+      'info' => Cores::getMyEnvironment(),
+    ];
+    $view_settings[] = [
+      'label' => 'Schema Version',
+      'info' => $this->getSchemaVersion(TRUE),
     ];
 
-    return $form;
+    $core_info = $this->getCoreInfo(TRUE);
+    foreach ($core_info['core'] as $key => $value) {
+      if (is_string($value)) {
+        $view_settings[] = [
+          'label' => ucwords($key),
+          'info' => $value,
+        ];
+      }
+    }
+
+    return $view_settings;
   }
 
   /**
    * {@inheritdoc}
+   *
+   * @throws \Exception
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+  public function reloadCore() {
+    // @todo implement "Reload Core" feature.
+    throw new \Exception('Reload Core action for Pantheon Solr is not implemented yet');
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Setting the configuration here will allow the simple configuration,
-    // just the schema file, to be saved to the Search API server config entity.
-    // When this plugin is reloaded, $this->configuration, will be repopulated
-    // with $this->internalConfiguration().
-    $this->configuration = $form_state->getValues();
-    $this->postSchema();
-  }
-
-  /**
-   * Prepares the connection to the Solr server.
-   */
-  protected function connect() {
-    if (!$this->solr) {
-      $this->solr = new Client();
-
-      // The parent method is overridden so that this alternate adapter class
-      // can be set. This line is the only difference from the parent method.
-      $this->solr->setAdapter('Drupal\search_api_pantheon\Solarium\PantheonCurl');
-
-      $this->solr->createEndpoint($this->configuration + ['key' => 'core'], TRUE);
-      $this->attachServerEndpoint();
-    }
-  }
-
-  /**
-   * Post the configured schema file to the Solr Service.
-   */
-  protected function postSchema() {
-    return $this->schemaPoster->postSchema($this->configuration['schema']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function pingServer() {
-    // The path used in the parent class, admin/info/system, fails.
-    // I don't know why.
-    $ping = $this->doPing(['handler' => 'admin/system'], 'server');
-    // If the ping fails, there is a good chance it is because the code
-    // is being run on a new multidev environment in which the schema has not
-    // yet been posted.
-    if ($ping === FALSE) {
-      $this->postSchema();
-      // Try again after posting the schema.
-      return $this->doPing(['handler' => 'admin/system'], 'server');
-    }
-    else {
-      return $ping;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getDataFromHandler($endpoint, $handler, $reset = FALSE) {
-    // First make sure the server is up.
-    // If a multidev environment has just been made,
-    // it may be necessary to post the schema.
-    $this->pingServer();
-    return parent::getDataFromHandler($endpoint, $handler, $reset = FALSE);
+    $this->setConfiguration($form_state->getValues());
   }
 
 }
