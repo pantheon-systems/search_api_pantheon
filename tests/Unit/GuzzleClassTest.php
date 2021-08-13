@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\tests\Unit;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use PHPUnit\Framework\TestCase;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
