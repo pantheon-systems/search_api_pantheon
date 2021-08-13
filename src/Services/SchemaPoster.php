@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\Psr7\Request;
@@ -18,6 +19,8 @@ use Psr\Log\LoggerInterface;
  * @package Drupal\search_api_pantheon
  */
 class SchemaPoster {
+
+  use LoggerChannelTrait;
 
   /**
    * Verbose debugging.
@@ -43,18 +46,19 @@ class SchemaPoster {
   /**
    * Constructor.
    *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_channel_factory
    *   Injected when called as a service.
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
+   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheon_guzzle_client
    *   Injected when called as a service.
    */
-  public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, PantheonGuzzle $pantheonGuzzle) {
-    $this->logger = $loggerChannelFactory->get('PantheonSolr');
-    $this->client = $pantheonGuzzle;
+  public function __construct(LoggerChannelFactoryInterface $logger_channel_factory, PantheonGuzzle $pantheon_guzzle_client) {
+    $this->setLoggerFactory($logger_channel_factory);
+    $this->logger = $this->getLogger('PantheonSolr');
+    $this->client = $pantheon_guzzle_client;
   }
 
   /**
-   * Post a schema file to to the Pantheon Solr server.
+   * Post a schema file to the Pantheon Solr server.
    *
    * @param string $server_id
    *   Search Api Server ID.
@@ -66,48 +70,45 @@ class SchemaPoster {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \Psr\Http\Client\ClientExceptionInterface
    */
   public function postSchema(string $server_id): array {
     $files = $this->getSolrFiles($server_id);
-    $toReturn = [];
+    $output = [];
     foreach ($files as $filename => $file_contents) {
       try {
         $response = $this->uploadSchemaFile($filename, $file_contents);
-        $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
         $message = vsprintf('File: %s, Status code: %d - %s', [
           'filename' => $filename,
           'status_code' => $response->getStatusCode(),
           'reason' => $response->getReasonPhrase(),
         ]);
-        $toReturn[] = $message;
-        $this->getLogger()->{$logFunction}($message);
+        $output[] = $message;
+        $this->logger->info($message);
       }
-      catch (\Exception $e) {
-        $toReturn[] = vsprintf('File: %s, Status code: %d - %s', [
+      catch (\Throwable $e) {
+        $message = vsprintf('File: %s, Status code: %d - %s', [
           'filename' => $filename,
           'status_code' => $e->getCode(),
           'reason' => $e->getMessage(),
         ]);
+        $output[] = $message;
+        $this->logger->error($message);
       }
     }
-    return $toReturn;
+
+    return $output;
   }
 
   /**
    * View a schema file on the pantheon solr server.
    *
-   * @param string $server_id
-   *   Search API solr server ID. Typically `pantheon_solr8`.
    * @param string $filename
    *   The filename to view. Default is Schema.xml.
    *
    * @return string|null
    *   The text of the file or null on error or if the file doesn't exist.
-   *
-   * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-  public function viewSchema(string $server_id = 'pantheon_solr8', $filename = 'schema.xml'): ?string {
+  public function viewSchema(string $filename = 'schema.xml'): ?string {
     try {
       $uri = (new Uri(Cores::getBaseCoreUri() . 'admin/file'))
         ->withQuery(
@@ -116,27 +117,29 @@ class SchemaPoster {
             'file' => $filename,
           ])
         );
-      $this->getLogger()->debug('Upload url: ' . (string) $uri);
+      $this->logger->debug('Upload url: ' . $uri);
       $request = new Request('GET', $uri, [
         'Accept' => 'application/json',
       ]);
-      $response = $this->getClient()->sendRequest($request);
-      $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+      $response = $this->client->sendRequest($request);
       $message = vsprintf('File: %s, Status code: %d - %s', [
         'filename' => $filename,
         'status_code' => $response->getStatusCode(),
         'reason' => $response->getReasonPhrase(),
       ]);
-      $this->getLogger()->{$logFunction}($message);
+      $this->logger->info($message);
+
       return $response->getBody();
     }
-    catch (\Exception $e) {
-      $toReturn[] = vsprintf('File: %s, Status code: %d - %s', [
+    catch (\Throwable $e) {
+      $message = vsprintf('File: %s, Status code: %d - %s', [
         'filename' => $filename,
         'status_code' => $e->getCode(),
         'reason' => $e->getMessage(),
       ]);
+      $this->logger->error($message);
     }
+
     return NULL;
   }
 
@@ -144,17 +147,19 @@ class SchemaPoster {
    * Get the schema and config files for posting on the solr server.
    *
    * @param string $server_id
-   *   The Search API server id. Typically `pantheon_solr8`.
-   *
-   * @return array
-   *   Array of key-value pairs: 'filename' => 'file contents'.
+   *   The Search API server id. Typically, `pantheon_solr8`.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
+   * @throws \Exception
+   *
+   * @return array
+   *   Array of key-value pairs: 'filename' => 'file contents'.
    */
   public function getSolrFiles(string $server_id = 'pantheon_solr8') {
+    /** @var \Drupal\search_api\ServerInterface $server */
     $server = \Drupal::entityTypeManager()
       ->getStorage('search_api_server')
       ->load($server_id);
@@ -164,6 +169,7 @@ class SchemaPoster {
     }
     $solr_configset_controller = new SolrConfigSetController();
     $solr_configset_controller->setServer($server);
+
     return $solr_configset_controller->getConfigFiles();
   }
 
@@ -175,10 +181,11 @@ class SchemaPoster {
    * @param string $file_contents
    *   Contents of the file being uploaded.
    *
-   * @return \Psr\Http\Message\ResponseInterface|null
-   *   Response from the guzzle call to upload.
-   *
    * @throws \Psr\Http\Client\ClientExceptionInterface
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *
+   * @return \Psr\Http\Message\ResponseInterface|null
+   *   Response from the Guzzle call to upload.
    */
   public function uploadSchemaFile(string $filename, string $file_contents): ?ResponseInterface {
     $content_type = 'text/plain';
@@ -196,66 +203,26 @@ class SchemaPoster {
           'charset' => 'utf8',
         ])
       );
-    $this->getLogger()->debug('Upload url: ' . (string) $uri);
+    $this->logger->debug('Upload url: ' . $uri);
     $request = new Request('POST', $uri, [
       'Accept' => 'application/json',
       'Content-Type' => $content_type,
     ], $file_contents);
-    $response = $this->getClient()->sendRequest($request);
-    $logFunction = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
-    $this->getLogger()->{$logFunction}('File: {filename}, Status code: {status_code} - {reason}', [
+    $response = $this->client->sendRequest($request);
+    $this->logger->debug('File: {filename}, Status code: {status_code} - {reason}', [
       'filename' => $filename,
       'status_code' => $response->getStatusCode(),
       'reason' => $response->getReasonPhrase(),
     ]);
+
     return $response;
-  }
-
-  /**
-   * Get Client.
-   *
-   * @return \Psr\Http\Client\ClientInterface
-   *   Psr 18 Client, typically PantheonGuzzle instance.
-   */
-  public function getClient(): PSR18Interface {
-    return $this->client;
-  }
-
-  /**
-   * Set Client.
-   *
-   * @param \Psr\Http\Client\ClientInterface $client
-   *   Psr 18 Client, typically PantheonGuzzle instance.
-   */
-  public function setClient(PSR18Interface $client): void {
-    $this->client = $client;
-  }
-
-  /**
-   * Get Logger.
-   *
-   * @return \Psr\Log\LoggerInterface
-   *   PSR Logger interface.
-   */
-  public function getLogger(): LoggerInterface {
-    return $this->logger;
-  }
-
-  /**
-   * Set Logger.
-   *
-   * @param \Psr\Log\LoggerInterface $logger
-   *   Logger Channel to which these actions will be logged.
-   */
-  public function setLogger(LoggerInterface $logger): void {
-    $this->logger = $logger;
   }
 
   /**
    * Get verbosity.
    *
    * @return bool
-   *   Wheither or not to turn on long debugging.
+   *   Whether or not to turn on long debugging.
    */
   protected function isVerbose(): bool {
     return $this->verbose;
