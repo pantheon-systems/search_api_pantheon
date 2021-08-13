@@ -40,23 +40,23 @@ jobs:
       - name: Code sniff
         run: composer run-script code:lint
 
-      - name: Tests
-        run: |
-          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
-          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
-          echo "$SSH_PRIVATE_KEY" > ../private.key
-          chmod 600 ../private.key
-          eval `ssh-agent -s`
-          ssh-add ../private.key
-          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-            BRANCH=`echo $GITHUB_REF | cut -c12-`
-            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
-          else
-            TAG=`echo $GITHUB_REF | cut -c11-`
-            export GIT_REF=${TAG}
-          fi
-          cd .ci
-          ./create-fresh-d8-site.sh
-          ./setup-d8-repo.sh
-          ./enable-modules.sh
-          ./verify-solr.sh
+#      - name: Tests
+#        run: |
+#          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
+#          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
+#          echo "$SSH_PRIVATE_KEY" > ../private.key
+#          chmod 600 ../private.key
+#          eval `ssh-agent -s`
+#          ssh-add ../private.key
+#          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
+#            BRANCH=`echo $GITHUB_REF | cut -c12-`
+#            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
+#          else
+#            TAG=`echo $GITHUB_REF | cut -c11-`
+#            export GIT_REF=${TAG}
+#          fi
+#          cd .ci
+#          ./create-fresh-d8-site.sh
+#          ./setup-d8-repo.sh
+#          ./enable-modules.sh
+#          ./verify-solr.sh
