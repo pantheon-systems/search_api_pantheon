@@ -158,7 +158,7 @@ class SchemaPoster {
    * @return array
    *   Array of key-value pairs: 'filename' => 'file contents'.
    */
-  public function getSolrFiles(string $server_id = 'pantheon_solr8') {
+  protected function getSolrFiles(string $server_id = 'pantheon_solr8') {
     /** @var \Drupal\search_api\ServerInterface $server */
     $server = \Drupal::entityTypeManager()
       ->getStorage('search_api_server')
