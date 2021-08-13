@@ -4,4 +4,3 @@ services:
     arguments: [ "@logger.factory", "@search_api_pantheon.pantheon_guzzle" ]
   search_api_pantheon.pantheon_guzzle:
     class: Drupal\search_api_pantheon\Services\PantheonGuzzle
-    arguments: [ "@logger.factory" ]
