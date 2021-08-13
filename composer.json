@@ -20,8 +20,10 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Drupal\\search_api_pantheon\\" : "./src",
-            "Drupal\\search_api_pantheon\\tests\\" : "./tests"
+            "Drupal\\search_api_pantheon\\" : "src/",
+            "Drupal\\search_api_pantheon\\tests\\" : "tests/",
+            "Drupal\\search_api\\" : "vendor/drupal/search_api/src/",
+            "Drupal\\search_api_solr\\" : "vendor/drupal/search_api_solr/src/"
         }
     },
     "extra": {
@@ -50,7 +52,7 @@
     },
     "scripts": {
         "code:test" : [
-            "phpunit -c ./phpunit.xml"
+            "vendor/bin/phpunit -c ./phpunit.xml"
         ],
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
