@@ -4,6 +4,19 @@
 
 This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_solr) on [Pantheon](https://pantheon.io). Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes the connection information between Pantheon environments. Doing so eliminates the need to do extra work setting up Solr servers for each environment.
 
+```mermaid
+graph TD
+  A[Solr Server] -->
+  B[Index] --> C{Drupal Module}
+  C -->|views| D[Search Form]
+  C -->|views| E[Search Page]
+  C -->|views| F[Robots]
+  G[Drupal Admin Module] --> |Post Schema| A
+  H[Drupal Entities] --> C --> |indexed fields| B
+  A --> |Status / Health| G
+```
+
+
 ## Composer
 
 Composer is the way you should be managing your drupal module requriements. This module will install it's dependencies when you use composer to install.
