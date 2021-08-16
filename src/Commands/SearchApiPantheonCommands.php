@@ -2,10 +2,10 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
+use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
-use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
@@ -87,23 +87,19 @@ class SearchApiPantheonCommands extends DrushCommands {
    */
   public function testInstall() {
     $this->logger()->notice('Index SCHEME Value: {var}', [
-      'var' => isset($_SERVER['PANTHEON_INDEX_SCHEME'])
-      ? getenv('PANTHEON_INDEX_SCHEME')
-      : 'https',
+      'var' => Endpoint::getSolrScheme(),
     ]);
     $this->logger()->notice('Index HOST Value:   {var}', [
-      'var' => getenv('PANTHEON_INDEX_HOST'),
+      'var' => Endpoint::getSolrHost(),
     ]);
     $this->logger()->notice('Index PORT Value:   {var}', [
-      'var' => getenv('PANTHEON_INDEX_PORT'),
+      'var' => Endpoint::getSolrPort(),
     ]);
     $this->logger()->notice('Index CORE Value:   {var}', [
-      'var' => Cores::getMyCoreName(),
+      'var' => Endpoint::getSolrCore(),
     ]);
     $this->logger()->notice('Index PATH Value:   {var}', [
-      'var' => isset($_SERVER['PANTHEON_INDEX_PATH'])
-      ? getenv('PANTHEON_INDEX_PATH')
-      : '/',
+      'var' => Endpoint::getSolrPath(),
     ]);
     $this->logger()->notice('Testing bare Connection...');
     $response = $this->pingSolrHost();
