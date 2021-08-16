@@ -2,17 +2,18 @@
 
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
-use Drupal\search_api\LoggerTrait;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint;
 use Solarium\Core\Client\Request;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Pantheon Solr connector.
@@ -25,8 +26,8 @@ use Solarium\Core\Client\Request;
  */
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
     SolrConnectorInterface,
-    PluginFormInterface {
-  use LoggerTrait;
+    PluginFormInterface,
+    ContainerFactoryPluginInterface {
 
   /**
    * Pantheon pre-configured guzzle client for Solr Server for this site/env.
@@ -44,13 +45,16 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Plugin ID.
    * @param array $plugin_definition
    *   Plugin Definition.
+   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheon_guzzle
+   *   The Pantheon Guzzle client.
    *
    * @throws \Exception
    */
   public function __construct(
     array $configuration,
     $plugin_id,
-    array $plugin_definition
+    array $plugin_definition,
+    PantheonGuzzle $pantheon_guzzle
   ) {
     parent::__construct(
       $configuration,
@@ -58,13 +62,19 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $plugin_definition
     );
 
-    // @todo move these to dependency injection
-    $this->logger = \Drupal::logger('PantheonSolr');
-    $this->pantheonGuzzleClient = \Drupal::service('search_api_pantheon.pantheon_guzzle');
-    if (!$this->pantheonGuzzleClient instanceof PantheonGuzzle) {
-      throw new \Exception('Cannot instantiate the pantheon-specific guzzle service');
-    }
+    $this->pantheonGuzzleClient = $pantheon_guzzle;
     $this->solr = $this->pantheonGuzzleClient->getSolrClient();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('search_api_pantheon.pantheon_guzzle'));
   }
 
   /**
