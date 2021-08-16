@@ -56,7 +56,7 @@
         ],
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcbf --standard=Drupal,DrupalPractice src/* tests/Unit/*"
+            "vendor/bin/phpcbf --standard=Drupal,DrupalPractice src/* tests/Unit/* modules/*"
         ],
         "code:lint": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",

@@ -5,7 +5,6 @@ namespace Drupal\search_api_pantheon\Commands;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
@@ -26,12 +25,12 @@ use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 class Diagnose extends DrushCommands {
 
   /**
+   * Class constructor.
+   *
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
-   *   Injected by Container.
    */
   public function __construct(
     LoggerChannelFactoryInterface $loggerChannelFactory,
@@ -82,6 +81,7 @@ class Diagnose extends DrushCommands {
       throw new \Exception("Cannot contact solr server.");
     }
     $this->logger()->notice('Drupal Integration...');
+    // @codingStandardsIgnoreLine
     $manager = \Drupal::getContainer()->get(
       'plugin.manager.search_api_solr.connector'
     );

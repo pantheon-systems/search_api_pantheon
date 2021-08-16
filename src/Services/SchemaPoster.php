@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Client\ClientInterface as PSR18Interface;
@@ -229,42 +230,43 @@ class SchemaPoster {
   }
 
   /**
+   * Get Logger Instance.
+   *
    * @return \Psr\Log\LoggerInterface
    *   Drupal's Logger Interface.
    */
-  public function getLogger()
-  {
+  public function getLogger() {
     return $this->logger;
   }
 
   /**
+   * Set Logger Instance.
+   *
    * @param \Psr\Log\LoggerInterface $logger
    *   Drupal's Logger Interface.
    */
-  public function setLogger($logger): void
-  {
+  public function setLogger(LoggerInterface $logger): void {
     $this->logger = $logger;
   }
 
   /**
+   * Get Pantheon Client instance.
+   *
    * @return \Psr\Http\Client\ClientInterface
    *   Pantheon Guzzle Client.
    */
-  public function getClient()
-  {
+  public function getClient() {
     return $this->client;
   }
 
   /**
+   * Set Pantheon Client Instance.
+   *
    * @param \Psr\Http\Client\ClientInterface $client
    *   Pantheon Guzzle Client.
    */
-  public function setClient($client): void
-  {
+  public function setClient(ClientInterface $client): void {
     $this->client = $client;
   }
-
-
-
 
 }

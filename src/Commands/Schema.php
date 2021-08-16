@@ -17,18 +17,22 @@ class Schema extends DrushCommands {
   use LoggerChannelTrait;
 
   /**
+   * Configured pantheon-solr-specific guzzle client.
+   *
    * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
-   *   Configured pantheon-solr-specific guzzle client.
    */
   private PantheonGuzzle $pantheonGuzzle;
 
   /**
+   * Configured pantheon-solr-specific schema poster class.
+   *
    * @var \Drupal\search_api_pantheon\Services\SchemaPoster
-   *   Configured pantheon-solr-specific schema poster class.
    */
   private SchemaPoster $schemaPoster;
 
   /**
+   * Class constructor.
+   *
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle

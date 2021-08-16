@@ -7,8 +7,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Utility\Cores;
-use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -58,18 +56,20 @@ class PantheonSolrAdminForm extends FormBase {
       '#type' => 'vertical_tabs',
       '#title' => $this->t('Pantheon Solr Files'),
     ];
-    $is_open = true;
+    $is_open = TRUE;
     foreach ($file_list['files'] as $filename => $fileinfo) {
 
       $file_contents = $this->pantheonGuzzle->getQueryResult('admin/file', [
         'query' => [
           'action' => 'VIEW',
           'file' => $filename,
-        ]
+        ],
       ]);
+
+      $display_name = ucwords($filename);
       $form[$filename] = [
         '#type' => 'details',
-        '#title' => $this->t(ucwords($filename)),
+        '#title' => $display_name,
         '#group' => 'status',
         '#weight' => substr($filename, 0, -3) === "xml" ? -10 : 10,
       ];
@@ -77,7 +77,7 @@ class PantheonSolrAdminForm extends FormBase {
         $form[$filename],
         $this->getViewSolrFile($filename, $file_contents, $is_open)
       );
-      $is_open = false;
+      $is_open = FALSE;
     }
 
     return $form;
@@ -89,17 +89,19 @@ class PantheonSolrAdminForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {}
 
   /**
-   * Returns the renderable Pantheon Solr Config by path.
+   * Get the vertical panel to view a config file's contents.
    *
-   * @param string $path
-   *   The config path.
-   * @param string|null $config_name
-   *   The config name.
+   * @param string $filename
+   *   Filename of config file on the Solr Server.
+   * @param string $contents
+   *   Contents of config file on the Solr Server.
+   * @param bool $open
+   *   Whether or not the tab appears open by default.
    *
    * @return array
-   *   The renderable array.
+   *   Form control array.
    */
-  protected function getViewSolrFile($filename, $contents, $open = false): array {
+  protected function getViewSolrFile(string $filename, string $contents, bool $open = FALSE): array {
     $toReturn = [];
 
     $toReturn[$filename] = [
