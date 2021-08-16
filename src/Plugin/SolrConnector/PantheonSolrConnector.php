@@ -6,13 +6,11 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\Core\Url;
+use Drupal\search_api_pantheon\Endpoint as PantheonSolrEndpoint;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint;
-use Solarium\Core\Client\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -20,8 +18,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @SolrConnector(
  *   id = "pantheon",
- *   label = @Translation("Pantheon"),
- *   description = @Translation("A connector for Pantheon's Solr server")
+ *   label = @Translation("Pantheon Solr Connector"),
+ *   description = @Translation("Connection to Pantheon's Nextgen Solr 8 server interface")
  * )
  */
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
@@ -90,21 +88,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function label() {
-    // @todo Setup via pluginDefinition.
-    return 'Pantheon Solr Connection';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDescription() {
-    return "Connection to Pantheon's Nextgen Solr 8 server interface";
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function defaultConfiguration(): ?array {
     return [
       'endpoint' => [],
@@ -121,46 +104,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function getServerLink() {
-    $url_path = Cores::getBaseUri();
-    $url = Url::fromUri($url_path);
-
-    return Link::fromTextAndUrl($url_path, $url);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCoreLink() {
-    $url_path = Cores::getBaseCoreUri();
-    $url = Url::fromUri($url_path);
-
-    return Link::fromTextAndUrl($url_path, $url);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getLuke() {
-    // @todo Try to get rid of this.
-    return $this->getDataFromHandler('admin/luke', TRUE);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getDataFromHandler($handler, $reset = FALSE) {
-    $query = $this->solr->createApi([
-      'handler' => $handler,
-      'version' => Request::API_V1,
-    ]);
-    // @todo Implement query caching with redis.
-    return $this->execute($query)->getData();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getEndpoint($key = NULL) {
     $key = $key ?? self::getDefaultEndpoint();
 
@@ -170,22 +113,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function getCoreInfo($reset = FALSE) {
-    // @todo Try to get rid of this.
-    return $this->getDataFromHandler('admin/system', $reset);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function connect() {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getServerInfo($reset = FALSE) {
-    return $this->getDataFromHandler('admin/system', $reset);
-  }
 
   /**
    * {@inheritdoc}
@@ -265,51 +193,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function coreRestGet($path, ?Endpoint $endpoint = NULL) {
-    // @todo Utilize $this->configuration['core'] to get rid of this.
-    return $this->restRequest(ltrim($path, '/'), Request::METHOD_GET, '', $endpoint);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function coreRestPost($path, $command_json = '', ?Endpoint $endpoint = NULL) {
-    // @todo Utilize $this->configuration['core'] to get rid of this.
-    return $this->restRequest(
-      ltrim($path, '/'),
-      Request::METHOD_POST,
-      $command_json,
-      $endpoint
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function useTimeout(string $timeout = self::QUERY_TIMEOUT, ?Endpoint $endpoint = NULL) {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getOptimizeTimeout(?Endpoint $endpoint = NULL) {
-    // @todo Check - do we really need this override (to return "0" instead on the default NULL)?
-    return parent::getOptimizeTimeout($endpoint) ?? 0;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getFile($file = NULL) {
-    // @todo Again, something wrong with $this->configuration['core']. Fix to remove this override.
-    $query = $this->solr->createApi([
-      'handler' => 'admin/file',
-    ]);
-    if ($file) {
-      $query->addParam('file', $file);
-    }
-
-    return $this->execute($query)->getResponse();
-  }
 
   /**
    * {@inheritdoc}

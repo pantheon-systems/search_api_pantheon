@@ -20,8 +20,7 @@ class Cores {
       ? sprintf(
         'v1/site/%s/environment/%s/configs',
         getenv('PANTHEON_SITE'),
-        static::getMyEnvironment()
-      )
+        static::getMyEnvironment())
       : 'solr/admin/config/' . self::getMyCoreName();
   }
 
@@ -36,12 +35,11 @@ class Cores {
    */
   public static function getMyCoreName(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
-        ? sprintf(
+      ? sprintf(
           'v1/site/%s/environment/%s/backend',
           getenv('PANTHEON_SITE'),
-          static::getMyEnvironment()
-      )
-        : "solr/" . getenv('PROJECT_NAME');
+          static::getMyEnvironment())
+      : getenv('PROJECT_NAME');
   }
 
   /**
@@ -55,8 +53,8 @@ class Cores {
    */
   public static function getMyEnvironment(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
-        ? getenv('PANTHEON_ENVIRONMENT')
-        : getenv('ENV');
+      ? getenv('PANTHEON_ENVIRONMENT')
+      : getenv('ENV');
   }
 
   /**
@@ -66,7 +64,8 @@ class Cores {
    *   URL for making Query Calls.
    */
   public static function getBaseCoreUri(): string {
-    return vsprintf('%s/%s/', [static::getBaseUri(), static::getMyCoreName()]);
+    return vsprintf('%s/solr/%s/',
+      [static::getBaseUri(), static::getMyCoreName()]);
   }
 
   /**
