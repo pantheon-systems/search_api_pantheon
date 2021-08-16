@@ -13,9 +13,9 @@ class Cores {
    * Get URL in pantheon environment to upload schema files.
    *
    * @return string
+   *   The URL.
    */
-  public static function getSchemaUploadUri(): string
-  {
+  public static function getSchemaUploadUri(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
       ? sprintf(
         'v1/site/%s/environment/%s/configs',
