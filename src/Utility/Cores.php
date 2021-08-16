@@ -15,7 +15,7 @@ class Cores {
    * Get URL in pantheon environment to upload schema files.
    *
    * @return string
-   *   The URL.
+   *   Represents the API url to upload schema.
    */
   public static function getSchemaUploadUri(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])

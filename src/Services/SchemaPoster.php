@@ -72,7 +72,7 @@ class SchemaPoster {
     $output = [];
     foreach ($files as $filename => $file_contents) {
       try {
-        $response = $this->uploadSchemaFile($filename, $file_contents);
+        $response = $this->uploadSchemaFiles($files);
         $message = vsprintf('File: %s, Status code: %d - %s', [
           'filename' => $filename,
           'status_code' => $response->getStatusCode(),
@@ -91,7 +91,6 @@ class SchemaPoster {
         $this->logger->error($message);
       }
     }
-
     return $output;
   }
 
@@ -114,9 +113,7 @@ class SchemaPoster {
           ])
         );
       $this->logger->debug('Upload url: ' . $uri);
-      $request = new Request('GET', $uri, [
-        'Accept' => 'application/json',
-      ]);
+      $request = new Request('GET', $uri);
       $response = $this->client->sendRequest($request);
       $message = vsprintf('File: %s, Status code: %d - %s', [
         'filename' => $filename,
@@ -154,7 +151,7 @@ class SchemaPoster {
    * @return array
    *   Array of key-value pairs: 'filename' => 'file contents'.
    */
-  protected function getSolrFiles(string $server_id) {
+  public function getSolrFiles(string $server_id = 'pantheon_solr8') {
     /** @var \Drupal\search_api\ServerInterface $server */
     $server = \Drupal::entityTypeManager()
       ->getStorage('search_api_server')
@@ -170,47 +167,44 @@ class SchemaPoster {
   }
 
   /**
-   * Upload a schema file.
+   * Upload schema files to server.
    *
-   * @param string $filename
-   *   Name of the file being uploaded.
-   * @param string $file_contents
-   *   Contents of the file being uploaded.
-   *
-   * @throws \Psr\Http\Client\ClientExceptionInterface
-   * @throws \GuzzleHttp\Exception\GuzzleException
+   * @param array $schemaFiles
+   *   A key => value paired array of filenames => file_contents.
    *
    * @return \Psr\Http\Message\ResponseInterface|null
-   *   Response from the Guzzle call to upload.
+   *   A PSR-7 response object from the API call.
    */
-  public function uploadSchemaFile(string $filename, string $file_contents): ?ResponseInterface {
-    $content_type = 'text/plain';
-    $path_info = pathinfo($filename);
-    if ($path_info['extension'] == 'xml') {
-      $content_type = 'application/xml';
+  public function uploadSchemaFiles(array $schemaFiles): ?ResponseInterface {
+    // Schema upload URL.
+    $uri = (new Uri(Cores::getSchemaUploadUri()));
+    $this->logger->debug('Upload url: ' . (string) $uri);
+
+    // Build the files array.
+    $toSend = ['files' => []];
+    foreach ($schemaFiles as $filename => $file_contents) {
+      $this->logger->notice('Encoding file: {filename}', [
+        'filename' => $filename,
+      ]);
+      $toSend['files'][] = [
+        'filename' => $filename,
+        'content' => base64_encode($file_contents),
+      ];
     }
 
-    $uri = (new Uri(Cores::getBaseCoreUri() . 'admin/file'))
-      ->withQuery(
-        http_build_query([
-          'action' => 'UPLOAD',
-          'file' => $filename,
-          'contentType' => $content_type,
-          'charset' => 'utf8',
-        ])
-      );
-    $this->logger->debug('Upload url: ' . $uri);
+    // Send the request.
     $request = new Request('POST', $uri, [
       'Accept' => 'application/json',
-      'Content-Type' => $content_type,
-    ], $file_contents);
-    $response = $this->client->sendRequest($request);
-    $this->logger->debug('File: {filename}, Status code: {status_code} - {reason}', [
-      'filename' => $filename,
+      'Content-Type' => 'application/json',
+    ], json_encode($toSend));
+    $response = $this->getClient()->sendRequest($request);
+
+    // Parse the response.
+    $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+    $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
       'status_code' => $response->getStatusCode(),
       'reason' => $response->getReasonPhrase(),
     ]);
-
     return $response;
   }
 
@@ -233,5 +227,44 @@ class SchemaPoster {
   public function setVerbose(bool $isVerbose): void {
     $this->verbose = $isVerbose;
   }
+
+  /**
+   * @return \Psr\Log\LoggerInterface
+   *   Drupal's Logger Interface.
+   */
+  public function getLogger()
+  {
+    return $this->logger;
+  }
+
+  /**
+   * @param \Psr\Log\LoggerInterface $logger
+   *   Drupal's Logger Interface.
+   */
+  public function setLogger($logger): void
+  {
+    $this->logger = $logger;
+  }
+
+  /**
+   * @return \Psr\Http\Client\ClientInterface
+   *   Pantheon Guzzle Client.
+   */
+  public function getClient()
+  {
+    return $this->client;
+  }
+
+  /**
+   * @param \Psr\Http\Client\ClientInterface $client
+   *   Pantheon Guzzle Client.
+   */
+  public function setClient($client): void
+  {
+    $this->client = $client;
+  }
+
+
+
 
 }

@@ -241,8 +241,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @throws \Exception
    */
   public function reloadCore() {
-    // @todo implement "Reload Core" feature.
-    throw new \Exception('Reload Core action for Pantheon Solr is not implemented yet');
+    $this->logger->notice('Reload Core action for Pantheon Solr is automatic when Schema is updated.');
   }
 
   /**

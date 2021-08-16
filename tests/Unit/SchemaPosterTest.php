@@ -52,7 +52,27 @@ class SchemaPosterTest extends TestCase {
     $schema_poster = new SchemaPoster($this->loggerFactory, new PantheonGuzzle());
 
     $schema = $schema_poster->viewSchema();
+    $loggerMock = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
 
+    //TODO: replace the mock response
+    $upload_response = new GuzzleHttp\Psr7\Response(
+      200,
+      [],
+      '{"couchdb":"Welcome","version":"2.0.0","vendor":{"name":"The Apache Software Foundation"}}'
+    );
+    $mock = new GuzzleHttp\Handler\MockHandler([$upload_response, $upload_response]);
+
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+    $schemaPoster = new SchemaPoster(
+      $loggerMock,
+      new PantheonGuzzle($loggerMock)
+    );
+    // userland code starts
+    $server = new \PHPCouchDB\Server(['client' => $client]);
+    $this->assertEquals('2.0.0', $server->getVersion());
     $this->assertIsString($schema);
     $this->assertGreaterThan(0, strlen($schema));
   }

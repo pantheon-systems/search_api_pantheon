@@ -30,14 +30,13 @@ class PantheonGuzzle extends Client implements ClientInterface {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => Cores::getBaseUri(),
-      'http_errors' => TRUE,
+      'http_errors' => FALSE,
       'debug' => (PHP_SAPI == 'cli'),
       'verify' => FALSE,
     ];
     if (is_file($cert)) {
       $config['cert'] = $cert;
     }
-
     parent::__construct($config);
   }
 
@@ -72,16 +71,23 @@ class PantheonGuzzle extends Client implements ClientInterface {
    */
   public function getQueryResult(
     string $path,
-    array $guzzleOptions = ['query' => [], 'headers' => []]
-  ): array {
-    $guzzleOptions['headers']['Accept'] = 'application/json';
+    array $guzzleOptions = ['query' => [], 'headers' => ['application/json']]
+  ) {
     $response = $this->get(Cores::getBaseCoreUri() . $path, $guzzleOptions);
     if (!in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
       throw new \Exception($response->getReasonPhrase());
     }
-    return json_decode(
-      $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR
-    );
+    $content_type = $response->getHeader('Content-Type')[0] ?? '';
+    if (strpos($content_type, 'application/json') !== FALSE) {
+      return json_decode(
+        $response->getBody(),
+        TRUE,
+        512,
+        JSON_THROW_ON_ERROR
+      );
+    }
+    return $response->getBody();
+
   }
 
   /**

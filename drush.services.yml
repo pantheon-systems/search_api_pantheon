@@ -1,5 +1,11 @@
 services:
-  search_api_pantheon.commands:
-    class: \Drupal\search_api_pantheon\Commands\SearchApiPantheonCommands
+  search_api_pantheon.drush_diagnose:
+    class: \Drupal\search_api_pantheon\Commands\Diagnose
+    arguments: [ "@logger.factory", "@search_api_pantheon.pantheon_guzzle" ]
+    tags:
+      - { name: drush.command }
+  search_api_pantheon.drush_schema:
+    class: \Drupal\search_api_pantheon\Commands\Schema
+    arguments: [ "@logger.factory", "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.schema_poster" ]
     tags:
       - { name: drush.command }
