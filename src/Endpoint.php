@@ -20,17 +20,15 @@ class Endpoint extends SolariumEndpoint {
    *   they are used by other functions of the endpoint.
    */
   public function __construct(array $options = []) {
-    if (!$options) {
-      $options = [
-        'scheme' => getenv('PANTHEON_INDEX_SCHEME') ?? 'https',
-        'host' => getenv('PANTHEON_INDEX_HOST') ?? 'solr8',
-        'port' => getenv('PANTHEON_INDEX_PORT') ?? 8983,
-        'path' => isset($_SERVER['PANTHEON_INDEX_PATH']) ? getenv('PANTHEON_INDEX_PATH') : '/',
-        'core' => Cores::getMyCoreName(),
-        'collection' => NULL,
-        'leader' => FALSE,
-      ];
-    }
+    $options = array_merge([
+      'scheme' => self::getSolrScheme(),
+      'host' => self::getSolrHost(),
+      'port' => self::getSolrPort(),
+      'path' => self::getSolrPath(),
+      'core' => self::getSolrCore(),
+      'collection' => NULL,
+      'leader' => FALSE,
+    ], $options);
 
     parent::__construct($options);
   }
@@ -43,6 +41,46 @@ class Endpoint extends SolariumEndpoint {
    */
   public static function getSolrScheme(): string {
     return getenv('PANTHEON_INDEX_SCHEME') ?? 'https';
+  }
+
+  /**
+   * Returns the endpoint's host.
+   *
+   * @return string
+   *   The host.
+   */
+  public static function getSolrHost(): string {
+    return getenv('PANTHEON_INDEX_HOST') ?? 'solr8';
+  }
+
+  /**
+   * Returns the endpoint's port.
+   *
+   * @return string
+   *   The port.
+   */
+  public static function getSolrPort(): string {
+    return getenv('PANTHEON_INDEX_PORT') ?? 8983;
+  }
+
+  /**
+   * Returns the endpoint's path.
+   *
+   * @return string
+   *   The path.
+   */
+  public static function getSolrPath(): string {
+    return getenv('PANTHEON_INDEX_PATH') ?? '/';
+  }
+
+  /**
+   * Returns the endpoint's path.
+   *
+   * @return string
+   *   The path.
+   */
+  public static function getSolrCore(): string {
+    return Cores::getMyCoreName();
   }
 
 }

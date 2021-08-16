@@ -2,6 +2,8 @@
 
 namespace Drupal\search_api_pantheon\Utility;
 
+use Drupal\search_api_pantheon\Endpoint;
+
 /**
  * Generate Pantheon Core-names and URI values.
  *
@@ -80,13 +82,11 @@ class Cores {
    */
   public static function getBaseUri(): string {
     return sprintf(
-          '%s://%s:%d',
-          isset($_SERVER['PANTHEON_INDEX_SCHEME'])
-          ? getenv('PANTHEON_INDEX_SCHEME')
-          : 'https',
-          getenv('PANTHEON_INDEX_HOST'),
-          getenv('PANTHEON_INDEX_PORT')
-      );
+      '%s://%s:%d',
+      Endpoint::getSolrScheme(),
+      Endpoint::getSolrHost(),
+      Endpoint::getSolrPort()
+    );
   }
 
 }

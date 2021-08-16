@@ -88,10 +88,16 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration(): ?array {
-    return [
-      'endpoint' => [],
-    ];
+  public function defaultConfiguration() {
+    $configuration = parent::defaultConfiguration();
+
+    return array_merge($configuration, [
+      'scheme' => PantheonSolrEndpoint::getSolrScheme(),
+      'host' => PantheonSolrEndpoint::getSolrHost(),
+      'port' => PantheonSolrEndpoint::getSolrPort(),
+      'path' => PantheonSolrEndpoint::getSolrPath(),
+      'core' => PantheonSolrEndpoint::getSolrCore(),
+    ]);
   }
 
   /**
