@@ -2,8 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Utility;
 
-use Drupal\search_api_pantheon\Endpoint;
-
 /**
  * Generate Pantheon Core-names and URI values.
  *
@@ -15,14 +13,15 @@ class Cores {
    * Get URL in pantheon environment to upload schema files.
    *
    * @return string
-   *   Represents the API url to upload schema.
    */
-  public static function getSchemaUploadUri(): string {
+  public static function getSchemaUploadUri(): string
+  {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
       ? sprintf(
         'v1/site/%s/environment/%s/configs',
         getenv('PANTHEON_SITE'),
-        static::getMyEnvironment())
+        static::getMyEnvironment()
+      )
       : 'solr/admin/config/' . self::getMyCoreName();
   }
 
@@ -37,11 +36,12 @@ class Cores {
    */
   public static function getMyCoreName(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
-      ? sprintf(
+        ? sprintf(
           'v1/site/%s/environment/%s/backend',
           getenv('PANTHEON_SITE'),
-          static::getMyEnvironment())
-      : getenv('PROJECT_NAME');
+          static::getMyEnvironment()
+      )
+        : "solr/" . getenv('PROJECT_NAME');
   }
 
   /**
@@ -55,8 +55,8 @@ class Cores {
    */
   public static function getMyEnvironment(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
-      ? getenv('PANTHEON_ENVIRONMENT')
-      : getenv('ENV');
+        ? getenv('PANTHEON_ENVIRONMENT')
+        : getenv('ENV');
   }
 
   /**
@@ -66,8 +66,7 @@ class Cores {
    *   URL for making Query Calls.
    */
   public static function getBaseCoreUri(): string {
-    return vsprintf('%s/solr/%s/',
-      [static::getBaseUri(), static::getMyCoreName()]);
+    return vsprintf('%s/%s/', [static::getBaseUri(), static::getMyCoreName()]);
   }
 
   /**
@@ -82,11 +81,13 @@ class Cores {
    */
   public static function getBaseUri(): string {
     return sprintf(
-      '%s://%s:%d',
-      Endpoint::getSolrScheme(),
-      Endpoint::getSolrHost(),
-      Endpoint::getSolrPort()
-    );
+          '%s://%s:%d',
+          isset($_SERVER['PANTHEON_INDEX_SCHEME'])
+          ? getenv('PANTHEON_INDEX_SCHEME')
+          : 'https',
+          getenv('PANTHEON_INDEX_HOST'),
+          getenv('PANTHEON_INDEX_PORT')
+      );
   }
 
 }

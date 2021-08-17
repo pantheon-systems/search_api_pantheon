@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon;
 
 use Drupal\search_api_pantheon\Utility\Cores;
+use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
 
 /**
@@ -12,6 +13,15 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
+  use LoggerAwareTrait;
+
+  /**
+   * Options for putting together the endpoint urls.
+   *
+   * @var array
+   */
+  protected $options = [];
+
   /**
    * Class constructor.
    *
@@ -20,67 +30,78 @@ class Endpoint extends SolariumEndpoint {
    *   they are used by other functions of the endpoint.
    */
   public function __construct(array $options = []) {
-    $options = array_merge([
-      'scheme' => self::getSolrScheme(),
-      'host' => self::getSolrHost(),
-      'port' => self::getSolrPort(),
-      'path' => self::getSolrPath(),
-      'core' => self::getSolrCore(),
-      'collection' => NULL,
-      'leader' => FALSE,
-    ], $options);
+    if (!$options) {
+      $options = [
+        'scheme' => getenv('PANTHEON_INDEX_SCHEME') ?? 'https',
+        'host' => getenv('PANTHEON_INDEX_HOST') ?? 'solr8',
+        'port' => getenv('PANTHEON_INDEX_PORT') ?? 8983,
+        'path' => isset($_SERVER['PANTHEON_INDEX_PATH']) ? getenv('PANTHEON_INDEX_PATH') : '/',
+        'core' => Cores::getMyCoreName(),
+        'collection' => NULL,
+        'leader' => FALSE,
+      ];
+    }
 
     parent::__construct($options);
   }
 
   /**
-   * Returns the endpoint's scheme.
+   * Get the V1 base url for all requests.
    *
    * @return string
-   *   The scheme.
+   *   Get the base URI for the Endpoint plus the core extension.
+   *
+   * @throws \Solarium\Exception\UnexpectedValueException
    */
-  public static function getSolrScheme(): string {
-    return getenv('PANTHEON_INDEX_SCHEME') ?? 'https';
+  public function getCoreBaseUri(): string {
+    return Cores::getBaseCoreUri();
   }
 
   /**
-   * Returns the endpoint's host.
+   * Get the base url for all V1 API requests.
    *
    * @return string
-   *   The host.
+   *   Get the base URI for the endpoint. At pantheon the base uri is
+   *   unaccessible and the core URI should always be used.
+   *
+   * @throws \Solarium\Exception\UnexpectedValueException
    */
-  public static function getSolrHost(): string {
-    return getenv('PANTHEON_INDEX_HOST') ?? 'solr8';
+  public function getBaseUri(): string {
+    return Cores::getBaseCoreUri();
   }
 
   /**
-   * Returns the endpoint's port.
+   * Get the base url for all V1 API requests.
    *
    * @return string
-   *   The port.
+   *   Base v1 URi for the endpoint.
+   *
+   * @throws \Solarium\Exception\UnexpectedValueException
    */
-  public static function getSolrPort(): string {
-    return getenv('PANTHEON_INDEX_PORT') ?? 8983;
+  public function getV1BaseUri(): string {
+    return Cores::getBaseCoreUri();
   }
 
   /**
-   * Returns the endpoint's path.
+   * Get the base url for all V2 API requests.
+   *
+   * @throws \Solarium\Exception\UnexpectedValueException
    *
    * @return string
-   *   The path.
+   *   V2 base URI for the endpoint.
    */
-  public static function getSolrPath(): string {
-    return getenv('PANTHEON_INDEX_PATH') ?? '/';
+  public function getV2BaseUri(): string {
+    return $this->getCoreBaseUri() . '/api/';
   }
 
   /**
-   * Returns the endpoint's path.
+   * Get the server uri, required for non core/collection specific requests.
    *
    * @return string
-   *   The path.
+   *   Base URI for the endpoint.
    */
-  public static function getSolrCore(): string {
-    return Cores::getMyCoreName();
+  public function getServerUri(): string {
+    return Cores::getBaseUri();
   }
 
 }
