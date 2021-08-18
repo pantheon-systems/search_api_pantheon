@@ -2,5 +2,8 @@ services:
   search_api_pantheon.schema_poster:
     class: Drupal\search_api_pantheon\Services\SchemaPoster
     arguments: [ "@logger.factory", "@search_api_pantheon.pantheon_guzzle" ]
+  search_api_pantheon.endpoint:
+    class: Drupal\search_api_pantheon\Services\Endpoint
   search_api_pantheon.pantheon_guzzle:
     class: Drupal\search_api_pantheon\Services\PantheonGuzzle
+    arguments: [ "@logger.factory", "@search_api_pantheon.endpoint" ]

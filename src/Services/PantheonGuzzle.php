@@ -2,15 +2,16 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\search_api_pantheon\Endpoint;
-use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
-use Drupal\search_api_pantheon\Utility\Cores;
+use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Solarium\Client as SolrClient;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
@@ -21,23 +22,30 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  *
  * @package \Drupal\search_api_pantheon
  */
-class PantheonGuzzle extends Client implements ClientInterface {
+class PantheonGuzzle
+  extends Client
+  implements ClientInterface,
+    LoggerAwareInterface
+  {
+    use LoggerAwareTrait;
+    use EndpointAwareTrait;
 
   /**
    * Class constructor.
    */
-  public function __construct() {
+  public function __construct(LoggerChannelFactory $loggerChannelFactory, Endpoint $endpoint) {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
-      'base_uri' => Cores::getBaseUri(),
+      'base_uri' => $endpoint->getBaseUri(),
       'http_errors' => FALSE,
-      'debug' => (PHP_SAPI == 'cli'),
+      'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
       'verify' => FALSE,
     ];
     if (is_file($cert)) {
       $config['cert'] = $cert;
     }
     parent::__construct($config);
+    $this->endpoint = $endpoint;
   }
 
   /**
@@ -73,7 +81,7 @@ class PantheonGuzzle extends Client implements ClientInterface {
     string $path,
     array $guzzleOptions = ['query' => [], 'headers' => ['application/json']]
   ) {
-    $response = $this->get(Cores::getBaseCoreUri() . $path, $guzzleOptions);
+    $response = $this->get($this->getEndpoint()->getCoreBaseUri() . $path, $guzzleOptions);
     if (!in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
       throw new \Exception($response->getReasonPhrase());
     }
@@ -105,19 +113,7 @@ class PantheonGuzzle extends Client implements ClientInterface {
       new EventDispatcher(),
       $config
     );
-    $endpoint = new Endpoint([
-      'collection' => NULL,
-      'leader' => FALSE,
-      'timeout' => 5,
-      'solr_version' => '8',
-      'http_method' => 'AUTO',
-      'commit_within' => 1000,
-      'jmx' => FALSE,
-      'solr_install_dir' => '',
-      'skip_schema_check' => FALSE,
-    ]);
-    $endpoint->setKey(PantheonSolrConnector::getDefaultEndpoint());
-    $solr->addEndpoint($endpoint);
+    $solr->addEndpoint($this->endpoint);
     return $solr;
   }
 

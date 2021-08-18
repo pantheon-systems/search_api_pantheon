@@ -6,11 +6,15 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\search_api_pantheon\Endpoint as PantheonSolrEndpoint;
+use Drupal\Core\Url;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Endpoint;
+use Solarium\Core\Client\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,7 +29,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
     SolrConnectorInterface,
     PluginFormInterface,
-    ContainerFactoryPluginInterface {
+    ContainerFactoryPluginInterface,
+    LoggerAwareInterface {
+
+  use LoggerAwareTrait;
 
   /**
    * Pantheon pre-configured guzzle client for Solr Server for this site/env.
@@ -52,15 +59,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     array $configuration,
     $plugin_id,
     array $plugin_definition,
-    PantheonGuzzle $pantheon_guzzle
+    ContainerInterface $container
   ) {
     parent::__construct(
       $configuration,
       $plugin_id,
       $plugin_definition
     );
-
-    $this->pantheonGuzzleClient = $pantheon_guzzle;
+    $this->pantheonGuzzleClient = $container->get('search_api_pantheon.pantheon_guzzle');
     $this->solr = $this->pantheonGuzzleClient->getSolrClient();
   }
 
@@ -72,8 +78,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('search_api_pantheon.pantheon_guzzle'));
+      $container);
   }
+
 
   /**
    * Returns the default endpoint name.
@@ -81,23 +88,31 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return string
    *   The endpoint name.
    */
-  public static function getDefaultEndpoint() {
-    return 'pantheon_solr8';
+  public function getDefaultEndpoint() {
+    return \Drupal\search_api_pantheon\Services\Endpoint::$DEFAULT_NAME;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration() {
-    $configuration = parent::defaultConfiguration();
+  public function label() {
+    return $this->getPluginDefinition()['label'] ?? 'Pantheon Solr 8';
+  }
 
-    return array_merge($configuration, [
-      'scheme' => PantheonSolrEndpoint::getSolrScheme(),
-      'host' => PantheonSolrEndpoint::getSolrHost(),
-      'port' => PantheonSolrEndpoint::getSolrPort(),
-      'path' => PantheonSolrEndpoint::getSolrPath(),
-      'core' => PantheonSolrEndpoint::getSolrCore(),
-    ]);
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return $this->getPluginDefinition()['description'] ?? "Connection to Pantheon's Nextgen Solr 8 server interface";
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): ?array {
+    return [
+      'endpoint' => [],
+    ];
   }
 
   /**
@@ -110,19 +125,52 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function getEndpoint($key = NULL) {
-    $key = $key ?? self::getDefaultEndpoint();
-
-    return $this->solr->getEndpoint($key);
+  public function getServerLink() {
+    $url_path = $this->getEndpoint($this->getDefaultEndpoint())
+      ->getBaseUri();
+    $url = Url::fromUri($url_path);
+    return Link::fromTextAndUrl($url_path, $url);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function connect() {}
+  public function getCoreLink() {
+    $url_path = $this->getEndpoint($this->getDefaultEndpoint())
+      ->getCoreBaseUri();
+    $url = Url::fromUri($url_path);
+    return Link::fromTextAndUrl($url_path, $url);
+  }
 
   /**
    * {@inheritdoc}
+   */
+  public function getLuke() {
+    return $this->getDataFromHandler('admin/luke', TRUE);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCoreInfo($reset = FALSE) {
+    return $this->getDataFromHandler( 'admin/system', $reset);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDataFromHandler($handler, $reset = FALSE) {
+    $query = $this->solr->createApi([
+      'handler' => $handler,
+      'version' => Request::API_V1,
+    ]);
+    // @todo Implement query caching with redis.
+    return $this->execute($query)->getData();
+  }
+
+
+  /**
+   * Stats Summary.
    *
    * @throws \JsonException
    */
@@ -141,6 +189,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $mbeans = new \ArrayIterator($this->pantheonGuzzleClient->getQueryResult('admin/mbeans', ['query' => ['stats' => 'true']])['solr-mbeans']) ?? NULL;
     $indexStats = $this->pantheonGuzzleClient->getQueryResult('admin/luke', ['query' => ['stats' => 'true']])['index'] ?? NULL;
     $stats = [];
+
     if (!empty($mbeans) && !empty($indexStats)) {
       for ($mbeans->rewind(); $mbeans->valid(); $mbeans->next()) {
         $current = $mbeans->current();
@@ -197,6 +246,18 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
+   * @param false $reset
+   *
+   * @return array|object
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   */
+  public function getServerInfo($reset = false)
+  {
+    return $this->getDataFromHandler('admin/system', $reset);
+  }
+
+
+  /**
    * {@inheritdoc}
    */
   public function useTimeout(string $timeout = self::QUERY_TIMEOUT, ?Endpoint $endpoint = NULL) {}
@@ -211,11 +272,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
 
     $view_settings[] = [
       'label' => 'Pantheon Sitename',
-      'info' => Cores::getMyCoreName(),
+      'info' => $this->getEndpoint()->getCore(),
     ];
     $view_settings[] = [
       'label' => 'Pantheon Environment',
-      'info' => Cores::getMyEnvironment(),
+      'info' => getenv('PANTHEON_ENVIRONMENT'),
     ];
     $view_settings[] = [
       'label' => 'Schema Version',
@@ -245,10 +306,43 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
+   * @return array
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state)
+  {
+    $form['notice'] = [
+      '#markup' => "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
+    ];
+     return $form;
+  }
+
+  /**
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   */
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state)
+  {}
+
+  /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->setConfiguration($form_state->getValues());
+  }
+
+  /**
+   * Override any other endpoints by getting the Pantheon Default endpoint.
+   *
+   * @param string $key
+   *
+   * @return mixed
+   */
+  public function getEndpoint($key = 'search_api_solr')
+  {
+    return $this->solr->getEndpoint($this->pantheonGuzzleClient->getEndpoint()->getKey());
   }
 
 }

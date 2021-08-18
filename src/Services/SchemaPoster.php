@@ -2,15 +2,20 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface as PSR18Interface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -18,7 +23,9 @@ use Psr\Log\LoggerInterface;
  *
  * @package Drupal\search_api_pantheon
  */
-class SchemaPoster {
+class SchemaPoster implements LoggerAwareInterface {
+
+  use LoggerAwareTrait;
 
   /**
    * Verbose debugging.
@@ -27,12 +34,6 @@ class SchemaPoster {
    */
   protected bool $verbose = FALSE;
 
-  /**
-   * The Logger.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
 
   /**
    * GuzzleHttp\Client definition.
@@ -69,30 +70,25 @@ class SchemaPoster {
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
   public function postSchema(string $server_id): array {
-    $files = $this->getSolrFiles($server_id);
-    $output = [];
-    foreach ($files as $filename => $file_contents) {
-      try {
-        $response = $this->uploadSchemaFiles($files);
-        $message = vsprintf('File: %s, Status code: %d - %s', [
-          'filename' => $filename,
-          'status_code' => $response->getStatusCode(),
-          'reason' => $response->getReasonPhrase(),
-        ]);
-        $output[] = $message;
-        $this->logger->debug($message);
-      }
-      catch (\Throwable $e) {
-        $message = vsprintf('File: %s, Status code: %d - %s', [
-          'filename' => $filename,
-          'status_code' => $e->getCode(),
-          'reason' => $e->getMessage(),
-        ]);
-        $output[] = $message;
-        $this->logger->error($message);
-      }
+    // PANTHEON Environment
+    if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
+      $response = $this->postSchemaPantheon($server_id);
     }
-    return $output;
+    // LOCAL DOCKER
+    if ($_SERVER['ENV'] === 'local') {
+      $response = $this->uploadSchemaAsZip($server_id);
+    }
+    $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203, 204]) ? 'notice' : 'error';
+    $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
+      'status_code' => $response->getStatusCode(),
+      'reason' => $response->getReasonPhrase(),
+    ]);
+    $message = vsprintf('Result: %s Status code: %d - %s', [
+      $log_function == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
+      $response->getStatusCode(),
+      $response->getReasonPhrase(),
+    ]);
+    return [$message];
   }
 
   /**
@@ -106,7 +102,7 @@ class SchemaPoster {
    */
   public function viewSchema(string $filename = 'schema.xml'): ?string {
     try {
-      $uri = (new Uri(Cores::getBaseCoreUri() . 'admin/file'))
+      $uri = (new Uri($this->getClient()->getEndpoint()->getCoreBaseUri() . 'admin/file'))
         ->withQuery(
           http_build_query([
             'action' => 'VIEW',
@@ -178,7 +174,7 @@ class SchemaPoster {
    */
   public function uploadSchemaFiles(array $schemaFiles): ?ResponseInterface {
     // Schema upload URL.
-    $uri = (new Uri(Cores::getSchemaUploadUri()));
+    $uri = new Uri($this->getClient()->getEndpoint()->getSchemaUploadUri());
     $this->logger->debug('Upload url: ' . (string) $uri);
 
     // Build the files array.
@@ -207,6 +203,71 @@ class SchemaPoster {
       'reason' => $response->getReasonPhrase(),
     ]);
     return $response;
+  }
+
+  /**
+   * @param string $server_id
+   *
+   * @return array
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\search_api\SearchApiException
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   */
+  public function uploadOneAtATime(string $server_id)
+  {
+    $schemaFiles = $this->getSolrFiles($server_id);
+    $toReturn = [];
+    foreach ($schemaFiles as $filename => $contents){
+      $contentType = substr($filename, 0, -3) == ".xml"? 'application/xml' : 'text/plain';
+      $response = $this->getClient()->post($this->getClient()->getEndpoint()->getSchemaUploadUri(), [
+        'query' => [
+          'action' => 'UPLOAD',
+          'name' => '_default',
+          'filePath' => $filename,
+          'contentType' => $contentType,
+          'overwrite'=> 'true'
+        ],
+        'headers' => [
+          'Content-Type' => 'application/octet-stream'
+        ],
+        'body' => $contents
+      ]);
+      // Parse the response.
+      $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203]) ? 'notice' : 'error';
+      $message = vsprintf('File: %s, Status code: %d - %s', [
+        'filename' => $filename,
+        'status_code' => $response->getStatusCode(),
+        'reason' => $response->getReasonPhrase(),
+      ]);
+      $this->logger->{$log_function}($message);
+
+      $toReturn[] = $message;
+    }
+    return $toReturn;
+  }
+
+  /**
+   * Upload the schema files as zipped archive.
+   */
+  public function uploadSchemaAsZip(string $server_id): Response
+  {
+    $path_to_zip = $this->getSolrFilesAsZip($server_id);
+    return $this->client->put(
+      $this->client->getEndpoint()->getBaseUri() . 'api/core/configs/_default'
+      , [
+      'query' => [
+        'action' => 'UPLOAD',
+        'name' => '_default',
+        'overwrite' => 'TRUE',
+        'configSet' => '_default',
+        'create' => 'TRUE',
+      ],
+      'body' => Utils::tryFopen($path_to_zip, 'r'),
+      'headers' =>[
+        'Content-Type' => 'application/octet-stream'
+      ]
+    ]);
   }
 
   /**
@@ -268,5 +329,23 @@ class SchemaPoster {
   public function setClient(ClientInterface $client): void {
     $this->client = $client;
   }
+
+
+  /**
+   * Get the solr schema files as a zip archive.
+   */
+  public function getSolrFilesAsZip(string $server_id) {
+    $files = $this->getSolrFiles($server_id);
+    $temp_dir = FileSystem::getOsTemporaryDirectory() . DIRECTORY_SEPARATOR . uniqid('search_api_pantheon-');
+    $zip_archive = new \ZipArchive();
+    $zip_archive->open($temp_dir . '.zip', \ZipArchive::CREATE);
+    foreach ($files as $filename => $file_contents) {
+      $zip_archive->addFromString($filename, $file_contents);
+    }
+    $zip_archive->close();
+    return $temp_dir . '.zip';
+  }
+
+
 
 }
