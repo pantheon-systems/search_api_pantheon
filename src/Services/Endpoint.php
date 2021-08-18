@@ -20,8 +20,19 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
+  /**
+   * Schema Upload Url.
+   *
+   * @var string
+   */
   protected $schema;
 
+  /**
+   * Default name for Endpoint.
+   *
+   * @var string
+   */
+  // @codingStandardsIgnoreLine
   public static $DEFAULT_NAME = 'pantheon_solr8';
 
   /**
@@ -68,14 +79,13 @@ class Endpoint extends SolariumEndpoint {
       [
         $this->getBaseUri(),
         $this->getPath(),
-        $this->getCore()
+        $this->getCore(),
       ]
     );
   }
 
   /**
    * Get the base URI from environment variables.
-   *
    *
    * @return string
    *   Base URL with scheme and port.
@@ -140,14 +150,13 @@ class Endpoint extends SolariumEndpoint {
       : getenv('ENV');
   }
 
-
   /**
    * Get URL in pantheon environment to upload schema files.
    *
    * @return string
+   *   URL of envrionment.
    */
-  public function getSchemaUploadUri(): string
-  {
+  public function getSchemaUploadUri(): string {
     return vsprintf(
       '%s://%s:%d/%s%s',
       [
@@ -160,14 +169,13 @@ class Endpoint extends SolariumEndpoint {
     );
   }
 
-
   /**
    * Get the path for Schema Uploads.
    *
    * @return string
+   *   The path for schema uploads.
    */
-  public function getSchema(): string
-  {
+  public function getSchema(): string {
     return $this->options['schema'];
   }
 
@@ -177,15 +185,18 @@ class Endpoint extends SolariumEndpoint {
    * @param string $schema
    *   The path for schema uploads.
    */
-  public function setSchema(string $schema): void
-  {
+  public function setSchema(string $schema): void {
     $this->options['schema'] = $schema;
   }
 
-  public function getKey(): ?string
-  {
+  /**
+   * Get the name of this endpoint.
+   *
+   * @return string|null
+   *   Always use the default name.
+   */
+  public function getKey(): ?string {
     return static::$DEFAULT_NAME;
   }
-
 
 }

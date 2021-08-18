@@ -22,13 +22,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  *
  * @package \Drupal\search_api_pantheon
  */
-class PantheonGuzzle
-  extends Client
-  implements ClientInterface,
-    LoggerAwareInterface
-  {
-    use LoggerAwareTrait;
-    use EndpointAwareTrait;
+class PantheonGuzzle extends Client implements
+    ClientInterface,
+    LoggerAwareInterface {
+  use LoggerAwareTrait;
+  use EndpointAwareTrait;
 
   /**
    * Class constructor.
@@ -36,8 +34,9 @@ class PantheonGuzzle
   public function __construct(LoggerChannelFactory $loggerChannelFactory, Endpoint $endpoint) {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
-      'base_uri' => $endpoint->getBaseUri(),
+      'base_uri' => $endpoint->getCoreBaseUri(),
       'http_errors' => FALSE,
+      // @codingStandardsIgnoreLine
       'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
       'verify' => FALSE,
     ];
@@ -83,7 +82,7 @@ class PantheonGuzzle
   ) {
     $response = $this->get($this->getEndpoint()->getCoreBaseUri() . $path, $guzzleOptions);
     if (!in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
-      throw new \Exception($response->getReasonPhrase());
+      $this->logger->error('Query Failed: ' . $response->getReasonPhrase());
     }
     $content_type = $response->getHeader('Content-Type')[0] ?? '';
     if (strpos($content_type, 'application/json') !== FALSE) {

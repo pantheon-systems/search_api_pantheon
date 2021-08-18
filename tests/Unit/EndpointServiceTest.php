@@ -3,10 +3,7 @@
 namespace Drupal\search_api_pantheon\tests\Unit;
 
 use Drupal\search_api_pantheon\Services\Endpoint;
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use PHPUnit\Framework\TestCase;
-use Solarium\QueryType\Update\Query\Document as UpdateDocument;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 
 /**
  * Endpoint Class Test.
@@ -15,23 +12,23 @@ use Solarium\QueryType\Update\Query\Query as UpdateQuery;
  */
 class EndpointServiceTest extends TestCase {
 
-
   /**
+   * Test the endpoint class's ability to generate correct URL's.
+   *
    * @test
    */
-  public function testURIGeneration()
-  {
+  // @codingStandardsIgnoreLine
+  public function testURIGeneration() {
     $ep = new Endpoint([
-                         'scheme' => 'one',
-                         'host' => 'two',
-                         'port' => '1234',
-                         'path' => 'server-path',
-                         'core' => '/core-name',
-                         'schema' => '/schema-path',
-                         'collection' => NULL,
-                         'leader' => FALSE,
-                       ]);
-
+      'scheme' => 'one',
+      'host' => 'two',
+      'port' => '1234',
+      'path' => 'server-path',
+      'core' => '/core-name',
+      'schema' => '/schema-path',
+      'collection' => NULL,
+      'leader' => FALSE,
+    ]);
 
     $this->assertEquals('/core-name', $ep->getCore());
     $this->assertEquals('server-path', $ep->getPath());
@@ -41,8 +38,5 @@ class EndpointServiceTest extends TestCase {
     $this->assertEquals('one://two:1234/server-path/core-name/', $ep->getCoreBaseUri());
     $this->assertEquals('one://two:1234/server-path/schema-path', $ep->getSchemaUploadUri());
   }
-
-
-
 
 }

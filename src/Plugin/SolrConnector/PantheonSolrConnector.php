@@ -3,7 +3,6 @@
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\search_api_pantheon\Utility\Cores;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -15,6 +14,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Endpoint;
 use Solarium\Core\Client\Request;
+use Solarium\Exception\HttpException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -50,8 +50,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Plugin ID.
    * @param array $plugin_definition
    *   Plugin Definition.
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheon_guzzle
-   *   The Pantheon Guzzle client.
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   Drupal standard DI container.
    *
    * @throws \Exception
    */
@@ -67,6 +67,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $plugin_definition
     );
     $this->pantheonGuzzleClient = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->setLogger($container->get('logger.factory')->get('PantheonSolr'));
     $this->solr = $this->pantheonGuzzleClient->getSolrClient();
   }
 
@@ -81,6 +82,24 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $container);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function pingEndpoint(?Endpoint $endpoint = NULL, array $options = []) {
+    $query = $this->solr->createPing($options);
+    try {
+      $start = microtime(TRUE);
+      $result = $this->solr->execute($query, $this->pantheonGuzzleClient->getEndpoint());
+      if ($result->getResponse()->getStatusCode() == 200) {
+        // Add 1 µs to the ping time so we never return 0.
+        return (microtime(TRUE) - $start) + 1E-6;
+      }
+    }
+    catch (HttpException $e) {
+      $this->logger->error("There was an error pinging the endpoint: {error}", ['error' => $e->getMessage()]);
+    }
+    return FALSE;
+  }
 
   /**
    * Returns the default endpoint name.
@@ -89,6 +108,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   The endpoint name.
    */
   public function getDefaultEndpoint() {
+    // @codingStandardsIgnoreLine
     return \Drupal\search_api_pantheon\Services\Endpoint::$DEFAULT_NAME;
   }
 
@@ -153,7 +173,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getCoreInfo($reset = FALSE) {
-    return $this->getDataFromHandler( 'admin/system', $reset);
+    return $this->getDataFromHandler('admin/system', $reset);
   }
 
   /**
@@ -167,7 +187,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     // @todo Implement query caching with redis.
     return $this->execute($query)->getData();
   }
-
 
   /**
    * Stats Summary.
@@ -246,16 +265,20 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
+   * Get general server information.
+   *
    * @param false $reset
+   *   Use cache?
    *
    * @return array|object
+   *   Array of returned values.
+   *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function getServerInfo($reset = false)
-  {
+  // @codingStandardsIgnoreLine
+  public function getServerInfo($reset = FALSE) {
     return $this->getDataFromHandler('admin/system', $reset);
   }
-
 
   /**
    * {@inheritdoc}
@@ -297,37 +320,52 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * {@inheritdoc}
+   * Realod the Solr Core.
    *
-   * @throws \Exception
+   * @return bool
+   *   Success or Failure.
    */
   public function reloadCore() {
     $this->logger->notice('Reload Core action for Pantheon Solr is automatic when Schema is updated.');
+    return TRUE;
   }
 
   /**
+   * Build form hook.
+   *
    * @param array $form
+   *   Form render array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state object.
    *
    * @return array
+   *   Form render array.
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state)
-  {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['notice'] = [
       '#markup' => "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
     ];
-     return $form;
+    return $form;
   }
 
   /**
+   * Form validate handler.
+   *
    * @param array $form
+   *   Form render array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state object.
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state)
-  {}
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+  }
 
   /**
-   * {@inheritdoc}
+   * Form submit handler.
+   *
+   * @param array $form
+   *   Form render array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state object.
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->setConfiguration($form_state->getValues());
@@ -337,12 +375,45 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * Override any other endpoints by getting the Pantheon Default endpoint.
    *
    * @param string $key
+   *   The endpoint name (ignored).
    *
-   * @return mixed
+   * @return \Solarium\Core\Client\Endpoint
+   *   The endpoint in question.
    */
-  public function getEndpoint($key = 'search_api_solr')
-  {
+  public function getEndpoint($key = 'search_api_solr') {
     return $this->solr->getEndpoint($this->pantheonGuzzleClient->getEndpoint()->getKey());
+  }
+
+  /**
+   * Ping the core url.
+   *
+   * @param array $options
+   *   Request Options.
+   *
+   * @return float|int
+   *   Length of time taken for round-trip.
+   */
+  public function pingCore(array $options = []) {
+    $start = microtime(TRUE);
+    $response = $this->pantheonGuzzleClient
+      ->get($this->pantheonGuzzleClient->getEndpoint()->getCoreBaseUri() . 'admin/ping');
+    if ($response->getStatusCode() == 200) {
+      // Add 1 µs to the ping time so we never return 0.
+      return (microtime(TRUE) - $start) + 1E-6;
+    }
+    return -1;
+  }
+
+  /**
+   * Ping the server.
+   *
+   * @return array|mixed|object
+   *   Server information.
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   */
+  public function pingServer() {
+    return $this->getServerInfo(TRUE);
   }
 
 }
