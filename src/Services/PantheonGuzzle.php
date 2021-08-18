@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
 use Http\Factory\Guzzle\RequestFactory;
@@ -31,7 +32,7 @@ class PantheonGuzzle extends Client implements
   /**
    * Class constructor.
    */
-  public function __construct(LoggerChannelFactory $loggerChannelFactory, Endpoint $endpoint) {
+  public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, Endpoint $endpoint) {
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => $endpoint->getCoreBaseUri(),
