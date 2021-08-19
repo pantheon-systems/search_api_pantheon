@@ -66,42 +66,6 @@ class Endpoint extends SolariumEndpoint {
   }
 
   /**
-   * Get the V1 base url for all requests.
-   *
-   * @return string
-   *   Get the base URI for the Endpoint plus plath and the core vars.
-   *
-   * @throws \Solarium\Exception\UnexpectedValueException
-   */
-  public function getCoreBaseUri(): string {
-    return vsprintf(
-      '%s%s%s/',
-      [
-        $this->getBaseUri(),
-        $this->getPath(),
-        $this->getCore(),
-      ]
-    );
-  }
-
-  /**
-   * Get the base URI from environment variables.
-   *
-   * @return string
-   *   Base URL with scheme and port.
-   */
-  public function getBaseUri(): string {
-    return vsprintf(
-      '%s://%s:%d/',
-      [
-        $this->getScheme(),
-        $this->getHost(),
-        $this->getPort(),
-      ]
-    );
-  }
-
-  /**
    * Get the base url for all V1 API requests.
    *
    * @return string
@@ -123,16 +87,6 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getV2BaseUri(): string {
     return $this->getBaseUri() . '/api/';
-  }
-
-  /**
-   * Get the server uri, required for non core/collection specific requests.
-   *
-   * @return string
-   *   Base URI for the endpoint.
-   */
-  public function getServerUri(): string {
-    return $this->getBaseUri();
   }
 
   /**
