@@ -99,25 +99,6 @@ class PantheonGuzzle extends Client implements
   }
 
   /**
-   * Create a Solarium client.
-   *
-   * @return \Solarium\Client
-   *   The Solarium client in question.
-   */
-  public function getSolrClient(): SolrClient {
-    $config = [
-      'endpoint' => [],
-    ];
-    $solr = new SolrClient(
-      $this->getPsr18Adapter(),
-      new EventDispatcher(),
-      $config
-    );
-    $solr->addEndpoint($this->endpoint);
-    return $solr;
-  }
-
-  /**
    * Get a PSR adapter interface based on this class.
    *
    * @return \Solarium\Core\Client\Adapter\AdapterInterface

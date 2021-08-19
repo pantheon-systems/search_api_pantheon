@@ -140,7 +140,7 @@ class Diagnose extends DrushCommands {
    * @usage search_api_pantheon:ping
    *   Ping the solr server.
    *
-   * @command search_api_pantheon:tesdiagnoset
+   * @command search_api_pantheon:ping
    * @aliases sapp
    *
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void
