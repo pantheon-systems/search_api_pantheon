@@ -197,7 +197,6 @@ class SchemaPoster implements LoggerAwareInterface {
         ->getSchemaUploadUri()
     );
     $this->logger->debug('Upload url: ' . (string) $uri);
-
     // Build the files array.
     $toSend = ['files' => []];
     foreach ($schemaFiles as $filename => $file_contents) {

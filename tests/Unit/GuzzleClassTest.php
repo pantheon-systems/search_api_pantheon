@@ -2,10 +2,14 @@
 
 namespace Drupal\search_api_pantheon\tests\Unit;
 
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use PHPUnit\Framework\TestCase;
-use Solarium\QueryType\Update\Query\Document as UpdateDocument;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * Guzzle Class Test.
@@ -15,55 +19,53 @@ use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 class GuzzleClassTest extends TestCase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
+
+    $logger = $this->getMockBuilder(LoggerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $this->loggerFactory = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $this->loggerFactory
+      ->expects($this->any())
+      ->method('get')
+      ->with('PantheonSolr')
+      ->willReturn($logger);
+  }
+
+
+  /**
    * Test the Pantheon Guzzle Client.
    *
    * @test
    */
   public function testGuzzleClient() {
 
-    // Create a new document.
-    $document = new UpdateDocument();
+    $mock = new MockHandler([
+                              new Response(200, ['X-Foo' => 'Bar'], 'Hello, World'),
+                              new Response(202, ['Content-Length' => 0]),
+                              new RequestException('Error Communicating with Server', new Request('GET', 'test'))
+                            ]);
 
-    // Set a field value as property.
-    $document->id = 15;
+    $handlerStack = HandlerStack::create($mock);
+    $client = new Client(['handler' => $handlerStack]);
 
-    // Set a field value as array entry.
-    $document['population'] = 120000;
+// The first request is intercepted with the first response.
+    $response = $client->request('GET', '/');
+    echo $response->getStatusCode();
+//> 200
+    echo $response->getBody();
+//> Hello, World
+// The second request is intercepted with the second response.
+    echo $client->request('GET', '/')->getStatusCode();
+//> 202
 
-    // Set a field value with the setField method, including a boost.
-    $document->setField('name', 'example doc', 3);
-
-    // Add two values to a multivalue field.
-    $document->addField('countries', 'NL');
-    $document->addField('countries', 'UK');
-    $document->addField('countries', 'US');
-
-    // example: add / remove field with methods.
-    $document->setField('dummy', 10);
-    $document->removeField('dummy');
-
-    // example: add / remove field with methods by setting NULL value.
-    $document->setField('dummy', 10);
-    // This removes the field.
-    $document->setField('dummy', NULL);
-
-    // Set a document boost value.
-    $document->setFieldBoost('name', 2.5);
-
-    // Set a field boost.
-    $document->setFieldBoost('population', 4.5);
-
-    // Add it to the update query and also add a commit.
-    $query = new UpdateQuery();
-    $query->addDocument($document);
-    $query->addCommit();
-
-    // Run it, the result should be a new document in the Solr index.
-    $pantheon_guzzle = new PantheonGuzzle();
-
-    $query_result = $pantheon_guzzle->getSolrClient()->update($query);
-
-    $this->assertTrue($query_result->getResponse()->getStatusCode() === 200);
   }
 
 }

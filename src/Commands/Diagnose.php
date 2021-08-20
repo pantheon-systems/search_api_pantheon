@@ -3,8 +3,9 @@
 namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\search_api_pantheon\Endpoint;
+use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
+use Drupal\search_api_pantheon\Services\SolariumClient;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
@@ -24,6 +25,9 @@ use Solarium\QueryType\Update\Query\Query as UpdateQuery;
  */
 class Diagnose extends DrushCommands {
 
+  protected PantheonGuzzle $pantheonGuzzle;
+  protected Endpoint $endpoint;
+  protected SolariumClient $solr;
   /**
    * Class constructor.
    *
@@ -34,10 +38,14 @@ class Diagnose extends DrushCommands {
    */
   public function __construct(
     LoggerChannelFactoryInterface $loggerChannelFactory,
-    PantheonGuzzle $pantheonGuzzle
+    PantheonGuzzle $pantheonGuzzle,
+    Endpoint $endpoint,
+    SolariumClient $solariumClient
   ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
+    $this->endpoint = $endpoint;
+    $this->solr = $solariumClient;
   }
 
   /**
@@ -54,81 +62,92 @@ class Diagnose extends DrushCommands {
    * @throws \Exception
    */
   public function diagnose() {
-    $this->logger()->notice('Index SCHEME Value: {var}', [
-      'var' => Endpoint::getSolrScheme(),
-    ]);
-    $this->logger()->notice('Index HOST Value:   {var}', [
-      'var' => Endpoint::getSolrHost(),
-    ]);
-    $this->logger()->notice('Index PORT Value:   {var}', [
-      'var' => Endpoint::getSolrPort(),
-    ]);
-    $this->logger()->notice('Index CORE Value:   {var}', [
-      'var' => Endpoint::getSolrCore(),
-    ]);
-    $this->logger()->notice('Index PATH Value:   {var}', [
-      'var' => Endpoint::getSolrPath(),
-    ]);
-    $this->logger()->notice('Testing bare Connection...');
-    $response = $this->pingSolrHost();
-    $this->logger()->notice('Ping Received Response? {var}', [
-      'var' => $response instanceof ResultInterface ? '✅' : '❌',
-    ]);
-    $this->logger()->notice('Response http status == 200? {var}', [
-      'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
-    ]);
-    if ($response->getResponse()->getStatusCode() !== 200) {
-      throw new \Exception("Cannot contact solr server.");
-    }
-    $this->logger()->notice('Drupal Integration...');
-    // @codingStandardsIgnoreLine
-    $manager = \Drupal::getContainer()->get(
-      'plugin.manager.search_api_solr.connector'
-    );
-    $connectors = array_keys($manager->getDefinitions() ?? []);
-    $this->logger()->notice('Pantheon Connector Plugin Exists? {var}', [
-      'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
-    ]);
-    $connectorPlugin = $manager->createInstance('pantheon');
-    $this->logger()->notice('Connector Plugin Instance created {var}', [
-      'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
-    ]);
-    $this->logger()->notice('Using connector plugin to get endpoint...');
-    $connectorPlugin->setLogger($this->logger);
-    if (!$connectorPlugin instanceof SolrConnectorInterface) {
-      throw new \Exception('Cannot instantiate solr connector.');
-    }
-    $info = $connectorPlugin->getServerInfo();
+    try {
+      $this->logger()->notice('Index SCHEME Value: {var}', [
+        'var' => $this->endpoint->getScheme(),
+      ]);
+      $this->logger()->notice('Index HOST Value:   {var}', [
+        'var' => $this->endpoint->getHost(),
+      ]);
+      $this->logger()->notice('Index PORT Value:   {var}', [
+        'var' => $this->endpoint->getPort(),
+      ]);
+      $this->logger()->notice('Index CORE Value:   {var}', [
+        'var' => $this->endpoint->getCore(),
+      ]);
+      $this->logger()->notice('Index PATH Value:   {var}', [
+        'var' => $this->endpoint->getPath(),
+      ]);
+      $this->logger()->notice('Testing bare Connection...');
+      $response = $this->pingSolrHost();
+      $this->logger()->notice('Ping Received Response? {var}', [
+        'var' => $response instanceof ResultInterface ? '✅' : '❌',
+      ]);
+      $this->logger()->notice('Response http status == 200? {var}', [
+        'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
+      ]);
+      if ($response->getResponse()->getStatusCode() !== 200) {
+        throw new \Exception('Cannot contact solr server.');
+      }
+      $this->logger()->notice('Drupal Integration...');
+      // @codingStandardsIgnoreLine
+      $manager = \Drupal::getContainer()->get(
+        'plugin.manager.search_api_solr.connector'
+      );
+      $connectors = array_keys($manager->getDefinitions() ?? []);
+      $this->logger()->notice('Pantheon Connector Plugin Exists? {var}', [
+        'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
+      ]);
+      $connectorPlugin = $manager->createInstance('pantheon');
+      $this->logger()->notice('Connector Plugin Instance created {var}', [
+        'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
+      ]);
+      if (!$connectorPlugin instanceof SolrConnectorInterface) {
+        throw new \Exception('Cannot instantiate solr connector.');
+      }
+      $this->logger()->notice('Adding Logger to connector...');
+      $connectorPlugin->setLogger($this->logger);
+      $this->logger()->notice('Using connector plugin to get server Info...');
+      $info = $connectorPlugin->getServerInfo();
+      $this->logger()->notice(print_r($info, true));
+      $this->logger()->notice('Solr Server Version {var}', [
+        'var' => $info['lucene']['solr-spec-version'] ?? '❌',
+      ]);
+      $indexSingleItemQuery = $this->indexSingleItem();
+      $this->logger()->notice('Solr Update index with one document Response: {code} {reason}', [
+        'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
+        'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
+      ]);
+      if ($indexSingleItemQuery->getResponse()->getStatusCode() !== 200) {
+        throw new \Exception('Cannot unable to index simple item. Have you created an index for the server?');
+      }
 
-    $this->logger()->notice('Solr Server Version {var}', [
-      'var' => $info['lucene']['solr-spec-version'] ?? '❌',
-    ]);
-    $indexSingleItemQuery = $this->indexSingleItem();
-    $this->logger()->notice('Solr Update index with one document Response: {code} {reason}', [
-      'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
-      'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
-    ]);
-    if ($indexSingleItemQuery->getResponse()->getStatusCode() !== 200) {
-      throw new \Exception('Cannot unable to index simple item. Have you created an index for the server?');
+      $indexedStats = $this->pantheonGuzzle->getQueryResult('admin/luke', [
+        'query' => [
+          'stats' => 'true',
+        ],
+      ]);
+      $this->logger()->notice('Solr Index Stats: {stats}', [
+        'stats' => print_r($indexedStats['index'], true),
+      ]);
+      $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
+        'query' => [
+          'stats' => 'true',
+        ],
+      ]);
+
+      $this->logger()->notice('Mbeans Stats: {stats}', [
+        'stats' => print_r($beans['solr-mbeans'], true),
+      ]);
+    } catch (\Exception $e) {
+      \Kint::dump($e);
+      $this->logger->emergency("There's a problem somewhere...");
+      exit(1);
+    } catch (\Throwable $t) {
+      \Kint::dump($t);
+      $this->logger->emergency("There's a problem somewhere...");
+      exit(1);
     }
-
-    $indexedStats = $this->pantheonGuzzle->getQueryResult('admin/luke', [
-      'query' => [
-        'stats' => 'true',
-      ],
-    ]);
-    $this->logger()->notice('Solr Index Stats: {stats}', [
-      'stats' => print_r($indexedStats['index'], TRUE),
-    ]);
-    $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
-      'query' => [
-        'stats' => 'true',
-      ],
-    ]);
-
-    $this->logger()->notice('Mbeans Stats: {stats}', [
-      'stats' => print_r($beans['solr-mbeans'], TRUE),
-    ]);
     $this->logger()->notice(
       "If there's an issue with the connection, it would have shown up here. You should be good to go!"
     );
@@ -148,8 +167,8 @@ class Diagnose extends DrushCommands {
    */
   public function pingSolrHost() {
     try {
-      $ping = $this->pantheonGuzzle->getSolrClient()->createPing();
-      return $this->pantheonGuzzle->getSolrClient()->ping($ping);
+      $ping = $this->solr->createPing();
+      return $this->solr->ping($ping);
     }
     catch (\Exception $e) {
       exit($e->getMessage());
@@ -203,7 +222,8 @@ class Diagnose extends DrushCommands {
     $query->addDocument($document);
     $query->addCommit();
     // Run it, the result should be a new document in the Solr index.
-    return $this->pantheonGuzzle->getSolrClient()->update($query);
+    return $this->solr->update($query);
   }
+
 
 }

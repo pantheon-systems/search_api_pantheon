@@ -2,9 +2,9 @@
 
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
+
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Plugin\PluginFormInterface;
@@ -12,6 +12,7 @@ use Drupal\Core\Url;
 use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
+use League\Container\ContainerAwareTrait;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Endpoint;
@@ -36,13 +37,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     LoggerAwareInterface {
 
   use LoggerAwareTrait;
+  use ContainerAwareTrait;
 
-  /**
-   * Pantheon pre-configured guzzle client for Solr Server for this site/env.
-   *
-   * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
-   */
-  protected PantheonGuzzle $pantheonGuzzleClient;
+  protected $solr;
 
   /**
    * Class Constructor.
@@ -69,7 +66,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $plugin_id,
       $plugin_definition
     );
-    $this->pantheonGuzzleClient = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->container = $container;
     $this->setLogger($container->get('logger.factory')->get('PantheonSolr'));
     $this->solr = $container->get('search_api_pantheon.solarium_client');
   }
@@ -89,24 +86,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return [
+    return array_merge(parent::defaultConfiguration(), [
       'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
       'host' => getenv('PANTHEON_INDEX_HOST'),
       'port' => getenv('PANTHEON_INDEX_PORT'),
       'path' => getenv('PANTHEON_INDEX_PATH'),
       'core' => getenv('PANTHEON_INDEX_CORE'),
-      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-      'timeout' => 5,
-      self::INDEX_TIMEOUT => 5,
-      self::OPTIMIZE_TIMEOUT => 10,
-      self::FINALIZE_TIMEOUT => 30,
-      'solr_version' => '',
-      'http_method' => 'AUTO',
-      'commit_within' => 1000,
-      'jmx' => FALSE,
-      'solr_install_dir' => '',
-      'skip_schema_check' => FALSE,
-    ];
+      'schema' => getenv('PANTHEON_INDEX_SCHEMA')
+    ]);
   }
 
 
@@ -165,7 +152,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getServerLink() {
-    $url_path = $this->getEndpoint($this->getDefaultEndpoint())
+    $url_path = $this->getEndpoint()
       ->getBaseUri();
     $url = Url::fromUri($url_path);
     return Link::fromTextAndUrl($url_path, $url);
@@ -175,7 +162,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getCoreLink() {
-    $url_path = $this->getEndpoint($this->getDefaultEndpoint())
+    $url_path = $this->getEndpoint()
       ->getCoreBaseUri();
     $url = Url::fromUri($url_path);
     return Link::fromTextAndUrl($url_path, $url);
@@ -199,6 +186,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   protected function getDataFromHandler($handler, $reset = FALSE) {
+
     $query = $this->solr->createApi([
       'handler' => $handler,
       'version' => Request::API_V1,
@@ -224,8 +212,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       '@core_name' => '',
       '@index_size' => '',
     ];
-    $mbeans = new \ArrayIterator($this->pantheonGuzzleClient->getQueryResult('admin/mbeans', ['query' => ['stats' => 'true']])['solr-mbeans']) ?? NULL;
-    $indexStats = $this->pantheonGuzzleClient->getQueryResult('admin/luke', ['query' => ['stats' => 'true']])['index'] ?? NULL;
+    $mbeans = new \ArrayIterator(($this->coreRestGet('admin/mbeans')) ?? NULL);
+    $indexStats = $this->coreRestGet('admin/luke', ['query' => ['stats' => 'true']])['index'] ?? NULL;
     $stats = [];
 
     if (!empty($mbeans) && !empty($indexStats)) {
@@ -400,7 +388,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   The endpoint in question.
    */
   public function getEndpoint($key = 'search_api_solr') {
-    return $this->solr->getEndpoint($this->pantheonGuzzleClient->getEndpoint()->getKey());
+    return $this->solr->getEndpoint();
   }
 
   /**
@@ -414,8 +402,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   public function pingCore(array $options = []) {
     $start = microtime(TRUE);
-    $response = $this->pantheonGuzzleClient
-      ->get($this->pantheonGuzzleClient->getEndpoint()->getCoreBaseUri() . 'admin/ping');
+    $response = $this->coreRestGet('admin/ping');
     if ($response->getStatusCode() == 200) {
       // Add 1 µs to the ping time so we never return 0.
       return (microtime(TRUE) - $start) + 1E-6;
@@ -423,19 +410,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     return -1;
   }
 
-  /**
-   * {@inheritdoc}
-   */
+
   public function coreRestGet($path, ?Endpoint $endpoint = NULL) {
     // @todo Utilize $this->configuration['core'] to get rid of this.
     return $this->restRequest(ltrim($path, '/'), Request::METHOD_GET, '', $endpoint);
   }
 
-  /**
-   * {@inheritdoc}
-   */
+
   public function coreRestPost($path, $command_json = '', ?Endpoint $endpoint = NULL) {
-    // @todo Utilize $this->configuration['core'] to get rid of this.
+    $this->logger->notice('REST REQUEST!');
     return $this->restRequest(
       ltrim($path, '/'),
       Request::METHOD_POST,
@@ -445,22 +428,100 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   protected function restRequest($handler, $method = Request::METHOD_GET, $command_json = '', ?Endpoint $endpoint = NULL) {
+
     $query = $this->solr->createApi([
-      'handler' => $endpoint->getCoreBaseUri() . $handler,
+      'handler' => $handler,
       'accept' => 'application/json',
       'contenttype' => 'application/json',
       'method' => $method,
       'rawdata' => (Request::METHOD_POST == $method ? $command_json : NULL),
     ]);
-
-    $response = $this->execute($query, $endpoint);
+    $response = $this->execute($query, $this->solr->getEndpoint());
     $output = $response->getData();
-    // \Drupal::logger('search_api_solr')->info(print_r($output, true));.
     if (!empty($output['errors'])) {
       throw new SearchApiSolrException('Error trying to send a REST request.' .
                                        "\nError message(s):" . print_r($output['errors'], TRUE));
     }
     return $output;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function execute(QueryInterface $query, ?Endpoint $endpoint = NULL) {
+    try {
+      $this->logger->notice("connected!");
+      return $this->solr->execute($query, $this->solr->getEndpoint());
+    }
+    catch (\Exception $e) {
+      $this->handleException($e, $endpoint);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function executeRequest(Request $request, ?Endpoint $endpoint = NULL) {
+    try {
+      return $this->solr->executeRequest($request, $this->solr->getEndpoint());
+    }
+    catch (\Exception $e) {
+      $this->handleException($e, $endpoint);
+    }
+  }
+
+
+  public function handleException(\Exception $e, $endpoint)
+  {
+    $body = $e->getBody();
+    \Kint::dump($e);
+    $response_code = (int) $e->getCode();
+    switch ((string) $response_code) {
+      case '400': // Bad Request.
+        $description = 'bad request';
+        $response_decoded = Json::decode($body);
+        if ($response_decoded && isset($response_decoded['error'])) {
+          $body = $response_decoded['error']['msg'] ?? $body;
+        }
+        break;
+
+      case '404': // Not Found.
+        $description = 'not found';
+        break;
+
+      case '401': // Unauthorized.
+      case '403': // Forbidden.
+        $description = 'access denied';
+        break;
+
+      case '500': // Internal Server Error.
+      case '0':
+        $description = 'internal Solr server error';
+        break;
+
+      default:
+        $description = 'unreachable or returned unexpected response code';
+    }
+    $message = sprintf('Solr endpoint %s %s (%d). %s', $this->getEndpointUri($endpoint), $description, $response_code, $body);
+    throw new SearchApiSolrException($message, $response_code, $e);
+  }
+
+
+  /**
+   * Prepares the connection to the Solr server.
+   */
+  protected function connect() {
+    return boolval($this->pingCore());
+  }
+
+  /**
+   * @param array $configuration
+   *   Ignored in favor of the default pantheon config.
+   *
+   * @return object|\Solarium\Client|null
+   */
+  protected function createClient(array &$configuration) {
+    return $this->container->get('search_api_pantheon.solarium_client');
   }
 
 

@@ -4,7 +4,7 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Psr\Log\LoggerAwareTrait;
-use Solarium\Client;
+use Solarium\Core\Client\Client;
 use Solarium\Core\Client\Endpoint;
 use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Response;
@@ -13,7 +13,7 @@ use Solarium\Core\Query\Result\ResultInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * Customized Solrium Client.
+ * Customized Solrium Client to send Guzzle debugging to log entries.
  */
 class SolariumClient extends Client {
 
@@ -28,10 +28,9 @@ class SolariumClient extends Client {
     parent::__construct(
       $guzzle->getPsr18Adapter(),
       new EventDispatcher(),
-      [ 'endpoint' => [] ]
+      [ 'endpoint' => [$endpoint] ]
     );
     $this->logger = $loggerChannelFactory->get('PantheonSolariumClient');
-    $this->addEndpoint($endpoint);
     $this->setDefaultEndpoint($endpoint);
   }
 
@@ -45,10 +44,13 @@ class SolariumClient extends Client {
    */
   public function execute(QueryInterface $query, $endpoint = null): ResultInterface
   {
-    ob_start();
+    \Kint::dump(get_defined_vars());
+    //ob_start();
     $result = parent::execute($query, $this->defaultEndpoint);
-    $output = ob_end_flush();
-    $this->logger->debug($output);
+    //$output = ob_end_flush();
+    //$this->logger->debug($output);
+    \Kint::dump(get_defined_vars());
+
     return $result;
   }
 
@@ -62,12 +64,11 @@ class SolariumClient extends Client {
    */
   public function executeRequest(Request $request, $endpoint = null): Response
   {
-    ob_start();
+    //ob_start();
     $result = parent::executeRequest($request, $this->defaultEndpoint);
-    $output = ob_end_flush();
-    $this->logger->debug($output);
+    //$output = ob_end_flush();
+    //$this->logger->debug($output);
     return $result;
   }
-
 
 }

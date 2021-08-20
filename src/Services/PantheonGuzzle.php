@@ -2,10 +2,13 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Utils;
+use GuzzleHttp\Handler\CurlHandler;
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
@@ -13,10 +16,10 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Solarium\Client as SolrClient;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+
+use function GuzzleHttp\choose_handler;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -26,6 +29,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class PantheonGuzzle extends Client implements
     ClientInterface,
     LoggerAwareInterface {
+
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
@@ -33,13 +37,19 @@ class PantheonGuzzle extends Client implements
    * Class constructor.
    */
   public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, Endpoint $endpoint) {
+
+    $stack = new HandlerStack();
+    $stack->setHandler(new CurlHandler());
+    $stack->push(Middleware::mapRequest([$this, 'requestUriAlterForPantheonEnvironment']));
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => $endpoint->getCoreBaseUri(),
       'http_errors' => FALSE,
+      // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
       // @codingStandardsIgnoreLine
       'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
       'verify' => FALSE,
+      'handler' => $stack,
     ];
     if (is_file($cert)) {
       $config['cert'] = $cert;
@@ -81,7 +91,7 @@ class PantheonGuzzle extends Client implements
     string $path,
     array $guzzleOptions = ['query' => [], 'headers' => ['application/json']]
   ) {
-    $response = $this->get($this->getEndpoint()->getCoreBaseUri() . $path, $guzzleOptions);
+    $response = $this->get( $path, $guzzleOptions);
     if (!in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
       $this->logger->error('Query Failed: ' . $response->getReasonPhrase());
     }
@@ -95,7 +105,6 @@ class PantheonGuzzle extends Client implements
       );
     }
     return $response->getBody();
-
   }
 
   /**
@@ -110,6 +119,24 @@ class PantheonGuzzle extends Client implements
       new RequestFactory(),
       new StreamFactory()
     );
+  }
+
+  /**
+   * Request Middleware Callback.
+   *
+   * @param \Psr\Http\Message\RequestInterface $r
+   *
+   * @return \Psr\Http\Message\RequestInterface
+   */
+  function requestUriAlterForPantheonEnvironment(RequestInterface $r)
+  {
+    $uri = $r->getUri();
+    $path = $uri->getPath();
+    if (strpos($path, $this->endpoint->getPath()) === false) {
+      $uri = $uri->withPath($this->endpoint->getPath() . $this->endpoint->getCore() . $path);
+      return $r->withUri($uri);
+    }
+    return $r;
   }
 
 }
