@@ -77,6 +77,7 @@ class PantheonGuzzle extends Client implements
     }
     parent::__construct($config);
     $this->endpoint = $endpoint;
+    $this->logger = $loggerChannelFactory->get('PantheonGuzzle');
   }
 
   /**
