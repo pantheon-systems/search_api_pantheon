@@ -406,7 +406,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $summary['@deletes_by_id'] =
         (int)$update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
       $summary['@deletes_by_query'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'];
+        (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
       $summary['@core_name'] =
         $stats['CORE']['core']['class'] ??
         $this->t('No information available.');
@@ -418,7 +418,10 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         'date.formatter'
       )->formatInterval($max_time / 1000);
       $summary['@deletes_total'] =
-        $summary['@deletes_by_id'] + $summary['@deletes_by_query'];
+        (
+          intval($summary['@deletes_by_id'])
+          + intval($summary['@deletes_by_query'])
+        ) ?? -1;
       $summary['@schema_version'] = $this->getSchemaVersionString(true);
     }
     return $summary;

@@ -75,7 +75,7 @@ class SchemaPoster implements LoggerAwareInterface {
       $response = $this->uploadSchemaFiles($this->getSolrFiles($server_id));
     }
     // LOCAL DOCKER.
-    if ($_SERVER['ENV'] === 'local') {
+    if (isset($_SERVER['ENV']) && $_SERVER['ENV'] === 'local') {
       $response = $this->uploadSchemaAsZip($server_id);
     }
     if (!$response instanceof Response) {
