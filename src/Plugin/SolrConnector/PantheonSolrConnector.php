@@ -132,6 +132,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $this->logger->error('There was an error pinging the endpoint: {error}', [
         'error' => $e->getMessage(),
       ]);
+      $this->container->get('messenger')
+        ->addError($e->getMessage());
     }
     return false;
   }
@@ -297,13 +299,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
   // @codingStandardsIgnoreLine
-
-  /**
-   * @param \Exception $e
-   * @param $endpoint
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   */
   public function handleException(\Exception $e, $endpoint)
   {
     if ($e instanceof \HttpException) {
@@ -342,9 +337,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $response_code,
         $body
       );
-      throw new SearchApiSolrException($message, $response_code, $e);
+      return null;
+      //throw new SearchApiSolrException($message, $response_code, $e);
     }
-    $this->logger->error($e->getMessage());
+    $this->container->get('messenger')
+      ->addError($message ?? $e->getMessage());
   }
 
   /**
