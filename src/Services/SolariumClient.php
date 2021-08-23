@@ -3,6 +3,8 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use League\Container\ContainerAwareTrait;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Client;
 use Solarium\Core\Client\Endpoint;
@@ -18,19 +20,23 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class SolariumClient extends Client {
 
   use LoggerAwareTrait;
+  use ContainerAwareTrait;
 
   /**
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $guzzle
    * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
    */
-  public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, PantheonGuzzle $guzzle, Endpoint $endpoint) {
+  public function __construct(ContainerInterface $container) {
+    $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
+    $endpoint = $container->get('search_api_pantheon.endpoint');
     parent::__construct(
       $guzzle->getPsr18Adapter(),
       new EventDispatcher(),
       [ 'endpoint' => [$endpoint] ]
     );
-    $this->logger = $loggerChannelFactory->get('PantheonSolariumClient');
+    $this->container = $container;
+    $this->logger = $container->get('logger.factory')->get('PantheonSolariumClient');
     $this->setDefaultEndpoint($endpoint);
   }
 

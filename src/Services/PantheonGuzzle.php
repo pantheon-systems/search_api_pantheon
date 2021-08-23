@@ -2,25 +2,22 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\MessageFormatter;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Handler\CurlHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
+use League\Container\ContainerAwareTrait;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LogLevel;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
-
-use function GuzzleHttp\choose_handler;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -28,11 +25,13 @@ use function GuzzleHttp\choose_handler;
  * @package \Drupal\search_api_pantheon
  */
 class PantheonGuzzle extends Client implements
-    ClientInterface,
-    LoggerAwareInterface {
+  ClientInterface,
+  LoggerAwareInterface
+{
 
   use LoggerAwareTrait;
   use EndpointAwareTrait;
+  use ContainerAwareTrait;
 
   public static $messageFormats = [
     '{method} {uri} HTTP/{version}',
@@ -44,8 +43,9 @@ class PantheonGuzzle extends Client implements
   /**
    * Class constructor.
    */
-  public function __construct(LoggerChannelFactoryInterface $loggerChannelFactory, Endpoint $endpoint) {
-
+  public function __construct(ContainerInterface $container)
+  {
+    $endpoint = $container->get('search_api_pantheon.endpoint');
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
@@ -54,21 +54,21 @@ class PantheonGuzzle extends Client implements
     );
     /**
      *$stack->push(
-      Middleware::log(
-        $loggerChannelFactory->get('PantheonGuzzle'),
-        new MessageFormatter(static::$messageFormats),
-        LogLevel::DEBUG
-      ), 'logger'
-    );
-    **/
+     * Middleware::log(
+     * $loggerChannelFactory->get('PantheonGuzzle'),
+     * new MessageFormatter(static::$messageFormats),
+     * LogLevel::DEBUG
+     * ), 'logger'
+     * );
+     **/
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => $endpoint->getBaseUri(),
-      'http_errors' => FALSE,
+      'http_errors' => false,
       // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
       // @codingStandardsIgnoreLine
       'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
-      'verify' => FALSE,
+      'verify' => false,
       'handler' => $stack,
       'allow_redirects' => false,
     ];
@@ -76,8 +76,9 @@ class PantheonGuzzle extends Client implements
       $config['cert'] = $cert;
     }
     parent::__construct($config);
+    $this->container = $container;
     $this->endpoint = $endpoint;
-    $this->logger = $loggerChannelFactory->get('PantheonGuzzle');
+    $this->logger = $container->get('logger.factory')->get('PantheonGuzzle');
   }
 
   /**
@@ -91,7 +92,8 @@ class PantheonGuzzle extends Client implements
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function sendRequest(RequestInterface $request): ResponseInterface {
+  public function sendRequest(RequestInterface $request): ResponseInterface
+  {
     return $this->send($request);
   }
 
@@ -103,30 +105,30 @@ class PantheonGuzzle extends Client implements
    * @param array $guzzleOptions
    *   Options to pass to the Guzzle client.
    *
-   * @throws \JsonException
-   * @throws \Exception
-   *
    * @return mixed
    *   Response from the query.
+   * @throws \Exception
+   *
+   * @throws \JsonException
    */
   public function getQueryResult(
     string $path,
     array $guzzleOptions = ['query' => [], 'headers' => ['Content-Type' => 'application/json']]
   ) {
-    $response = $this->get( $path, $guzzleOptions);
+    $response = $this->get($path, $guzzleOptions);
     if ($response instanceof ResponseInterface && !in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
       $this->logger->error('Query Failed: ' . $response->getReasonPhrase());
     }
     $content_type = $response->getHeader('Content-Type')[0] ?? '';
-    if (strpos($content_type, 'application/json') !== FALSE) {
+    if (strpos($content_type, 'application/json') !== false) {
       return json_decode(
         $response->getBody(),
-        TRUE,
+        true,
         512,
         JSON_THROW_ON_ERROR
       );
     }
-    return (string) $response->getBody();
+    return (string)$response->getBody();
   }
 
   /**
@@ -135,7 +137,8 @@ class PantheonGuzzle extends Client implements
    * @return \Solarium\Core\Client\Adapter\AdapterInterface
    *   The interface in question.
    */
-  public function getPsr18Adapter(): AdapterInterface {
+  public function getPsr18Adapter(): AdapterInterface
+  {
     return new Psr18Adapter(
       $this,
       new RequestFactory(),

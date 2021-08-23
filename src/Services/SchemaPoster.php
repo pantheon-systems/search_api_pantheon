@@ -4,18 +4,19 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils;
+use League\Container\ContainerAwareTrait;
 use Psr\Http\Client\ClientInterface as PSR18Interface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Posting schema for Pantheon-specific solr driver.
@@ -24,6 +25,7 @@ use Psr\Log\LoggerInterface;
  */
 class SchemaPoster implements LoggerAwareInterface {
   use LoggerAwareTrait;
+  use ContainerAwareTrait;
 
   /**
    * Verbose debugging.
@@ -48,11 +50,11 @@ class SchemaPoster implements LoggerAwareInterface {
    *   Injected when called as a service.
    */
   public function __construct(
-    LoggerChannelFactoryInterface $logger_channel_factory,
-    PantheonGuzzle $pantheon_guzzle_client
+    ContainerInterface $container
   ) {
-    $this->logger = $logger_channel_factory->get('PantheonSolr');
-    $this->client = $pantheon_guzzle_client;
+    $this->container = $container;
+    $this->logger = $container->get('logger.factory')->get('PantheonSolr');
+    $this->client = $container->get('search_api_pantheon.pantheon_guzzle');
   }
 
   /**
