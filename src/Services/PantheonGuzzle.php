@@ -111,7 +111,7 @@ class PantheonGuzzle extends Client implements
    */
   public function getQueryResult(
     string $path,
-    array $guzzleOptions = ['query' => [], 'headers' => ['application/json']]
+    array $guzzleOptions = ['query' => [], 'headers' => ['Content-Type' => 'application/json']]
   ) {
     $response = $this->get( $path, $guzzleOptions);
     if ($response instanceof ResponseInterface && !in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
@@ -126,7 +126,7 @@ class PantheonGuzzle extends Client implements
         JSON_THROW_ON_ERROR
       );
     }
-    return $response->getBody();
+    return (string) $response->getBody();
   }
 
   /**
