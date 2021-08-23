@@ -44,14 +44,7 @@ class SolariumClient extends Client {
    */
   public function execute(QueryInterface $query, $endpoint = null): ResultInterface
   {
-    \Kint::dump(get_defined_vars());
-    //ob_start();
-    $result = parent::execute($query, $this->defaultEndpoint);
-    //$output = ob_end_flush();
-    //$this->logger->debug($output);
-    \Kint::dump(get_defined_vars());
-
-    return $result;
+    return parent::execute($query, $this->defaultEndpoint);
   }
 
   /**
@@ -64,11 +57,7 @@ class SolariumClient extends Client {
    */
   public function executeRequest(Request $request, $endpoint = null): Response
   {
-    //ob_start();
-    $result = parent::executeRequest($request, $this->defaultEndpoint);
-    //$output = ob_end_flush();
-    //$this->logger->debug($output);
-    return $result;
+    return parent::executeRequest($request, $this->defaultEndpoint);
   }
 
 }
