@@ -1,3 +1,4 @@
+```mermaid
 graph TD
   A[Solr Server] -->
   B[Index] --> C{search_api_pantheon}
@@ -9,3 +10,4 @@ graph TD
   I[Search_api] --> H
   J[Drupal Entities] --> I
   A --> |Status / Health| G
+```

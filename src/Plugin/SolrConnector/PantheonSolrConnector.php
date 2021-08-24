@@ -284,7 +284,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       return $this->solr->execute($query, $this->solr->getEndpoint());
     } catch (\HttpException $e) {
       $this->handleException($e, $endpoint);
+    } catch (\Exception $e) {
+      $this->container->get('messenger')->error($e->getMessage());
+    } catch (\Throwable $t) {
+      $this->container->get('messenger')->error($t->getMessage());
     }
+    return null;
   }
 
   /**
@@ -338,7 +343,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $body
       );
       return null;
-      //throw new SearchApiSolrException($message, $response_code, $e);
     }
     $this->container->get('messenger')
       ->addError($message ?? $e->getMessage());
@@ -467,11 +471,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $response = $this->execute($query, $this->solr->getEndpoint());
     $output = $response->getData();
     if (!empty($output['errors'])) {
-      throw new SearchApiSolrException(
-        'Error trying to send a REST request.' .
-        "\nError message(s):" .
-        print_r($output['errors'], true)
-      );
+      foreach ($output['errors'] as $error) {
+        $this->container->get('messenger')->error($error);
+      }
     }
     return $output;
   }
@@ -657,7 +659,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       return $this->solr->executeRequest($request, $this->solr->getEndpoint());
     } catch (\HttpException $e) {
       $this->handleException($e, $endpoint);
+    } catch (\Exception $e) {
+      $this->container->get('messenger')->error($e->getMessage());
+    } catch (\Throwable $t) {
+      $this->container->get('messenger')->error($t->getMessage());
     }
+    return null;
   }
 
   /**

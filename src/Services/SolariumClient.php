@@ -23,9 +23,10 @@ class SolariumClient extends Client {
   use ContainerAwareTrait;
 
   /**
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $guzzle
-   * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
+   * Class constructor.
+   *
+   * @param \Psr\Container\ContainerInterface $container
+   *    Container interface.
    */
   public function __construct(ContainerInterface $container) {
     $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
@@ -33,10 +34,12 @@ class SolariumClient extends Client {
     parent::__construct(
       $guzzle->getPsr18Adapter(),
       new EventDispatcher(),
-      [ 'endpoint' => [$endpoint] ]
+      [ 'endpoint' => [ $endpoint ] ]
     );
     $this->container = $container;
-    $this->logger = $container->get('logger.factory')->get('PantheonSolariumClient');
+    $this->logger = $container
+      ->get('logger.factory')
+      ->get('PantheonSolariumClient');
     $this->setDefaultEndpoint($endpoint);
   }
 

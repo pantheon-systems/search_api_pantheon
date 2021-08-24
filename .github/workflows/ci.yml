@@ -40,6 +40,10 @@ jobs:
       - name: Code sniff
         run: composer run-script code:lint
 
+      - name: render-md-mermaid
+        uses: nielsvaneck/render-md-mermaid@v2
+
+
 #      - name: Tests
 #        run: |
 #          export TERMINUS_ENV=$GITHUB_RUN_NUMBER

@@ -42,12 +42,10 @@ class SchemaPoster implements LoggerAwareInterface {
   protected PSR18Interface $client;
 
   /**
-   * Constructor.
+   * Class Constructor.
    *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_channel_factory
-   *   Injected when called as a service.
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheon_guzzle_client
-   *   Injected when called as a service.
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *    Container Interface.
    */
   public function __construct(
     ContainerInterface $container

@@ -28,7 +28,6 @@ class PantheonGuzzle extends Client implements
   ClientInterface,
   LoggerAwareInterface
 {
-
   use LoggerAwareTrait;
   use EndpointAwareTrait;
   use ContainerAwareTrait;
@@ -41,7 +40,10 @@ class PantheonGuzzle extends Client implements
   ];
 
   /**
-   * Class constructor.
+   * Class Constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *    Container Interface.
    */
   public function __construct(ContainerInterface $container)
   {
