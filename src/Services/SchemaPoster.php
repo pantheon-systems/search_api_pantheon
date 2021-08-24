@@ -45,7 +45,7 @@ class SchemaPoster implements LoggerAwareInterface {
    * Class Constructor.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *    Container Interface.
+   *   Container Interface.
    */
   public function __construct(
     ContainerInterface $container

@@ -25,9 +25,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package \Drupal\search_api_pantheon
  */
 class PantheonGuzzle extends Client implements
-  ClientInterface,
-  LoggerAwareInterface
-{
+    ClientInterface,
+    LoggerAwareInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
   use ContainerAwareTrait;
@@ -43,10 +42,9 @@ class PantheonGuzzle extends Client implements
    * Class Constructor.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *    Container Interface.
+   *   Container Interface.
    */
-  public function __construct(ContainerInterface $container)
-  {
+  public function __construct(ContainerInterface $container) {
     $endpoint = $container->get('search_api_pantheon.endpoint');
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
@@ -66,13 +64,13 @@ class PantheonGuzzle extends Client implements
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
       'base_uri' => $endpoint->getBaseUri(),
-      'http_errors' => false,
+      'http_errors' => FALSE,
       // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
       // @codingStandardsIgnoreLine
       'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
-      'verify' => false,
+      'verify' => FALSE,
       'handler' => $stack,
-      'allow_redirects' => false,
+      'allow_redirects' => FALSE,
     ];
     if (is_file($cert)) {
       $config['cert'] = $cert;
@@ -94,8 +92,7 @@ class PantheonGuzzle extends Client implements
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function sendRequest(RequestInterface $request): ResponseInterface
-  {
+  public function sendRequest(RequestInterface $request): ResponseInterface {
     return $this->send($request);
   }
 
@@ -109,6 +106,7 @@ class PantheonGuzzle extends Client implements
    *
    * @return mixed
    *   Response from the query.
+   *
    * @throws \Exception
    *
    * @throws \JsonException
@@ -122,15 +120,15 @@ class PantheonGuzzle extends Client implements
       $this->logger->error('Query Failed: ' . $response->getReasonPhrase());
     }
     $content_type = $response->getHeader('Content-Type')[0] ?? '';
-    if (strpos($content_type, 'application/json') !== false) {
+    if (strpos($content_type, 'application/json') !== FALSE) {
       return json_decode(
         $response->getBody(),
-        true,
+        TRUE,
         512,
         JSON_THROW_ON_ERROR
       );
     }
-    return (string)$response->getBody();
+    return (string) $response->getBody();
   }
 
   /**
@@ -139,8 +137,7 @@ class PantheonGuzzle extends Client implements
    * @return \Solarium\Core\Client\Adapter\AdapterInterface
    *   The interface in question.
    */
-  public function getPsr18Adapter(): AdapterInterface
-  {
+  public function getPsr18Adapter(): AdapterInterface {
     return new Psr18Adapter(
       $this,
       new RequestFactory(),
@@ -155,12 +152,11 @@ class PantheonGuzzle extends Client implements
    *
    * @return \Psr\Http\Message\RequestInterface
    */
-  function requestUriAlterForPantheonEnvironment(RequestInterface $r)
-  {
+  public function requestUriAlterForPantheonEnvironment(RequestInterface $r) {
     $uri = $r->getUri();
     $path = $uri->getPath();
     $endpointHasPath = strpos($path, $this->endpoint->getPath());
-    if (strpos($path, $this->endpoint->getPath()) === false) {
+    if (strpos($path, $this->endpoint->getPath()) === FALSE) {
       $uri = $uri->withPath($this->endpoint->getPath() . $this->endpoint->getCore() . $path);
       return $r->withUri($uri);
     }

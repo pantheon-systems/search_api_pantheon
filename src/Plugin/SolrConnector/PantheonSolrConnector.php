@@ -8,7 +8,6 @@ use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Url;
-use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use League\Container\ContainerAwareTrait;
@@ -32,11 +31,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
-  SolrConnectorInterface,
-  PluginFormInterface,
-  ContainerFactoryPluginInterface,
-  LoggerAwareInterface
-{
+    SolrConnectorInterface,
+    PluginFormInterface,
+    ContainerFactoryPluginInterface,
+    LoggerAwareInterface {
   use LoggerAwareTrait;
   use ContainerAwareTrait;
 
@@ -45,20 +43,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   protected $solr;
 
-  /**
-   * Class Constructor.
-   *
-   * @param array $configuration
-   *   Plugin configuration.
-   * @param string $plugin_id
-   *   Plugin ID.
-   * @param array $plugin_definition
-   *   Plugin Definition.
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   Drupal standard DI container.
-   *
-   * @throws \Exception
-   */
+
   public function __construct(
     array $configuration,
     $plugin_id,
@@ -97,8 +82,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @return array|array[]|false[]|string[]
    */
-  public function defaultConfiguration()
-  {
+  public function defaultConfiguration() {
     return array_merge(parent::defaultConfiguration(), [
       'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
       'host' => getenv('PANTHEON_INDEX_HOST'),
@@ -115,27 +99,27 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @return false|float
    */
-  public function pingEndpoint(?Endpoint $endpoint = null, array $options = [])
-  {
+  public function pingEndpoint(?Endpoint $endpoint = NULL, array $options = []) {
     $query = $this->solr->createPing($options);
     try {
-      $start = microtime(true);
+      $start = microtime(TRUE);
       $result = $this->solr->execute($query);
       if (
         $result instanceof ResultInterface &&
         $result->getResponse()->getStatusCode() == 200
       ) {
         // Add 1 µs to the ping time so we never return 0.
-        return microtime(true) - $start + 1e-6;
+        return microtime(TRUE) - $start + 1e-6;
       }
-    } catch (HttpException $e) {
+    }
+    catch (HttpException $e) {
       $this->logger->error('There was an error pinging the endpoint: {error}', [
         'error' => $e->getMessage(),
       ]);
       $this->container->get('messenger')
         ->addError($e->getMessage());
     }
-    return false;
+    return FALSE;
   }
 
   /**
@@ -144,8 +128,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return string
    *   The endpoint name.
    */
-  public function getDefaultEndpoint()
-  {
+  public function getDefaultEndpoint() {
     // @codingStandardsIgnoreLine
     return \Drupal\search_api_pantheon\Services\Endpoint::$DEFAULT_NAME;
   }
@@ -153,16 +136,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @return mixed|string
    */
-  public function label()
-  {
+  public function label() {
     return $this->getPluginDefinition()['label'] ?? 'Pantheon Solr 8';
   }
 
   /**
    * @return mixed|string
    */
-  public function getDescription()
-  {
+  public function getDescription() {
     return $this->getPluginDefinition()['description'] ??
       "Connection to Pantheon's Nextgen Solr 8 server interface";
   }
@@ -170,16 +151,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @return false
    */
-  public function isCloud()
-  {
-    return false;
+  public function isCloud() {
+    return FALSE;
   }
 
   /**
    * @return \Drupal\Core\Link
    */
-  public function getServerLink()
-  {
+  public function getServerLink() {
     $url_path = $this->getEndpoint()->getBaseUri();
     $url = Url::fromUri($url_path);
     return Link::fromTextAndUrl($url_path, $url);
@@ -194,16 +173,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Solarium\Core\Client\Endpoint
    *   The endpoint in question.
    */
-  public function getEndpoint($key = 'search_api_solr')
-  {
+  public function getEndpoint($key = 'search_api_solr') {
     return $this->solr->getEndpoint();
   }
 
   /**
    * @return \Drupal\Core\Link
    */
-  public function getCoreLink()
-  {
+  public function getCoreLink() {
     $url_path = $this->getEndpoint()->getCoreBaseUri();
     $url = Url::fromUri($url_path);
     return Link::fromTextAndUrl($url_path, $url);
@@ -213,9 +190,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array|object|null
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function getLuke()
-  {
-    return $this->getDataFromHandler('admin/luke', true);
+  public function getLuke() {
+    return $this->getDataFromHandler('admin/luke', TRUE);
   }
 
   /**
@@ -225,8 +201,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array|null
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  protected function getDataFromHandler($handler, $reset = false)
-  {
+  protected function getDataFromHandler($handler, $reset = FALSE) {
     static $previous_calls = [];
     // We keep the results in a state instead of a cache because we want to
     // access parts of this data even if Solr is temporarily not reachable and
@@ -242,7 +217,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $reset
     ) {
       // Don't retry multiple times in case of an exception.
-      $previous_calls[$server_uri][$handler] = true;
+      $previous_calls[$server_uri][$handler] = TRUE;
 
       if (
         !is_array($endpoint_data) ||
@@ -250,9 +225,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $reset
       ) {
         $query = $this->solr->createApi([
-                                          'handler' => $handler,
-                                          'version' => Request::API_V1,
-                                        ]);
+          'handler' => $handler,
+          'version' => Request::API_V1,
+        ]);
         $endpoint_data[$server_uri][$handler] = $this->execute(
           $query
         )->getData();
@@ -266,8 +241,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @return array|string|string[]
    */
-  public function getServerUri()
-  {
+  public function getServerUri() {
     return $this->solr->getEndpoint()->getCoreBaseUri();
   }
 
@@ -278,18 +252,20 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Solarium\Core\Query\Result\ResultInterface|void
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function execute(QueryInterface $query, ?Endpoint $endpoint = null)
-  {
+  public function execute(QueryInterface $query, ?Endpoint $endpoint = NULL) {
     try {
       return $this->solr->execute($query, $this->solr->getEndpoint());
-    } catch (\HttpException $e) {
+    }
+    catch (\HttpException $e) {
       $this->handleException($e, $endpoint);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->container->get('messenger')->error($e->getMessage());
-    } catch (\Throwable $t) {
+    }
+    catch (\Throwable $t) {
       $this->container->get('messenger')->error($t->getMessage());
     }
-    return null;
+    return NULL;
   }
 
   /**
@@ -304,13 +280,13 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
   // @codingStandardsIgnoreLine
-  public function handleException(\Exception $e, $endpoint)
-  {
+  public function handleException(\Exception $e, $endpoint) {
     if ($e instanceof \HttpException) {
       $body = $e->getBody() ?? '';
-      $response_code = (int)$e->getCode();
-      switch ((string)$response_code) {
-        case '400': // Bad Request.
+      $response_code = (int) $e->getCode();
+      switch ((string) $response_code) {
+        // Bad Request.
+        case '400':
           $description = 'bad request';
           $response_decoded = Json::decode($body);
           if ($response_decoded && isset($response_decoded['error'])) {
@@ -318,16 +294,20 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           }
           break;
 
-        case '404': // Not Found.
+        // Not Found.
+        case '404':
           $description = 'not found';
           break;
 
-        case '401': // Unauthorized.
-        case '403': // Forbidden.
+        // Unauthorized.
+        case '401':
+          // Forbidden.
+        case '403':
           $description = 'access denied';
           break;
 
-        case '500': // Internal Server Error.
+        // Internal Server Error.
+        case '500':
         case '0':
           $description = 'internal Solr server error';
           break;
@@ -342,7 +322,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $response_code,
         $body
       );
-      return null;
+      return NULL;
     }
     $this->container->get('messenger')
       ->addError($message ?? $e->getMessage());
@@ -357,8 +337,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @return string
    */
-  protected function getEndpointUri(Endpoint $endpoint = null): string
-  {
+  protected function getEndpointUri(Endpoint $endpoint = NULL): string {
     return $this->solr->getEndpoint()->getBaseUri();
   }
 
@@ -367,8 +346,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \JsonException
    */
-  public function getStatsSummary()
-  {
+  public function getStatsSummary() {
     $summary = [
       '@pending_docs' => '',
       '@autocommit_time_seconds' => '',
@@ -380,34 +358,34 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       '@core_name' => '',
       '@index_size' => '',
     ];
-    $mbeans = new \ArrayIterator($this->coreRestGet('admin/mbeans') ?? null);
-    $indexStats = $this->coreRestGet('admin/luke?STATS=true')['index'] ?? null;
+    $mbeans = new \ArrayIterator($this->coreRestGet('admin/mbeans') ?? NULL);
+    $indexStats = $this->coreRestGet('admin/luke?STATS=true')['index'] ?? NULL;
     $stats = [];
 
     if (!empty($mbeans) && !empty($indexStats)) {
       for ($mbeans->rewind(); $mbeans->valid(); $mbeans->next()) {
         $current = $mbeans->current();
         $mbeans->next();
-        $next = $mbeans->valid() ? $mbeans->current() : null;
+        $next = $mbeans->valid() ? $mbeans->current() : NULL;
         $stats[$current] = $next;
       }
       $max_time = -1;
       $update_handler_stats = $stats['UPDATE']['updateHandler']['stats'] ?? -1;
 
       $summary['@pending_docs'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
+        (int) $update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
       if (
         isset(
           $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
         )
       ) {
         $max_time =
-          (int)$update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
+          (int) $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
       }
       $summary['@deletes_by_id'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
+        (int) $update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
       $summary['@deletes_by_query'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
+        (int) $update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
       $summary['@core_name'] =
         $stats['CORE']['core']['class'] ??
         $this->t('No information available.');
@@ -423,7 +401,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           intval($summary['@deletes_by_id'])
           + intval($summary['@deletes_by_query'])
         ) ?? -1;
-      $summary['@schema_version'] = $this->getSchemaVersionString(true);
+      $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
     }
     return $summary;
   }
@@ -435,8 +413,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array|string
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function coreRestGet($path, ?Endpoint $endpoint = null)
-  {
+  public function coreRestGet($path, ?Endpoint $endpoint = NULL) {
     // @todo Utilize $this->configuration['core'] to get rid of this.
     return $this->restRequest(
       ltrim($path, '/'),
@@ -459,15 +436,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $handler,
     $method = Request::METHOD_GET,
     $command_json = '',
-    ?Endpoint $endpoint = null
+    ?Endpoint $endpoint = NULL
   ) {
     $query = $this->solr->createApi([
-                                      'handler' => $handler,
-                                      'accept' => 'application/json',
-                                      'contenttype' => 'application/json',
-                                      'method' => $method,
-                                      'rawdata' => Request::METHOD_POST == $method ? $command_json : null,
-                                    ]);
+      'handler' => $handler,
+      'accept' => 'application/json',
+      'contenttype' => 'application/json',
+      'method' => $method,
+      'rawdata' => Request::METHOD_POST == $method ? $command_json : NULL,
+    ]);
     $response = $this->execute($query, $this->solr->getEndpoint());
     $output = $response->getData();
     if (!empty($output['errors'])) {
@@ -483,8 +460,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function getSolrVersion($force_auto_detect = false)
-  {
+  public function getSolrVersion($force_auto_detect = FALSE) {
     $serverInfo = $this->getServerInfo();
     if (isset($serverInfo['lucene']['solr-spec-version'])) {
       return $serverInfo['lucene']['solr-spec-version'];
@@ -499,8 +475,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array|null
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function getServerInfo($reset = false)
-  {
+  public function getServerInfo($reset = FALSE) {
     return $this->getDataFromHandler('admin/system', $reset);
   }
 
@@ -509,7 +484,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   public function useTimeout(
     string $timeout = self::QUERY_TIMEOUT,
-    ?Endpoint $endpoint = null
+    ?Endpoint $endpoint = NULL
   ) {
   }
 
@@ -518,8 +493,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function viewSettings()
-  {
+  public function viewSettings() {
     $view_settings = [];
 
     $view_settings[] = [
@@ -532,10 +506,10 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     ];
     $view_settings[] = [
       'label' => 'Schema Version',
-      'info' => $this->getSchemaVersion(true),
+      'info' => $this->getSchemaVersion(TRUE),
     ];
 
-    $core_info = $this->getCoreInfo(true);
+    $core_info = $this->getCoreInfo(TRUE);
     foreach ($core_info['core'] as $key => $value) {
       if (is_string($value)) {
         $view_settings[] = [
@@ -554,8 +528,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array|object|null
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function getCoreInfo($reset = false)
-  {
+  public function getCoreInfo($reset = FALSE) {
     return $this->getDataFromHandler('admin/system', $reset);
   }
 
@@ -565,12 +538,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return bool
    *   Success or Failure.
    */
-  public function reloadCore()
-  {
+  public function reloadCore() {
     $this->logger->notice(
       'Reload Core action for Pantheon Solr is automatic when Schema is updated.'
     );
-    return true;
+    return TRUE;
   }
 
   /**
@@ -590,7 +562,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   ) {
     $form['notice'] = [
       '#markup' =>
-        "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
+      "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
     ];
     return $form;
   }
@@ -635,7 +607,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   public function coreRestPost(
     $path,
     $command_json = '',
-    ?Endpoint $endpoint = null
+    ?Endpoint $endpoint = NULL
   ) {
     $this->logger->notice('REST REQUEST!');
     return $this->restRequest(
@@ -653,18 +625,20 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Solarium\Core\Client\Response|void
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function executeRequest(Request $request, ?Endpoint $endpoint = null)
-  {
+  public function executeRequest(Request $request, ?Endpoint $endpoint = NULL) {
     try {
       return $this->solr->executeRequest($request, $this->solr->getEndpoint());
-    } catch (\HttpException $e) {
+    }
+    catch (\HttpException $e) {
       $this->handleException($e, $endpoint);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->container->get('messenger')->error($e->getMessage());
-    } catch (\Throwable $t) {
+    }
+    catch (\Throwable $t) {
       $this->container->get('messenger')->error($t->getMessage());
     }
-    return null;
+    return NULL;
   }
 
   /**
@@ -675,19 +649,17 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function pingServer()
-  {
-    return $this->getServerInfo(true);
+  public function pingServer() {
+    return $this->getServerInfo(TRUE);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getFile($file = null)
-  {
+  public function getFile($file = NULL) {
     $query = $this->solr->createApi([
-                                      'handler' => 'admin/file',
-                                    ]);
+      'handler' => 'admin/file',
+    ]);
     if ($file) {
       $query->addParam('file', $file);
     }
@@ -697,8 +669,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * Prepares the connection to the Solr server.
    */
-  protected function connect()
-  {
+  protected function connect() {
     return boolval($this->pingCore());
   }
 
@@ -711,16 +682,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return float|int
    *   Length of time taken for round-trip.
    */
-  public function pingCore(array $options = [])
-  {
-    $start = microtime(true);
+  public function pingCore(array $options = []) {
+    $start = microtime(TRUE);
     $response = $this->coreRestGet('admin/ping');
     if (
       $response instanceof ResponseInterface &&
       $response->getStatusCode() == 200
     ) {
       // Add 1 µs to the ping time so we never return 0.
-      return microtime(true) - $start + 1e-6;
+      return microtime(TRUE) - $start + 1e-6;
     }
     return -1;
   }
@@ -731,8 +701,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @return object|\Solarium\Client|null
    */
-  protected function createClient(array &$configuration)
-  {
+  protected function createClient(array &$configuration) {
     return $this->container->get('search_api_pantheon.solarium_client');
   }
+
 }

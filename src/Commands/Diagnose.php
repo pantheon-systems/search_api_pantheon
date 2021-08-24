@@ -28,6 +28,7 @@ class Diagnose extends DrushCommands {
   protected PantheonGuzzle $pantheonGuzzle;
   protected Endpoint $endpoint;
   protected SolariumClient $solr;
+
   /**
    * Class constructor.
    *
@@ -109,7 +110,7 @@ class Diagnose extends DrushCommands {
       $connectorPlugin->setLogger($this->logger);
       $this->logger()->notice('Using connector plugin to get server Info...');
       $info = $connectorPlugin->getServerInfo();
-      $this->logger()->notice(print_r($info, true));
+      $this->logger()->notice(print_r($info, TRUE));
       $this->logger()->notice('Solr Server Version {var}', [
         'var' => $info['lucene']['solr-spec-version'] ?? '❌',
       ]);
@@ -128,7 +129,7 @@ class Diagnose extends DrushCommands {
         ],
       ]);
       $this->logger()->notice('Solr Index Stats: {stats}', [
-        'stats' => print_r($indexedStats['index'], true),
+        'stats' => print_r($indexedStats['index'], TRUE),
       ]);
       $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
         'query' => [
@@ -137,13 +138,15 @@ class Diagnose extends DrushCommands {
       ]);
 
       $this->logger()->notice('Mbeans Stats: {stats}', [
-        'stats' => print_r($beans['solr-mbeans'], true),
+        'stats' => print_r($beans['solr-mbeans'], TRUE),
       ]);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       \Kint::dump($e);
       $this->logger->emergency("There's a problem somewhere...");
       exit(1);
-    } catch (\Throwable $t) {
+    }
+    catch (\Throwable $t) {
       \Kint::dump($t);
       $this->logger->emergency("There's a problem somewhere...");
       exit(1);
@@ -224,6 +227,5 @@ class Diagnose extends DrushCommands {
     // Run it, the result should be a new document in the Solr index.
     return $this->solr->update($query);
   }
-
 
 }
