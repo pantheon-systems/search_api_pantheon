@@ -110,7 +110,7 @@ class Endpoint extends SolariumEndpoint {
    * @throws \Solarium\Exception\UnexpectedValueException
    */
   public function getV1BaseUri(): string {
-    return $this->getCoreBaseUri();
+    return '';
   }
 
   /**

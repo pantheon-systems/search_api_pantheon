@@ -153,14 +153,21 @@ class PantheonGuzzle extends Client implements
    * @return \Psr\Http\Message\RequestInterface
    */
   public function requestUriAlterForPantheonEnvironment(RequestInterface $r) {
+    $toAdd = '';
     $uri = $r->getUri();
     $path = $uri->getPath();
-    $endpointHasPath = strpos($path, $this->endpoint->getPath());
-    if (strpos($path, $this->endpoint->getPath()) === FALSE) {
-      $uri = $uri->withPath($this->endpoint->getPath() . $this->endpoint->getCore() . $path);
-      return $r->withUri($uri);
+    $exploded = explode('/', $path);
+    if (!in_array(trim($this->endpoint->getCore(), '/'), $exploded)) {
+       array_unshift($exploded, trim($this->endpoint->getCore(), '/'));
     }
-    return $r;
+    if (!in_array(trim($this->endpoint->getPath(), '/'), $exploded)) {
+      array_unshift($exploded, trim($this->endpoint->getPath(), '/'));
+    }
+    $exploded = array_filter($exploded, function($item){
+      return !empty($item);
+    });
+    $uri = $uri->withPath(implode('/', $exploded));
+    return $r->withUri($uri);
   }
 
 }

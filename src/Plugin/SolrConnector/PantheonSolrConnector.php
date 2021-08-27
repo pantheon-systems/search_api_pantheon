@@ -164,14 +164,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * @return array|string|string[]
-   */
-  public function getServerUri()
-  {
-    return $this->solr->getEndpoint()->getCoreBaseUri();
-  }
-
-  /**
    * Returns the default endpoint name.
    *
    * @return string
@@ -236,9 +228,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $indexStats['numDocs'] ?? $this->t('No information available.');
 
       $summary['@autocommit_time_seconds'] = $max_time / 1000;
-      $summary['@autocommit_time'] = \Drupal::service(
-        'date.formatter'
-      )->formatInterval($max_time / 1000);
+      $summary['@autocommit_time'] = $this->container
+        ->get('date.formatter')
+        ->formatInterval($max_time / 1000);
       $summary['@deletes_total'] =
         (
           intval($summary['@deletes_by_id'])
@@ -333,20 +325,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $query->addParam('file', $file);
     }
     return $this->execute($query)->getResponse();
-  }
-
-  /**
-   * Gets a string representation of the endpoint URI.
-   *
-   * Could be overwritten by other connectors according to their needs.
-   *
-   * @param \Solarium\Core\Client\Endpoint $endpoint
-   *
-   * @return string
-   */
-  protected function getEndpointUri(Endpoint $endpoint = null): string
-  {
-    return $this->solr->getEndpoint()->getBaseUri();
   }
 
 }

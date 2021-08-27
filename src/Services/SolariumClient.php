@@ -42,7 +42,7 @@ class SolariumClient extends Client {
   }
 
   /**
-   * Execute a query.
+   * Always use the default endpoint.
    *
    * @param \Solarium\Core\Query\QueryInterface $query
    * @param \Solarium\Core\Client\Endpoint|string|null $endpoint
@@ -54,7 +54,7 @@ class SolariumClient extends Client {
   }
 
   /**
-   * Execute a request and return the response.
+   * Always use the default endpoint.
    *
    * @param \Solarium\Core\Client\Request $request
    * @param \Solarium\Core\Client\Endpoint|string|null $endpoint
