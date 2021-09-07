@@ -38,6 +38,18 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected $solr;
 
 
+  /**
+   * Class constructor.
+   *
+   * @param array $configuration
+   *   Configuration array.
+   * @param $plugin_id
+   *   The plugin id.
+   * @param array $plugin_definition
+   *   Plugin Definition array.
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   Standard DJ container.
+   */
   public function __construct(
     array $configuration,
     $plugin_id,
@@ -182,6 +194,23 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   public function getStatsSummary()
   {
+    $stats = [];
+    try {
+      $mbeansResponse = $this->getStatsQuery('admin/mbeans') ?? ['solr-mbeans' => []];
+      $mbeans = new \ArrayIterator($mbeansResponse['solr-mbeans'] ?? []);
+      for ($mbeans->rewind(); $mbeans->valid(); $mbeans->next()) {
+        $current = $mbeans->current();
+        $mbeans->next();
+        if ($mbeans->valid() && is_string($current)) {
+          $stats[$current] = $mbeans->current();
+        }
+      }
+      $indexResponse = $this->getStatsQuery('admin/luke') ?? ['index' => []];
+      $indexStats = $indexResponse['index'] ?? [];
+    } catch (\Exception $e) {
+      $this->container->get('messenger')->error('Unable to get stats from server!');
+    }
+
     $summary = [
       '@pending_docs' => '',
       '@autocommit_time_seconds' => '',
@@ -193,52 +222,79 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       '@core_name' => '',
       '@index_size' => '',
     ];
-    $mbeans = new \ArrayIterator($this->coreRestGet('admin/mbeans') ?? null);
-    $indexStats = $this->coreRestGet('admin/luke?STATS=true')['index'] ?? null;
-    $stats = [];
 
-    if (!empty($mbeans) && !empty($indexStats)) {
-      for ($mbeans->rewind(); $mbeans->valid(); $mbeans->next()) {
-        $current = $mbeans->current();
-        $mbeans->next();
-        $next = $mbeans->valid() ? $mbeans->current() : null;
-        $stats[$current] = $next;
-      }
-      $max_time = -1;
-      $update_handler_stats = $stats['UPDATE']['updateHandler']['stats'] ?? -1;
-
-      $summary['@pending_docs'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
-      if (
-        isset(
-          $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
-        )
-      ) {
-        $max_time =
-          (int)$update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
-      }
-      $summary['@deletes_by_id'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
-      $summary['@deletes_by_query'] =
-        (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
-      $summary['@core_name'] =
-        $stats['CORE']['core']['class'] ??
-        $this->t('No information available.');
-      $summary['@index_size'] =
-        $indexStats['numDocs'] ?? $this->t('No information available.');
-
-      $summary['@autocommit_time_seconds'] = $max_time / 1000;
-      $summary['@autocommit_time'] = $this->container
-        ->get('date.formatter')
-        ->formatInterval($max_time / 1000);
-      $summary['@deletes_total'] =
-        (
-          intval($summary['@deletes_by_id'])
-          + intval($summary['@deletes_by_query'])
-        ) ?? -1;
-      $summary['@schema_version'] = $this->getSchemaVersionString(true);
+    if (empty($stats) || empty($indexStats)) {
+      return $summary;
     }
+
+
+    $max_time = -1;
+    $update_handler_stats = $stats['UPDATE']['updateHandler']['stats'] ?? -1;
+    $summary['@pending_docs'] =
+      (int)$update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
+    if (
+      isset(
+        $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
+      )
+    ) {
+      $max_time =
+        (int)$update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
+    }
+    $summary['@deletes_by_id'] =
+      (int)$update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
+    $summary['@deletes_by_query'] =
+      (int)$update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
+    $summary['@core_name'] =
+      $stats['CORE']['core']['class'] ??
+      $this->t('No information available.');
+    $summary['@index_size'] =
+      $indexStats['numDocs'] ?? $this->t('No information available.');
+
+    $summary['@autocommit_time_seconds'] = $max_time / 1000;
+    $summary['@autocommit_time'] = $this->container
+      ->get('date.formatter')
+      ->formatInterval($max_time / 1000);
+    $summary['@deletes_total'] =
+      (
+        intval($summary['@deletes_by_id'])
+        + intval($summary['@deletes_by_query'])
+      ) ?? -1;
+    $summary['@schema_version'] = $this->getSchemaVersionString(true);
     return $summary;
+  }
+
+  /**
+   * @param string $handler
+   *
+   * @return mixed
+   */
+  protected function getStatsQuery(string $handler)
+  {
+    return json_decode(
+      $this->container
+        ->get('search_api_pantheon.pantheon_guzzle')
+        ->get(
+          $handler,
+          [
+            'query' =>
+              [
+                'stats' => 'true',
+                'wt' => 'json',
+                'accept' => 'application/json',
+                'contenttype' => 'application/json',
+                'json.nl' => 'flat',
+              ],
+            'headers' =>
+              [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+              ],
+          ]
+        )
+        ->getBody(),
+      true,
+      JSON_THROW_ON_ERROR
+    );
   }
 
   /**
@@ -325,6 +381,13 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $query->addParam('file', $file);
     }
     return $this->execute($query)->getResponse();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getServerInfo($reset = FALSE) {
+    return $this->getDataFromHandler('admin/system', $reset);
   }
 
 }
