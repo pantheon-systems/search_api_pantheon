@@ -11,7 +11,8 @@ use Drupal\Core\Session\AccountInterface;
 /**
  * Provides an access check for the "Solr Admin" routes.
  */
-class AdminAccessCheck implements AccessInterface {
+class AdminAccessCheck implements AccessInterface
+{
 
   /**
    * A custom access check.
@@ -21,11 +22,11 @@ class AdminAccessCheck implements AccessInterface {
    * @param \Drupal\search_api\ServerInterface|null $search_api_server
    *   (optional) The Search API server entity.
    */
-  public function access(AccountInterface $account, ServerInterface $search_api_server = NULL) {
-    if ($search_api_server && $search_api_server->getBackend() instanceof SolrBackendInterface) {
-      return AccessResult::allowed();
+    public function access(AccountInterface $account, ServerInterface $search_api_server = null)
+    {
+        if ($search_api_server && $search_api_server->getBackend() instanceof SolrBackendInterface) {
+            return AccessResult::allowed();
+        }
+        return AccessResult::forbidden();
     }
-    return AccessResult::forbidden();
-  }
-
 }

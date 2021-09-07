@@ -18,14 +18,15 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  *
  * @package Drupal\search_api_pantheon
  */
-class Endpoint extends SolariumEndpoint {
+class Endpoint extends SolariumEndpoint
+{
 
   /**
    * Schema Upload Url.
    *
    * @var string
    */
-  protected $schema;
+    protected $schema;
 
   /**
    * Default name for Endpoint.
@@ -40,7 +41,7 @@ class Endpoint extends SolariumEndpoint {
    *
    * @var array
    */
-  protected $options = [];
+    protected $options = [];
 
   /**
    * Class constructor.
@@ -49,21 +50,22 @@ class Endpoint extends SolariumEndpoint {
    *   Array of options for the endpoint. Currently,
    *   they are used by other functions of the endpoint.
    */
-  public function __construct(array $options = []) {
-    if (!$options) {
-      $options = [
-        'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-        'host' => getenv('PANTHEON_INDEX_HOST'),
-        'port' => getenv('PANTHEON_INDEX_PORT'),
-        'path' => getenv('PANTHEON_INDEX_PATH'),
-        'core' => getenv('PANTHEON_INDEX_CORE'),
-        'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-        'collection' => NULL,
-        'leader' => FALSE,
-      ];
+    public function __construct(array $options = [])
+    {
+        if (!$options) {
+            $options = [
+            'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
+            'host' => getenv('PANTHEON_INDEX_HOST'),
+            'port' => getenv('PANTHEON_INDEX_PORT'),
+            'path' => getenv('PANTHEON_INDEX_PATH'),
+            'core' => getenv('PANTHEON_INDEX_CORE'),
+            'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
+            'collection' => null,
+            'leader' => false,
+            ];
+        }
+        parent::__construct($options);
     }
-    parent::__construct($options);
-  }
 
   /**
    * Get the V1 base url for all requests.
@@ -73,16 +75,17 @@ class Endpoint extends SolariumEndpoint {
    *
    * @throws \Solarium\Exception\UnexpectedValueException
    */
-  public function getCoreBaseUri(): string {
-    return vsprintf(
-      '%s%s%s/',
-      [
-        $this->getBaseUri(),
-        $this->getPath(),
-        $this->getCore(),
-      ]
-    );
-  }
+    public function getCoreBaseUri(): string
+    {
+        return vsprintf(
+            '%s%s%s/',
+            [
+            $this->getBaseUri(),
+            $this->getPath(),
+            $this->getCore(),
+            ]
+        );
+    }
 
   /**
    * Get the base URI from environment variables.
@@ -90,16 +93,17 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   Base URL with scheme and port.
    */
-  public function getBaseUri(): string {
-    return vsprintf(
-      '%s://%s:%d/',
-      [
-        $this->getScheme(),
-        $this->getHost(),
-        $this->getPort(),
-      ]
-    );
-  }
+    public function getBaseUri(): string
+    {
+        return vsprintf(
+            '%s://%s:%d/',
+            [
+            $this->getScheme(),
+            $this->getHost(),
+            $this->getPort(),
+            ]
+        );
+    }
 
   /**
    * Get the base url for all V1 API requests.
@@ -109,9 +113,10 @@ class Endpoint extends SolariumEndpoint {
    *
    * @throws \Solarium\Exception\UnexpectedValueException
    */
-  public function getV1BaseUri(): string {
-    return '';
-  }
+    public function getV1BaseUri(): string
+    {
+        return '';
+    }
 
   /**
    * Get the base url for all V2 API requests.
@@ -121,9 +126,10 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   V2 base URI for the endpoint.
    */
-  public function getV2BaseUri(): string {
-    return $this->getBaseUri() . '/api/';
-  }
+    public function getV2BaseUri(): string
+    {
+        return $this->getBaseUri() . '/api/';
+    }
 
   /**
    * Get the server uri, required for non core/collection specific requests.
@@ -131,9 +137,10 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   Base URI for the endpoint.
    */
-  public function getServerUri(): string {
-    return $this->getBaseUri();
-  }
+    public function getServerUri(): string
+    {
+        return $this->getBaseUri();
+    }
 
   /**
    * Get the current environment name.
@@ -144,11 +151,12 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   Environment Name.
    */
-  public function getMyEnvironment(): string {
-    return isset($_ENV['PANTHEON_ENVIRONMENT'])
-      ? getenv('PANTHEON_ENVIRONMENT')
-      : getenv('ENV');
-  }
+    public function getMyEnvironment(): string
+    {
+        return isset($_ENV['PANTHEON_ENVIRONMENT'])
+        ? getenv('PANTHEON_ENVIRONMENT')
+        : getenv('ENV');
+    }
 
   /**
    * Get URL in pantheon environment to upload schema files.
@@ -156,18 +164,19 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   URL of envrionment.
    */
-  public function getSchemaUploadUri(): string {
-    return vsprintf(
-      '%s://%s:%d/%s%s',
-      [
-        $this->getScheme(),
-        $this->getHost(),
-        $this->getPort(),
-        $this->getPath(),
-        $this->getSchema(),
-      ]
-    );
-  }
+    public function getSchemaUploadUri(): string
+    {
+        return vsprintf(
+            '%s://%s:%d/%s%s',
+            [
+            $this->getScheme(),
+            $this->getHost(),
+            $this->getPort(),
+            $this->getPath(),
+            $this->getSchema(),
+            ]
+        );
+    }
 
   /**
    * Get the path for Schema Uploads.
@@ -175,9 +184,10 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   The path for schema uploads.
    */
-  public function getSchema(): string {
-    return $this->options['schema'];
-  }
+    public function getSchema(): string
+    {
+        return $this->options['schema'];
+    }
 
   /**
    * Set the path for Schema Uploads.
@@ -185,9 +195,10 @@ class Endpoint extends SolariumEndpoint {
    * @param string $schema
    *   The path for schema uploads.
    */
-  public function setSchema(string $schema): void {
-    $this->options['schema'] = $schema;
-  }
+    public function setSchema(string $schema): void
+    {
+        $this->options['schema'] = $schema;
+    }
 
   /**
    * Get the name of this endpoint.
@@ -195,8 +206,8 @@ class Endpoint extends SolariumEndpoint {
    * @return string|null
    *   Always use the default name.
    */
-  public function getKey(): ?string {
-    return static::$DEFAULT_NAME;
-  }
-
+    public function getKey(): ?string
+    {
+        return static::$DEFAULT_NAME;
+    }
 }

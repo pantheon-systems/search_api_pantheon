@@ -13,37 +13,41 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @package Drupal\search_api_pantheon\Form
  */
-class PostSolrSchema extends FormBase {
+class PostSolrSchema extends FormBase
+{
 
   /**
    * The PantheonGuzzle service.
    *
    * @var \Drupal\search_api_pantheon\Services\SchemaPoster
    */
-  protected SchemaPoster $schemaPoster;
+    protected SchemaPoster $schemaPoster;
 
   /**
    * Constructs a new EntityController.
    */
-  public function __construct(SchemaPoster $schemaPoster) {
-    $this->schemaPoster = $schemaPoster;
-  }
+    public function __construct(SchemaPoster $schemaPoster)
+    {
+        $this->schemaPoster = $schemaPoster;
+    }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('search_api_pantheon.schema_poster'),
-    );
-  }
+    public static function create(ContainerInterface $container)
+    {
+        return new static(
+            $container->get('search_api_pantheon.schema_poster'),
+        );
+    }
 
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
-    return 'search_api_solr_admin_post_schema';
-  }
+    public function getFormId()
+    {
+        return 'search_api_solr_admin_post_schema';
+    }
 
   /**
    * {@inheritdoc}
@@ -63,18 +67,20 @@ class PostSolrSchema extends FormBase {
    * @return array
    *   The form structure.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL) {
-    $messages = $this->schemaPoster->postSchema($search_api_server->id());
-    $form['results'] = [
-      '#markup' => implode('<br>', $messages),
-    ];
+    public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = null)
+    {
+        $messages = $this->schemaPoster->postSchema($search_api_server->id());
+        $form['results'] = [
+        '#markup' => implode('<br>', $messages),
+        ];
 
-    return $form;
-  }
+        return $form;
+    }
 
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {}
-
+    public function submitForm(array &$form, FormStateInterface $form_state)
+    {
+    }
 }
