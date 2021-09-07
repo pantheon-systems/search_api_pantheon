@@ -386,6 +386,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
     public function getServerInfo($reset = false)
     {
-        return $this->getDataFromHandler('admin/system', $reset);
+        return $this->getDataFromHandler($this->configuration['core'] . '/admin/system', $reset);
     }
 }
