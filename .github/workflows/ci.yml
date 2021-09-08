@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "TODO - once it is possible to enable Solr8 via pantheon.yml then this step should be the creation of a new multidev, not the reseting of an existing one."
           echo "rather than cloning the db, it might be better to 'drush si'"
-          terminus env:clone-content $SITE_ENV $TERMINUS_SITE.dev --yes --cc
+          terminus env:clone-content $TERMINUS_SITE.dev $TERMINUS_ENV --yes --cc
 
       - name: List modules for debugging
         run: |
@@ -64,9 +64,23 @@ jobs:
           echo "TODO - commit sftp changes"
           echo "TODO - switch into git mode"
 
+      - name: Configure Search API Pantheon (either through drush or browser simulation)
+        run: |
+          echo "TODO"
 
-      - name: Composer install
-        run: composer install --ignore-platform-req=php
+      - name: Index the content (probably with drush)
+        run: |
+          echo "TODO"
+
+      - name: Test that searching works (through browser simulation)
+        run: |
+          echo "TODO"
+
+
+
+
+ #     - name: Composer install
+ #       run: composer install --ignore-platform-req=php
 
    #   - name: render-md-mermaid
     #    uses: nielsvaneck/render-md-mermaid@v2
