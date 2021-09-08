@@ -17,11 +17,16 @@ jobs:
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
+      # @todo, change to a terminus token managed by someone within Eng.
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_TOKEN_2: ${{ secrets.TERMINUS_TOKEN_2 }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      # @todo, change to a different site
       TERMINUS_SITE: "stevector-solr-umami"
+      # @todo, change to different site
+      # Once it is possible to enable Solr8 via pantheon.yml then this step should be the creation of a new multidev, not the reseting of an existing one
       TERMINUS_ENV: "docs-check"
+      # @todo recompute this variable once TERMINUS_ENV is not hard-coded.
       SITE_ENV: "stevector-solr-umami.docs-check"
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -35,19 +40,16 @@ jobs:
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
           terminus auth:login --machine-token=$TERMINUS_TOKEN_2 -vvv
 
-
       - name: Set up new multidev
         run: |
           echo "TODO - once it is possible to enable Solr8 via pantheon.yml then this step should be the creation of a new multidev, not the reseting of an existing one."
           echo "rather than cloning the db, it might be better to 'drush si'"
           terminus env:clone-content $TERMINUS_SITE.dev $TERMINUS_ENV --yes --cc
 
-
-
-
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
         run: |
+          echo "TODO - there has to be a cleaner way to set this private key."
           echo "$SSH_PRIVATE_KEY" > ../private.key
           chmod 600 ../private.key
           eval `ssh-agent -s`
@@ -61,7 +63,6 @@ jobs:
 
           echo "TODO - commit sftp changes"
           echo "TODO - switch into git mode"
-
 
       - name: List modules for debugging
         run: |
