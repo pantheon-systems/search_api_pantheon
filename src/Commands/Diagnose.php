@@ -53,10 +53,10 @@ class Diagnose extends DrushCommands
     /**
      * Search_api_pantheon:diagnose.
      *
-     * @usage search_api_pantheon:diagnose
+     * @usage search-api-pantheon:diagnose
      *   connect to the solr8 server
      *
-     * @command search_api_pantheon:diagnose
+     * @command search-api-pantheon:diagnose
      * @aliases sapd
      *
      * @throws \Drupal\search_api_solr\SearchApiSolrException
@@ -159,10 +159,10 @@ class Diagnose extends DrushCommands
     /**
      * Pings the Solr host.
      *
-     * @usage search_api_pantheon:ping
+     * @usage search-api-pantheon:ping
      *   Ping the solr server.
      *
-     * @command search_api_pantheon:ping
+     * @command search-api-pantheon:ping
      * @aliases sapp
      *
      * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void

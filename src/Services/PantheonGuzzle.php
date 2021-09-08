@@ -164,10 +164,12 @@ class PantheonGuzzle extends Client implements
         $uri = $r->getUri();
         $path = $uri->getPath();
         $exploded = explode('/', $path);
-        if (!in_array(trim($this->endpoint->getCore(), '/'), $exploded)) {
+        $shouldBeInUrl = $this->endpoint->getMySitename();
+        $shouldBeInPath = $this->endpoint->getPath();
+        if (!in_array(trim($shouldBeInUrl, '/'), $exploded)) {
             array_unshift($exploded, trim($this->endpoint->getCore(), '/'));
         }
-        if (!in_array(trim($this->endpoint->getPath(), '/'), $exploded)) {
+        if (!in_array(trim($shouldBeInPath, '/'), $exploded)) {
             array_unshift($exploded, trim($this->endpoint->getPath(), '/'));
         }
         $exploded = array_filter($exploded, function ($item) {
