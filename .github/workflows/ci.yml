@@ -30,7 +30,6 @@ jobs:
       - name: Login
         run: |
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
-
           terminus auth:login --machine-token=$TERMINUS_TOKEN_2 -vvv
         
       ### These steps should move below the code sniff once the code sniff is passing.  
