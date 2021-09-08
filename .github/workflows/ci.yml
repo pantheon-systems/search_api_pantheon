@@ -44,6 +44,10 @@ jobs:
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
         run: |
+          echo "$SSH_PRIVATE_KEY" > ../private.key
+          chmod 600 ../private.key
+          eval `ssh-agent -s`
+          ssh-add ../private.key
           echo "Switch into SFTP mode so that composer.json can be changed"
           terminus connection:set $SITE_ENV sftp
           echo "TODO - make this composer require statment more specific. See https://github.com/pantheon-systems/search_api_pantheon/blob/2bc0c1b44eed44671457fb1fa0afedcd40392183/.circleci/setup-d8-repo.sh#L13"
