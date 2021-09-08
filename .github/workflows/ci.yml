@@ -34,14 +34,18 @@ jobs:
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
+      - name: find sites
+        run: terminus sites:list
+
+
       - name: Composer install
         run: composer install --ignore-platform-req=php
 
       - name: render-md-mermaid
         uses: nielsvaneck/render-md-mermaid@v2
 
-      - name: Code sniff
-        run: composer run-script code:lint
+    #  - name: Code sniff
+    #    run: composer run-script code:lint
 
 
 
