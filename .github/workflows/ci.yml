@@ -32,7 +32,7 @@ jobs:
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
-          terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
+          terminus auth:login -n --machine-token="$TERMINUS_TOKEN_2"
 
       - name: find sites
         run: terminus site:list
@@ -40,7 +40,9 @@ jobs:
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
         run: |
+          echo "TODO switch to a site made by CMS Ecosystem"
           export TERMINUS_SITE=stevector-solr-umami
+          echo "TODO - after the pantheon.yml work is done that allow auto enabling of solr per env then these tests should make a new env for each run"
           export TERMINUS_ENV=docs-check
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           echo "TODO - switch into SFTP mode"
