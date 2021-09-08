@@ -35,16 +35,19 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
       - name: find sites
-        run: terminus site:info TERMINUS_ENV  --field=id
+        run: terminus site:info TERMINUS_SITE --field=id
         
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
-
+        run: |
           export TERMINUS_SITE=stevector-solr-umami
           export TERMINUS_ENV=docs-check
-          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV 
+          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
+          echo "TODO - switch into SFTP mode"
           terminus composer $SITE_ENV -- help
-
+          echo "TODO - make this composer require statment more specific. See https://github.com/pantheon-systems/search_api_pantheon/blob/2bc0c1b44eed44671457fb1fa0afedcd40392183/.circleci/setup-d8-repo.sh#L13"
+          terminus composer SITE_ENV -- require pantheon-systems/search_api_pantheon ^8 --prefer-dist
+          echo "TODO - switch into git mode"
 
       - name: Composer install
         run: composer install --ignore-platform-req=php
