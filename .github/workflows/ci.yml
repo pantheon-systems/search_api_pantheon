@@ -64,6 +64,13 @@ jobs:
 
       - name: Enable modules
         run: |
+        
+          echo "TODO - there has to be a cleaner way to set this private key."
+          echo "$SSH_PRIVATE_KEY" > ../private.key
+          chmod 600 ../private.key
+          eval `ssh-agent -s`
+          ssh-add ../private.key
+
           terminus drush $SITE_ENV -- en -y search_api_pantheon search_api_pantheon_admin
 
       - name: List modules for debugging
