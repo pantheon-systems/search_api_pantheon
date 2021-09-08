@@ -33,10 +33,7 @@ jobs:
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
-          terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
-
-      - name: find sites
-        run: terminus site:list
+          terminus auth:login -n --machine-token=$TERMINUS_TOKEN_2
         
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
