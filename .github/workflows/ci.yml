@@ -19,7 +19,9 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_TOKEN_2: ${{ secrets.TERMINUS_TOKEN_2 }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
+      TERMINUS_SITE: "stevector-solr-umami"
+      TERMINUS_ENV: "docs-check"
+      SITE_ENV: "stevector-solr-umami.docs-check"
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       BASH_ENV: ~/.bashrc
@@ -31,12 +33,30 @@ jobs:
         run: |
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
           terminus auth:login --machine-token=$TERMINUS_TOKEN_2 -vvv
-        
+
+
+      - name: Env info
+        run: |
+          terminus env:info $SITE_ENV
+
+
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
         run: |
-          echo "TODO switch to a site made by CMS Ecosystem"
-          export TERMINUS_SITE=stevector-solr-umami
+          echo "Switch into SFTP mode so that composer.json can be changed"
+          terminus connection:set $SITE_ENV sftp
+          echo "TODO - make this composer require statment more specific. See https://github.com/pantheon-systems/search_api_pantheon/blob/2bc0c1b44eed44671457fb1fa0afedcd40392183/.circleci/setup-d8-repo.sh#L13"
+          terminus composer SITE_ENV -- require pantheon-systems/search_api_pantheon ^8 --prefer-dist
+          echo "Enable modules"
+          terminus drush SITE_ENV -- en -y search_api_pantheon search_api_pantheon_admin
+
+          echo "TODO - commit sftp changes"
+          echo "TODO - switch into git mode"
+
+      ### These steps should move below the code sniff once the code sniff is passing.  
+      - name: Composer Require this commit of this module
+        run: |
+          export TERMINUS_SITE_2=stevector-solr-umami
           echo "TODO - after the pantheon.yml work is done that allow auto enabling of solr per env then these tests should make a new env for each run"
           export TERMINUS_ENV=docs-check
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
