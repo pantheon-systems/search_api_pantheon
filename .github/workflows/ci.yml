@@ -17,6 +17,7 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      TERMINUS_TOKEN_2: ${{ secrets.TERMINUS_TOKEN_2 }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
