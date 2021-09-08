@@ -35,7 +35,7 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
       - name: find sites
-        run: terminus site:info TERMINUS_SITE --field=id
+        run: terminus site:list
         
       ### These steps should move below the code sniff once the code sniff is passing.  
       - name: Composer Require this commit of this module
