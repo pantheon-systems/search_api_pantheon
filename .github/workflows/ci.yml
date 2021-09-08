@@ -58,11 +58,13 @@ jobs:
           terminus connection:set $SITE_ENV sftp
           echo "TODO - make this composer require statment more specific. See https://github.com/pantheon-systems/search_api_pantheon/blob/2bc0c1b44eed44671457fb1fa0afedcd40392183/.circleci/setup-d8-repo.sh#L13"
           terminus composer $SITE_ENV -- require pantheon-systems/search_api_pantheon ^8 --prefer-dist
-          echo "Enable modules"
-          terminus drush $SITE_ENV -- en -y search_api_pantheon search_api_pantheon_admin
 
           echo "TODO - commit sftp changes"
           echo "TODO - switch into git mode"
+
+      - name: Enable modules
+        run: |
+          terminus drush $SITE_ENV -- en -y search_api_pantheon search_api_pantheon_admin
 
       - name: List modules for debugging
         run: |
