@@ -33,6 +33,7 @@ jobs:
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
+          echo "$TERMINUS_TOKEN_2"
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN_2"
 
       - name: find sites
