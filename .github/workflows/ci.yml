@@ -42,9 +42,7 @@ jobs:
           echo "rather than cloning the db, it might be better to 'drush si'"
           terminus env:clone-content $TERMINUS_SITE.dev $TERMINUS_ENV --yes --cc
 
-      - name: List modules for debugging
-        run: |
-          terminus drush $SITE_ENV -- pml
+
 
 
       ### These steps should move below the code sniff once the code sniff is passing.  
@@ -63,6 +61,11 @@ jobs:
 
           echo "TODO - commit sftp changes"
           echo "TODO - switch into git mode"
+
+
+      - name: List modules for debugging
+        run: |
+          terminus drush $SITE_ENV -- pml
 
       - name: Configure Search API Pantheon (either through drush or browser simulation)
         run: |
