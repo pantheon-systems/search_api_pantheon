@@ -35,7 +35,15 @@ jobs:
           terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
       - name: find sites
-        run: terminus sites:list
+        run: terminus site:info TERMINUS_ENV  --field=id
+        
+      ### These steps should move below the code sniff once the code sniff is passing.  
+      - name: Composer Require this commit of this module
+
+          export TERMINUS_SITE=stevector-solr-umami
+          export TERMINUS_ENV=docs-check
+          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV 
+          terminus composer $SITE_ENV -- help
 
 
       - name: Composer install
