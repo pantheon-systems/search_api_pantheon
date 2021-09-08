@@ -36,9 +36,15 @@ jobs:
           terminus auth:login --machine-token=$TERMINUS_TOKEN_2 -vvv
 
 
-      - name: Env info
+      - name: Set up new multidev
         run: |
-          terminus env:info $SITE_ENV
+          echo "TODO - once it is possible to enable Solr8 via pantheon.yml then this step should be the creation of a new multidev, not the reseting of an existing one."
+          echo "rather than cloning the db, it might be better to 'drush si'"
+          terminus env:clone-content $SITE_ENV $TERMINUS_SITE.dev --yes --cc
+
+      - name: List modules for debugging
+        run: |
+          terminus drush $SITE_ENV -- pml
 
 
       ### These steps should move below the code sniff once the code sniff is passing.  
