@@ -15,10 +15,9 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 /**
  * Customized Solrium Client to send Guzzle debugging to log entries.
  */
-class SolariumClient extends Client
-{
-    use LoggerAwareTrait;
-    use ContainerAwareTrait;
+class SolariumClient extends Client {
+  use LoggerAwareTrait;
+  use ContainerAwareTrait;
 
   /**
    * Class constructor.
@@ -26,21 +25,20 @@ class SolariumClient extends Client
    * @param \Psr\Container\ContainerInterface $container
    *   Container interface.
    */
-    public function __construct(ContainerInterface $container)
-    {
-        $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
-        $endpoint = $container->get('search_api_pantheon.endpoint');
-        parent::__construct(
-            $guzzle->getPsr18Adapter(),
-            new EventDispatcher(),
-            ['endpoint' => [$endpoint]]
-        );
-        $this->container = $container;
-        $this->logger = $container
-        ->get('logger.factory')
-        ->get('PantheonSolariumClient');
-        $this->setDefaultEndpoint($endpoint);
-    }
+  public function __construct(ContainerInterface $container) {
+    $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
+    $endpoint = $container->get('search_api_pantheon.endpoint');
+    parent::__construct(
+          $guzzle->getPsr18Adapter(),
+          new EventDispatcher(),
+          ['endpoint' => [$endpoint]]
+      );
+    $this->container = $container;
+    $this->logger = $container
+      ->get('logger.factory')
+      ->get('PantheonSolariumClient');
+    $this->setDefaultEndpoint($endpoint);
+  }
 
   /**
    * Always use the default endpoint.
@@ -50,10 +48,9 @@ class SolariumClient extends Client
    *
    * @return \Solarium\Core\Query\Result\ResultInterface
    */
-    public function execute(QueryInterface $query, $endpoint = null): ResultInterface
-    {
-        return parent::execute($query, $this->defaultEndpoint);
-    }
+  public function execute(QueryInterface $query, $endpoint = NULL): ResultInterface {
+    return parent::execute($query, $this->defaultEndpoint);
+  }
 
   /**
    * Always use the default endpoint.
@@ -63,8 +60,8 @@ class SolariumClient extends Client
    *
    * @return \Solarium\Core\Client\Response
    */
-    public function executeRequest(Request $request, $endpoint = null): Response
-    {
-        return parent::executeRequest($request, $this->defaultEndpoint);
-    }
+  public function executeRequest(Request $request, $endpoint = NULL): Response {
+    return parent::executeRequest($request, $this->defaultEndpoint);
+  }
+
 }

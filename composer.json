@@ -55,12 +55,10 @@
             "vendor/bin/phpunit -c ./phpunit.xml"
         ],
         "code:fix": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcbf --standard=PSR12 src/* tests/Unit/* modules/*"
+            "vendor/bin/phpcbf ."
         ],
         "code:lint": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcs --standard=PSR12 --ignore=vendor src/* tests/Unit/* modules/*"
+            "vendor/bin/phpcs ."
         ],
         "pre-commit": [
             "composer validate --strict",

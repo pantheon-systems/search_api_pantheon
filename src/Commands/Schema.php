@@ -12,23 +12,22 @@ use Drush\Commands\DrushCommands;
 /**
  * Drush Search Api Pantheon Schema Commands.
  */
-class Schema extends DrushCommands
-{
-    use LoggerChannelTrait;
+class Schema extends DrushCommands {
+  use LoggerChannelTrait;
 
   /**
    * Configured pantheon-solr-specific guzzle client.
    *
    * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
    */
-    private PantheonGuzzle $pantheonGuzzle;
+  private PantheonGuzzle $pantheonGuzzle;
 
   /**
    * Configured pantheon-solr-specific schema poster class.
    *
    * @var \Drupal\search_api_pantheon\Services\SchemaPoster
    */
-    private SchemaPoster $schemaPoster;
+  private SchemaPoster $schemaPoster;
 
   /**
    * Class constructor.
@@ -40,15 +39,15 @@ class Schema extends DrushCommands
    * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
    *   Injected by Container.
    */
-    public function __construct(
+  public function __construct(
         LoggerChannelFactoryInterface $loggerChannelFactory,
         PantheonGuzzle $pantheonGuzzle,
         SchemaPoster $schemaPoster
     ) {
-        $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
-        $this->pantheonGuzzle = $pantheonGuzzle;
-        $this->schemaPoster = $schemaPoster;
-    }
+    $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
+    $this->pantheonGuzzle = $pantheonGuzzle;
+    $this->schemaPoster = $schemaPoster;
+  }
 
   /**
    * Search_api_pantheon:postSchema.
@@ -60,17 +59,17 @@ class Schema extends DrushCommands
    * @command search-api-pantheon:postSchema ${$server_id}
    * @aliases sapps
    */
-    public function postSchema(?string $server_id = null)
-    {
-        if (!$server_id) {
-            $server_id = PantheonSolrConnector::getDefaultEndpoint();
-        }
-        try {
-            $this->schemaPoster->postSchema($server_id);
-        } catch (\Exception $e) {
-            $this->logger()->error((string) $e);
-        }
+  public function postSchema(?string $server_id = NULL) {
+    if (!$server_id) {
+      $server_id = PantheonSolrConnector::getDefaultEndpoint();
     }
+    try {
+      $this->schemaPoster->postSchema($server_id);
+    }
+    catch (\Exception $e) {
+      $this->logger()->error((string) $e);
+    }
+  }
 
   /**
    * View a Schema File.
@@ -86,9 +85,9 @@ class Schema extends DrushCommands
    * @throws \Exception
    * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-    public function viewSchema(string $filename = 'schema.xml')
-    {
-        $currentSchema = $this->schemaPoster->viewSchema($filename);
-        $this->logger()->notice($currentSchema);
-    }
+  public function viewSchema(string $filename = 'schema.xml') {
+    $currentSchema = $this->schemaPoster->viewSchema($filename);
+    $this->logger()->notice($currentSchema);
+  }
+
 }
