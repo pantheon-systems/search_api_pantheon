@@ -7,6 +7,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
+use Drupal\search_api_pantheon\Services\Endpoint as PantheonEndpoint;
 use League\Container\ContainerAwareTrait;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -156,8 +157,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   The endpoint name.
    */
   public function getDefaultEndpoint() {
-        // @codingStandardsIgnoreLine
-        return \Drupal\search_api_pantheon\Services\Endpoint::$DEFAULT_NAME;
+        return PantheonEndpoint::$DEFAULT_NAME;
   }
 
   /**
@@ -181,7 +181,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $indexStats = $indexResponse['index'] ?? [];
     }
     catch (\Exception $e) {
-      $this->container->get('messenger')->addError('Unable to get stats from server!');
+      $this->container->get('messenger')->addError(
+        $this->t('Unable to get stats from server!')
+      );
     }
 
     $summary = [
@@ -228,8 +230,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       ->formatInterval($max_time / 1000);
     $summary['@deletes_total'] =
             (
-              intval($summary['@deletes_by_id'])
-              + intval($summary['@deletes_by_query'])
+              intval($summary['@deletes_by_id'] ?? 0)
+              + intval($summary['@deletes_by_query'] ?? 0)
           ) ?? -1;
     $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
     return $summary;
@@ -253,15 +255,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $view_settings = [];
 
     $view_settings[] = [
-          'label' => 'Pantheon Sitename',
+          'label' => $this->t('Pantheon Sitename'),
           'info' => $this->getEndpoint()->getCore(),
       ];
     $view_settings[] = [
-          'label' => 'Pantheon Environment',
+          'label' => $this->t('Pantheon Environment'),
           'info' => getenv('PANTHEON_ENVIRONMENT'),
       ];
     $view_settings[] = [
-          'label' => 'Schema Version',
+          'label' => $this->t('Schema Version'),
           'info' => $this->getSchemaVersion(TRUE),
       ];
 
@@ -299,7 +301,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   public function reloadCore() {
     $this->logger->notice(
-          'Reload Core action for Pantheon Solr is automatic when Schema is updated.'
+          $this->t('Reload Core action for Pantheon Solr is automatic when Schema is updated.')
       );
     return TRUE;
   }

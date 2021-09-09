@@ -88,13 +88,13 @@ class SchemaPoster implements LoggerAwareInterface {
           203,
           204,
       ])
-            ? 'notice'
+            ? 'info'
             : 'error';
     $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
           'status_code' => $response->getStatusCode(),
           'reason' => $response->getReasonPhrase(),
       ]);
-    $message = vsprintf('Result: %s Status code: %d - %s', [
+    $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
           $log_function == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
           $response->getStatusCode(),
           $response->getReasonPhrase(),
@@ -122,7 +122,7 @@ class SchemaPoster implements LoggerAwareInterface {
     // Build the files array.
     $toSend = ['files' => []];
     foreach ($schemaFiles as $filename => $file_contents) {
-      $this->logger->notice('Encoding file: {filename}', [
+      $this->logger->info($this->t('Encoding file: {filename}'), [
             'filename' => $filename,
         ]);
       $toSend['files'][] = [
@@ -145,9 +145,9 @@ class SchemaPoster implements LoggerAwareInterface {
 
     // Parse the response.
     $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203])
-            ? 'notice'
+            ? 'info'
             : 'error';
-    $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
+    $this->logger->{$log_function}($this->t('Files uploaded: {status_code} {reason}'), [
           'status_code' => $response->getStatusCode(),
           'reason' => $response->getReasonPhrase(),
       ]);
@@ -288,7 +288,7 @@ class SchemaPoster implements LoggerAwareInterface {
       $this->logger->debug('Upload url: ' . $uri);
       $request = new Request('GET', $uri);
       $response = $this->client->sendRequest($request);
-      $message = vsprintf('File: %s, Status code: %d - %s', [
+      $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
             'filename' => $filename,
             'status_code' => $response->getStatusCode(),
             'reason' => $response->getReasonPhrase(),
@@ -298,7 +298,7 @@ class SchemaPoster implements LoggerAwareInterface {
       return $response->getBody();
     }
     catch (\Throwable $e) {
-      $message = vsprintf('File: %s, Status code: %d - %s', [
+      $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
             'filename' => $filename,
             'status_code' => $e->getCode(),
             'reason' => $e->getMessage(),
@@ -335,9 +335,9 @@ class SchemaPoster implements LoggerAwareInterface {
         );
       // Parse the response.
       $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203])
-                ? 'notice'
+                ? 'info'
                 : 'error';
-      $message = vsprintf('File: %s, Status code: %d - %s', [
+      $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
             'filename' => $filename,
             'status_code' => $response->getStatusCode(),
             'reason' => $response->getReasonPhrase(),

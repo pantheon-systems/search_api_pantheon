@@ -104,7 +104,7 @@ class PantheonSolrAdminForm extends FormBase {
     return [
           '#type' => 'details',
           '#title' => $filename,
-          '#open' => !is_array($open),
+          '#open' => $open,
           'contents' => [
               [
                   '#type' => 'markup',

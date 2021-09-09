@@ -67,7 +67,7 @@ class PantheonGuzzle extends Client implements
           'http_errors' => FALSE,
           // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
           // @codingStandardsIgnoreLine
-          'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
+          'debug' => (php_sapi_name() === 'cli' || isset($_GET['debug'])),
           'verify' => FALSE,
           'handler' => $stack,
           'allow_redirects' => FALSE,
@@ -154,24 +154,24 @@ class PantheonGuzzle extends Client implements
    *
    * @return \Psr\Http\Message\RequestInterface
    */
-  public function requestUriAlterForPantheonEnvironment(RequestInterface $r) {
+  public function requestUriAlterForPantheonEnvironment(RequestInterface $request) {
     $toAdd = '';
-    $uri = $r->getUri();
+    $uri = $request->getUri();
     $path = $uri->getPath();
-    $exploded = explode('/', $path);
+    $path_parts = explode('/', $path);
     $shouldBeInUrl = $this->endpoint->getMySitename();
     $shouldBeInPath = $this->endpoint->getPath();
-    if (!in_array(trim($shouldBeInUrl, '/'), $exploded)) {
-      array_unshift($exploded, trim($this->endpoint->getCore(), '/'));
+    if (!in_array(trim($shouldBeInUrl, '/'), $path_parts)) {
+      array_unshift($path_parts, trim($this->endpoint->getCore(), '/'));
     }
-    if (!in_array(trim($shouldBeInPath, '/'), $exploded)) {
-      array_unshift($exploded, trim($this->endpoint->getPath(), '/'));
+    if (!in_array(trim($shouldBeInPath, '/'), $path_parts)) {
+      array_unshift($path_parts, trim($this->endpoint->getPath(), '/'));
     }
-    $exploded = array_filter($exploded, function ($item) {
+    $path_parts = array_filter($path_parts, function ($item) {
         return !empty($item);
     });
-    $uri = $uri->withPath(implode('/', $exploded));
-    return $r->withUri($uri);
+    $uri = $uri->withPath(implode('/', $path_parts));
+    return $request->withUri($uri);
   }
 
 }
