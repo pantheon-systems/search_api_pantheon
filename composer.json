@@ -50,7 +50,6 @@
         "phpunit/phpunit": "@stable",
         "squizlabs/php_codesniffer": "@stable"
     },
-
     "scripts": {
         "code:test" : [
             "vendor/bin/phpunit -c ./phpunit.xml"
