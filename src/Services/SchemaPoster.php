@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
@@ -24,8 +25,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Drupal\search_api_pantheon
  */
 class SchemaPoster implements LoggerAwareInterface {
+
   use LoggerAwareTrait;
   use ContainerAwareTrait;
+  use StringTranslationTrait;
 
   /**
    * Verbose debugging.
