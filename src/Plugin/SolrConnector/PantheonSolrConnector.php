@@ -157,7 +157,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   The endpoint name.
    */
   public function getDefaultEndpoint() {
-        return PantheonEndpoint::$DEFAULT_NAME;
+    return PantheonEndpoint::$DEFAULT_NAME;
   }
 
   /**

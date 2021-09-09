@@ -150,7 +150,7 @@ class PantheonGuzzle extends Client implements
   /**
    * Request Middleware Callback.
    *
-   * @param \Psr\Http\Message\RequestInterface $r
+   * @param \Psr\Http\Message\RequestInterface $request
    *
    * @return \Psr\Http\Message\RequestInterface
    */
