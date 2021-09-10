@@ -50,7 +50,7 @@ class GuzzleClassTest extends TestCase {
       new Response(200, ['X-Foo' => 'Bar'], 'Hello, World'),
       new Response(202, ['Content-Length' => 0]),
       new RequestException('Error Communicating with Server', new Request('GET', 'test')),
-    ]);
+      ]);
 
     $handlerStack = HandlerStack::create($mock);
     $client = new Client(['handler' => $handlerStack]);

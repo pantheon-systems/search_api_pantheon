@@ -20,21 +20,15 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
-  /**
-   * Schema Upload Url.
-   *
-   * @var string
-   */
-  protected $schema;
+
+  public static $DEFAULT_NAME = 'pantheon_solr8';
 
   /**
    * Default name for Endpoint.
    *
    * @var string
    */
-  // @codingStandardsIgnoreLine
-  public static $DEFAULT_NAME = 'pantheon_solr8';
-
+  protected $schema;
   /**
    * Options for putting together the endpoint urls.
    *
@@ -52,15 +46,15 @@ class Endpoint extends SolariumEndpoint {
   public function __construct(array $options = []) {
     if (!$options) {
       $options = [
-        'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-        'host' => getenv('PANTHEON_INDEX_HOST'),
-        'port' => getenv('PANTHEON_INDEX_PORT'),
-        'path' => getenv('PANTHEON_INDEX_PATH'),
-        'core' => getenv('PANTHEON_INDEX_CORE'),
-        'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-        'collection' => NULL,
-        'leader' => FALSE,
-      ];
+            'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
+            'host' => getenv('PANTHEON_INDEX_HOST'),
+            'port' => getenv('PANTHEON_INDEX_PORT'),
+            'path' => getenv('PANTHEON_INDEX_PATH'),
+            'core' => getenv('PANTHEON_INDEX_CORE'),
+            'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
+            'collection' => NULL,
+            'leader' => FALSE,
+        ];
     }
     parent::__construct($options);
   }
@@ -75,13 +69,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getCoreBaseUri(): string {
     return vsprintf(
-      '%s%s%s/',
-      [
-        $this->getBaseUri(),
-        $this->getPath(),
-        $this->getCore(),
-      ]
-    );
+          '%s%s%s/',
+          [
+              $this->getBaseUri(),
+              $this->getPath(),
+              $this->getCore(),
+          ]
+      );
   }
 
   /**
@@ -92,13 +86,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getBaseUri(): string {
     return vsprintf(
-      '%s://%s:%d/',
-      [
-        $this->getScheme(),
-        $this->getHost(),
-        $this->getPort(),
-      ]
-    );
+          '%s://%s:%d/',
+          [
+              $this->getScheme(),
+              $this->getHost(),
+              $this->getPort(),
+          ]
+      );
   }
 
   /**
@@ -110,16 +104,16 @@ class Endpoint extends SolariumEndpoint {
    * @throws \Solarium\Exception\UnexpectedValueException
    */
   public function getV1BaseUri(): string {
-    return $this->getCoreBaseUri();
+    return 'v1/';
   }
 
   /**
    * Get the base url for all V2 API requests.
    *
-   * @throws \Solarium\Exception\UnexpectedValueException
-   *
    * @return string
    *   V2 base URI for the endpoint.
+   *
+   * @throws \Solarium\Exception\UnexpectedValueException
    */
   public function getV2BaseUri(): string {
     return $this->getBaseUri() . '/api/';
@@ -136,6 +130,21 @@ class Endpoint extends SolariumEndpoint {
   }
 
   /**
+   * Get the current site name.
+   *
+   * Get My site name. 'site' is provided for
+   * compatibility with development environments.
+   *
+   * @return string
+   *   Site id.
+   */
+  public function getMySitename(): string {
+    return isset($_ENV['PANTHEON_ENVIRONMENT'])
+            ? getenv('PANTHEON_SITE')
+            : getenv('PROJECT_NAME');
+  }
+
+  /**
    * Get the current environment name.
    *
    * Get My environment name. 'env' is provided for
@@ -146,8 +155,8 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getMyEnvironment(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
-      ? getenv('PANTHEON_ENVIRONMENT')
-      : getenv('ENV');
+            ? getenv('PANTHEON_ENVIRONMENT')
+            : getenv('ENV');
   }
 
   /**
@@ -158,15 +167,15 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getSchemaUploadUri(): string {
     return vsprintf(
-      '%s://%s:%d/%s%s',
-      [
-        $this->getScheme(),
-        $this->getHost(),
-        $this->getPort(),
-        $this->getPath(),
-        $this->getSchema(),
-      ]
-    );
+          '%s://%s:%d/%s%s',
+          [
+              $this->getScheme(),
+              $this->getHost(),
+              $this->getPort(),
+              $this->getPath(),
+              $this->getSchema(),
+          ]
+      );
   }
 
   /**

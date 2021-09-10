@@ -34,8 +34,8 @@ class PostSolrSchema extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('search_api_pantheon.schema_poster'),
-    );
+          $container->get('search_api_pantheon.schema_poster'),
+      );
   }
 
   /**
@@ -47,27 +47,12 @@ class PostSolrSchema extends FormBase {
 
   /**
    * {@inheritdoc}
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
-   * @param \Drupal\search_api\ServerInterface|null $search_api_server
-   *   The search api server machine name.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\search_api\SearchApiException
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   *
-   * @return array
-   *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL) {
     $messages = $this->schemaPoster->postSchema($search_api_server->id());
     $form['results'] = [
-      '#markup' => implode('<br>', $messages),
-    ];
+          '#markup' => implode('<br>', $messages),
+      ];
 
     return $form;
   }
@@ -75,6 +60,7 @@ class PostSolrSchema extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {}
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+  }
 
 }

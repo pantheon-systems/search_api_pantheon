@@ -16,7 +16,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  * Customized Solrium Client to send Guzzle debugging to log entries.
  */
 class SolariumClient extends Client {
-
   use LoggerAwareTrait;
   use ContainerAwareTrait;
 
@@ -30,10 +29,10 @@ class SolariumClient extends Client {
     $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
     $endpoint = $container->get('search_api_pantheon.endpoint');
     parent::__construct(
-      $guzzle->getPsr18Adapter(),
-      new EventDispatcher(),
-      ['endpoint' => [$endpoint]]
-    );
+          $guzzle->getPsr18Adapter(),
+          new EventDispatcher(),
+          ['endpoint' => [$endpoint]]
+      );
     $this->container = $container;
     $this->logger = $container
       ->get('logger.factory')
@@ -42,7 +41,7 @@ class SolariumClient extends Client {
   }
 
   /**
-   * Execute a query.
+   * Always use the default endpoint.
    *
    * @param \Solarium\Core\Query\QueryInterface $query
    * @param \Solarium\Core\Client\Endpoint|string|null $endpoint
@@ -54,7 +53,7 @@ class SolariumClient extends Client {
   }
 
   /**
-   * Execute a request and return the response.
+   * Always use the default endpoint.
    *
    * @param \Solarium\Core\Client\Request $request
    * @param \Solarium\Core\Client\Endpoint|string|null $endpoint

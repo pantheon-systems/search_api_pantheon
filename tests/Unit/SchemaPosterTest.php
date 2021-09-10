@@ -60,10 +60,10 @@ class SchemaPosterTest extends TestCase {
 
     // @todo replace the mock response
     $upload_response = new Response(
-      200,
-      [],
-      '{"couchdb":"Welcome","version":"2.0.0","vendor":{"name":"The Apache Software Foundation"}}'
-    );
+          200,
+          [],
+          '{"couchdb":"Welcome","version":"2.0.0","vendor":{"name":"The Apache Software Foundation"}}'
+      );
     $mock = new MockHandler([$upload_response, $upload_response]);
     $handler = HandlerStack::create($mock);
     $client = new Client(['handler' => $handler]);

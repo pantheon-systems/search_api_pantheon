@@ -35,8 +35,14 @@ class EndpointServiceTest extends TestCase {
     $this->assertEquals('one', $ep->getScheme());
     $this->assertEquals('1234', $ep->getPort());
     $this->assertEquals('one://two:1234/', $ep->getBaseUri());
-    $this->assertEquals('one://two:1234/server-path/core-name/', $ep->getCoreBaseUri());
-    $this->assertEquals('one://two:1234/server-path/schema-path', $ep->getSchemaUploadUri());
+    $this->assertEquals(
+      'one://two:1234/server-path/core-name/',
+      $ep->getCoreBaseUri()
+    );
+    $this->assertEquals(
+      'one://two:1234/server-path/schema-path',
+      $ep->getSchemaUploadUri()
+    );
   }
 
 }

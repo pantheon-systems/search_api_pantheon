@@ -30,19 +30,23 @@ class Diagnose extends DrushCommands {
   protected SolariumClient $solr;
 
   /**
-   * Class constructor.
+   * Class Constructor.
    *
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
+   * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
+   *   Injected by container.
+   * @param \Drupal\search_api_pantheon\Services\SolariumClient $solariumClient
+   *   Injected by container.
    */
   public function __construct(
-    LoggerChannelFactoryInterface $loggerChannelFactory,
-    PantheonGuzzle $pantheonGuzzle,
-    Endpoint $endpoint,
-    SolariumClient $solariumClient
-  ) {
+        LoggerChannelFactoryInterface $loggerChannelFactory,
+        PantheonGuzzle $pantheonGuzzle,
+        Endpoint $endpoint,
+        SolariumClient $solariumClient
+    ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
@@ -52,10 +56,10 @@ class Diagnose extends DrushCommands {
   /**
    * Search_api_pantheon:diagnose.
    *
-   * @usage search_api_pantheon:diagnose
-   *   connect to the solr8 server
+   * @usage search-api-pantheon:diagnose
+   *   Connect to the solr8 server.
    *
-   * @command search_api_pantheon:diagnose
+   * @command search-api-pantheon:diagnose
    * @aliases sapd
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
@@ -65,44 +69,44 @@ class Diagnose extends DrushCommands {
   public function diagnose() {
     try {
       $this->logger()->notice('Index SCHEME Value: {var}', [
-        'var' => $this->endpoint->getScheme(),
-      ]);
+            'var' => $this->endpoint->getScheme(),
+        ]);
       $this->logger()->notice('Index HOST Value:   {var}', [
-        'var' => $this->endpoint->getHost(),
-      ]);
+            'var' => $this->endpoint->getHost(),
+        ]);
       $this->logger()->notice('Index PORT Value:   {var}', [
-        'var' => $this->endpoint->getPort(),
-      ]);
+            'var' => $this->endpoint->getPort(),
+        ]);
       $this->logger()->notice('Index CORE Value:   {var}', [
-        'var' => $this->endpoint->getCore(),
-      ]);
+            'var' => $this->endpoint->getCore(),
+        ]);
       $this->logger()->notice('Index PATH Value:   {var}', [
-        'var' => $this->endpoint->getPath(),
-      ]);
+            'var' => $this->endpoint->getPath(),
+        ]);
       $this->logger()->notice('Testing bare Connection...');
       $response = $this->pingSolrHost();
       $this->logger()->notice('Ping Received Response? {var}', [
-        'var' => $response instanceof ResultInterface ? '✅' : '❌',
-      ]);
+            'var' => $response instanceof ResultInterface ? '✅' : '❌',
+        ]);
       $this->logger()->notice('Response http status == 200? {var}', [
-        'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
-      ]);
+            'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
+        ]);
       if ($response->getResponse()->getStatusCode() !== 200) {
         throw new \Exception('Cannot contact solr server.');
       }
       $this->logger()->notice('Drupal Integration...');
-      // @codingStandardsIgnoreLine
-      $manager = \Drupal::getContainer()->get(
-        'plugin.manager.search_api_solr.connector'
-      );
+            // @codingStandardsIgnoreLine
+            $manager = \Drupal::getContainer()->get(
+            'plugin.manager.search_api_solr.connector'
+        );
       $connectors = array_keys($manager->getDefinitions() ?? []);
       $this->logger()->notice('Pantheon Connector Plugin Exists? {var}', [
-        'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
-      ]);
+            'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
+        ]);
       $connectorPlugin = $manager->createInstance('pantheon');
       $this->logger()->notice('Connector Plugin Instance created {var}', [
-        'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
-      ]);
+            'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
+        ]);
       if (!$connectorPlugin instanceof SolrConnectorInterface) {
         throw new \Exception('Cannot instantiate solr connector.');
       }
@@ -112,34 +116,34 @@ class Diagnose extends DrushCommands {
       $info = $connectorPlugin->getServerInfo();
       $this->logger()->notice(print_r($info, TRUE));
       $this->logger()->notice('Solr Server Version {var}', [
-        'var' => $info['lucene']['solr-spec-version'] ?? '❌',
-      ]);
+            'var' => $info['lucene']['solr-spec-version'] ?? '❌',
+        ]);
       $indexSingleItemQuery = $this->indexSingleItem();
       $this->logger()->notice('Solr Update index with one document Response: {code} {reason}', [
-        'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
-        'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
-      ]);
+            'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
+            'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
+        ]);
       if ($indexSingleItemQuery->getResponse()->getStatusCode() !== 200) {
         throw new \Exception('Cannot unable to index simple item. Have you created an index for the server?');
       }
 
       $indexedStats = $this->pantheonGuzzle->getQueryResult('admin/luke', [
-        'query' => [
-          'stats' => 'true',
-        ],
-      ]);
+            'query' => [
+                'stats' => 'true',
+            ],
+        ]);
       $this->logger()->notice('Solr Index Stats: {stats}', [
-        'stats' => print_r($indexedStats['index'], TRUE),
-      ]);
+            'stats' => print_r($indexedStats['index'], TRUE),
+        ]);
       $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
-        'query' => [
-          'stats' => 'true',
-        ],
-      ]);
+            'query' => [
+                'stats' => 'true',
+            ],
+        ]);
 
       $this->logger()->notice('Mbeans Stats: {stats}', [
-        'stats' => print_r($beans['solr-mbeans'], TRUE),
-      ]);
+            'stats' => print_r($beans['solr-mbeans'], TRUE),
+        ]);
     }
     catch (\Exception $e) {
       \Kint::dump($e);
@@ -152,17 +156,17 @@ class Diagnose extends DrushCommands {
       exit(1);
     }
     $this->logger()->notice(
-      "If there's an issue with the connection, it would have shown up here. You should be good to go!"
-    );
+          "If there's an issue with the connection, it would have shown up here. You should be good to go!"
+      );
   }
 
   /**
    * Pings the Solr host.
    *
-   * @usage search_api_pantheon:ping
+   * @usage search-api-pantheon:ping
    *   Ping the solr server.
    *
-   * @command search_api_pantheon:ping
+   * @command search-api-pantheon:ping
    * @aliases sapp
    *
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void

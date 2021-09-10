@@ -32,11 +32,11 @@ class PantheonGuzzle extends Client implements
   use ContainerAwareTrait;
 
   public static $messageFormats = [
-    '{method} {uri} HTTP/{version}',
-    'HEADERS: {req_headers}',
-    'BODY: {req_body}',
-    'RESPONSE: {code} - {res_body}',
-  ];
+        '{method} {uri} HTTP/{version}',
+        'HEADERS: {req_headers}',
+        'BODY: {req_body}',
+        'RESPONSE: {code} - {res_body}',
+    ];
 
   /**
    * Class Constructor.
@@ -49,9 +49,9 @@ class PantheonGuzzle extends Client implements
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
-      Middleware::mapRequest([$this, 'requestUriAlterForPantheonEnvironment']),
-      'rewriter'
-    );
+          Middleware::mapRequest([$this, 'requestUriAlterForPantheonEnvironment']),
+          'rewriter'
+      );
     /**
      *$stack->push(
      * Middleware::log(
@@ -63,15 +63,15 @@ class PantheonGuzzle extends Client implements
      **/
     $cert = $_SERVER['HOME'] . '/certs/binding.pem';
     $config = [
-      'base_uri' => $endpoint->getBaseUri(),
-      'http_errors' => FALSE,
-      // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
-      // @codingStandardsIgnoreLine
-      'debug' => (PHP_SAPI == 'cli' || isset($_GET['debug'])),
-      'verify' => FALSE,
-      'handler' => $stack,
-      'allow_redirects' => FALSE,
-    ];
+          'base_uri' => $endpoint->getBaseUri(),
+          'http_errors' => FALSE,
+          // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
+          // @codingStandardsIgnoreLine
+          'debug' => (php_sapi_name() === 'cli' || isset($_GET['debug'])),
+          'verify' => FALSE,
+          'handler' => $stack,
+          'allow_redirects' => FALSE,
+      ];
     if (is_file($cert)) {
       $config['cert'] = $cert;
     }
@@ -112,21 +112,23 @@ class PantheonGuzzle extends Client implements
    * @throws \JsonException
    */
   public function getQueryResult(
-    string $path,
-    array $guzzleOptions = ['query' => [], 'headers' => ['Content-Type' => 'application/json']]
-  ) {
+        string $path,
+        array $guzzleOptions = ['query' => [], 'headers' => ['Content-Type' => 'application/json']]
+    ) {
     $response = $this->get($path, $guzzleOptions);
-    if ($response instanceof ResponseInterface && !in_array($response->getStatusCode(), [200, 201, 202, 203, 204])) {
+    if (
+          $response instanceof ResponseInterface && !in_array($response->getStatusCode(), [200, 201, 202, 203, 204])
+      ) {
       $this->logger->error('Query Failed: ' . $response->getReasonPhrase());
     }
     $content_type = $response->getHeader('Content-Type')[0] ?? '';
     if (strpos($content_type, 'application/json') !== FALSE) {
       return json_decode(
-        $response->getBody(),
-        TRUE,
-        512,
-        JSON_THROW_ON_ERROR
-      );
+            $response->getBody(),
+            TRUE,
+            512,
+            JSON_THROW_ON_ERROR
+        );
     }
     return (string) $response->getBody();
   }
@@ -139,28 +141,37 @@ class PantheonGuzzle extends Client implements
    */
   public function getPsr18Adapter(): AdapterInterface {
     return new Psr18Adapter(
-      $this,
-      new RequestFactory(),
-      new StreamFactory()
-    );
+          $this,
+          new RequestFactory(),
+          new StreamFactory()
+      );
   }
 
   /**
    * Request Middleware Callback.
    *
-   * @param \Psr\Http\Message\RequestInterface $r
+   * @param \Psr\Http\Message\RequestInterface $request
    *
    * @return \Psr\Http\Message\RequestInterface
    */
-  public function requestUriAlterForPantheonEnvironment(RequestInterface $r) {
-    $uri = $r->getUri();
+  public function requestUriAlterForPantheonEnvironment(RequestInterface $request) {
+    $toAdd = '';
+    $uri = $request->getUri();
     $path = $uri->getPath();
-    $endpointHasPath = strpos($path, $this->endpoint->getPath());
-    if (strpos($path, $this->endpoint->getPath()) === FALSE) {
-      $uri = $uri->withPath($this->endpoint->getPath() . $this->endpoint->getCore() . $path);
-      return $r->withUri($uri);
+    $path_parts = explode('/', $path);
+    $shouldBeInUrl = $this->endpoint->getMySitename();
+    $shouldBeInPath = $this->endpoint->getPath();
+    if (!in_array(trim($shouldBeInUrl, '/'), $path_parts)) {
+      array_unshift($path_parts, trim($this->endpoint->getCore(), '/'));
     }
-    return $r;
+    if (!in_array(trim($shouldBeInPath, '/'), $path_parts)) {
+      array_unshift($path_parts, trim($this->endpoint->getPath(), '/'));
+    }
+    $path_parts = array_filter($path_parts, function ($item) {
+        return !empty($item);
+    });
+    $uri = $uri->withPath(implode('/', $path_parts));
+    return $request->withUri($uri);
   }
 
 }

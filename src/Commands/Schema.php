@@ -13,7 +13,6 @@ use Drush\Commands\DrushCommands;
  * Drush Search Api Pantheon Schema Commands.
  */
 class Schema extends DrushCommands {
-
   use LoggerChannelTrait;
 
   /**
@@ -41,10 +40,10 @@ class Schema extends DrushCommands {
    *   Injected by Container.
    */
   public function __construct(
-    LoggerChannelFactoryInterface $loggerChannelFactory,
-    PantheonGuzzle $pantheonGuzzle,
-    SchemaPoster $schemaPoster
-  ) {
+        LoggerChannelFactoryInterface $loggerChannelFactory,
+        PantheonGuzzle $pantheonGuzzle,
+        SchemaPoster $schemaPoster
+    ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->schemaPoster = $schemaPoster;
@@ -57,7 +56,7 @@ class Schema extends DrushCommands {
    *   Post the latest schema to the given Server.
    *   Default server ID = pantheon_solr8.
    *
-   * @command search_api_pantheon:postSchema ${$server_id}
+   * @command search-api-pantheon:postSchema ${$server_id}
    * @aliases sapps
    */
   public function postSchema(?string $server_id = NULL) {
@@ -78,10 +77,10 @@ class Schema extends DrushCommands {
    * @param string $filename
    *   Filename to retrieve.
    *
-   * @command search_api_pantheon:view_schema
+   * @command search-api-pantheon:view-schema
    * @aliases sapvs
    * @usage sapvs schema.xml
-   * @usage search_api_pantheon:view_schema elevate.xml
+   * @usage search-api-pantheon:view-schema elevate.xml
    *
    * @throws \Exception
    * @throws \Psr\Http\Client\ClientExceptionInterface

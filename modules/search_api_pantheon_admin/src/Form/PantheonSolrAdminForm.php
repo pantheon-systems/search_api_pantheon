@@ -35,8 +35,8 @@ class PantheonSolrAdminForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('search_api_pantheon.pantheon_guzzle'),
-    );
+          $container->get('search_api_pantheon.pantheon_guzzle'),
+      );
   }
 
   /**
@@ -49,34 +49,32 @@ class PantheonSolrAdminForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL): array {
+  public function buildForm(
+        array $form,
+        FormStateInterface $form_state,
+        ServerInterface $search_api_server = NULL
+    ): array {
     $file_list = $this->pantheonGuzzle
       ->getQueryResult('admin/file', ['query' => ['action' => 'VIEW']]);
     $form['status'] = [
-      '#type' => 'vertical_tabs',
-      '#title' => $this->t('Pantheon Solr Files'),
-    ];
+          '#type' => 'vertical_tabs',
+          '#title' => $this->t('Pantheon Solr Files'),
+      ];
     $is_open = TRUE;
     foreach ($file_list['files'] as $filename => $fileinfo) {
-
       $file_contents = $this->pantheonGuzzle->getQueryResult('admin/file', [
-        'query' => [
-          'action' => 'VIEW',
-          'file' => $filename,
-        ],
-      ]);
-
-      $display_name = ucwords($filename);
+            'query' => [
+                'action' => 'VIEW',
+                'file' => $filename,
+            ],
+        ]);
       $form[$filename] = [
-        '#type' => 'details',
-        '#title' => $display_name,
-        '#group' => 'status',
-        '#weight' => substr($filename, 0, -3) === "xml" ? -10 : 10,
-      ];
-      $form[$filename] = array_merge(
-        $form[$filename],
-        $this->getViewSolrFile($filename, $file_contents, $is_open)
-      );
+            '#type' => 'details',
+            '#title' => ucwords($filename),
+            '#group' => 'status',
+            '#weight' => substr($filename, 0, -3) === 'xml' ? -10 : 10,
+        ];
+      $form[$filename][] = $this->getViewSolrFile($filename, $file_contents, $is_open);
       $is_open = FALSE;
     }
 
@@ -86,7 +84,8 @@ class PantheonSolrAdminForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {}
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+  }
 
   /**
    * Get the vertical panel to view a config file's contents.
@@ -102,20 +101,17 @@ class PantheonSolrAdminForm extends FormBase {
    *   Form control array.
    */
   protected function getViewSolrFile(string $filename, string $contents, bool $open = FALSE): array {
-    $toReturn = [];
-
-    $toReturn[$filename] = [
-      '#type' => 'details',
-      '#title' => $filename,
-      '#open' => !is_array($open),
-    ];
-
-    $toReturn[$filename]['contents'][] = [
-      '#type' => 'markup',
-      '#markup' => sprintf('<pre>%s</pre>', Html::escape($contents)),
-    ];
-
-    return $toReturn;
+    return [
+          '#type' => 'details',
+          '#title' => $filename,
+          '#open' => $open,
+          'contents' => [
+              [
+                  '#type' => 'markup',
+                  '#markup' => sprintf('<pre>%s</pre>', Html::escape($contents)),
+              ],
+          ],
+      ];
   }
 
 }
