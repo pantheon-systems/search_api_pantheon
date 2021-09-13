@@ -45,9 +45,10 @@
         "kint-php/kint": "@stable"
     },
     "require-dev": {
+        "consolidation/robo": "^3.0",
         "drupal/coder": "@stable",
-        "psy/psysh": "@stable",
         "phpunit/phpunit": "@stable",
+        "psy/psysh": "@stable",
         "squizlabs/php_codesniffer": "@stable"
     },
     "scripts": {
