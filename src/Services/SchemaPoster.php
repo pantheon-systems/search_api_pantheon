@@ -54,7 +54,7 @@ class SchemaPoster implements LoggerAwareInterface {
         ContainerInterface $container
     ) {
     $this->container = $container;
-    $this->logger = $container->get('logger.factory')->get('PantheonSolr');
+    $this->logger = $container->get('logger.factory')->get('PantheonSearch');
     $this->client = $container->get('search_api_pantheon.pantheon_guzzle');
   }
 

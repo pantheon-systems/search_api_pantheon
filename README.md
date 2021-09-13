@@ -128,7 +128,7 @@ To configure the connection with Pantheon, do the following steps on your Dev en
 
   * Navigate in the drupal interface to `CONFIG` => `SEARCH & METADATA` => `SEARCH API`
 
-  * Validate that the `NEXTGEN PANTHEON SOLR 8` server exists and is "enabled".
+  * Validate that the `PANTHEON SEARCH` server exists and is "enabled".
 
 * **Solr versions and schemas**
 
@@ -138,7 +138,7 @@ To configure the connection with Pantheon, do the following steps on your Dev en
     for the Solr Server.
 
   * Navigate to `CONFIGURATION` => `SEARCH AND METADATA` => `SEARCH API`
-    => `PANTHEON NEXT GEN SOLR 8` => `PANTHEON SOLR ADMIN`
+    => `PANTHEON SEARCH` => `PANTHEON SEARCH ADMIN`
 
   * Choose the button labeled "POST SOLR SCHEMA".
 

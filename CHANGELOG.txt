@@ -1,6 +1,6 @@
 Search API Patheon 8.x-8.x-alpha1
 --------------------------------------------------
-- Compatible with Pantheon NextGen solr 8
+- Compatible with Pantheon Search (Solr 8)
 - Compatible with Drupal 9.x
 
 Search API Patheon 8.x-1.x-alpha2

@@ -14,7 +14,7 @@ dependencies:
     - search_api_pantheon
     - search_api_solr
 id: pantheon_solr8
-name: 'Pantheon NextGen Solr 8'
+name: 'Pantheon Search'
 description: ''
 backend: search_api_solr
 backend_config:

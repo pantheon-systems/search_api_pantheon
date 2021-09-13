@@ -1,6 +1,6 @@
 name: Search API Pantheon Admin
 type: module
-description: Administer a Pantheon Solr server
+description: Administer a Pantheon Search server
 core_version_requirement: ^8.8 || ^9
 package: Search
 dependencies:
