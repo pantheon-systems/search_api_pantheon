@@ -20,8 +20,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @SolrConnector(
  *   id = "pantheon",
- *   label = @Translation("Pantheon Solr Connector"),
- *   description = @Translation("Connection to Pantheon's Nextgen Solr 8 server interface")
+ *   label = @Translation("Pantheon Search Connector"),
+ *   description = @Translation("Connection to Pantheon's Search server interface")
  * )
  */
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
@@ -57,7 +57,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->container = $container;
-    $this->setLogger($container->get('logger.factory')->get('PantheonSolr'));
+    $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
     $this->connect();
   }
 

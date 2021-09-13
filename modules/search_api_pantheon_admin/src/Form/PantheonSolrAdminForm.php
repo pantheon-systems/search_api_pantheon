@@ -58,7 +58,7 @@ class PantheonSolrAdminForm extends FormBase {
       ->getQueryResult('admin/file', ['query' => ['action' => 'VIEW']]);
     $form['status'] = [
           '#type' => 'vertical_tabs',
-          '#title' => $this->t('Pantheon Solr Files'),
+          '#title' => $this->t('Pantheon Search Files'),
       ];
     $is_open = TRUE;
     foreach ($file_list['files'] as $filename => $fileinfo) {

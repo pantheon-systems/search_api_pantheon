@@ -104,7 +104,8 @@ class Endpoint extends SolariumEndpoint {
    * @throws \Solarium\Exception\UnexpectedValueException
    */
   public function getV1BaseUri(): string {
-    return 'v1/';
+    return isset($_ENV['PANTHEON_ENVIRONMENT'])
+      ? 'v1' : '';
   }
 
   /**
