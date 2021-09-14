@@ -17,6 +17,10 @@ use Spatie\Async\Pool;
 class RoboFile extends Tasks
 {
     /**
+     * @var string
+     */
+    public static $TERMINUS_EXE = '/usr/local/bin/t3';
+    /**
      * @var \Spatie\Async\Pool
      */
     protected Pool $pool;
@@ -33,16 +37,23 @@ class RoboFile extends Tasks
     }
 
     /**
-     * @var string
+     * @param string $text
      */
-    public static $TERMINUS_EXE = '/usr/local/bin/t3';
+    protected function say($text)
+    {
+        return new Symfony\Component\Process\Process([
+            '/usr/bin/say',
+            '-f Daniel',
+            $text,
+        ]);
+    }
 
     /**
      * @param string|null $site_name
      */
     public function demoFull(string $site_name = null, string $env = 'dev')
     {
-
+        $this->demoCheckT3();
 
         if (empty($site_name)) {
             $site_name = substr(\uniqid('demo-'), 0, 12);
@@ -75,47 +86,29 @@ class RoboFile extends Tasks
     }
 
     /**
-     * @param string $text
+     * @return int|void
      */
-    protected function say($text)
+    public function demoCheckT3()
     {
-        return new Symfony\Component\Process\Process([
-            '/usr/bin/say',
-            '-f Daniel',
-            $text
-        ]);
+        if (!file_exists(static::$TERMINUS_EXE) || !is_executable(static::$TERMINUS_EXE)) {
+            $narration = $this->say('This demo makes extensive use of the Terminus 3 phar. Can I install it for you?');
+            $narration->start();
+            $this->confirm(
+                'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
+            );
+            $narration->wait();
+            $result = $this->taskExec('brew install pantheon-systems/external/t3')->run();
+            if (!$result->wasSuccessful()) {
+                $narration = $this->say(
+                    'Unfortunately the install was not successful and we will need to stop the demo at this time.'
+                );
+                $narration->start();
+                $narration->wait();
+                exit(1);
+            }
+        }
+        return ResultData::EXITCODE_OK;
     }
-
-    public function demoSetSearch(string $site_name, string $env = 'dev')
-    {
-        $text = <<<EOF
-
-        When pantheon_search goes into general availability you will be able to
-        set the search type using the pantheon dot Y M L file.
-        During the pre-launch of Pantheon Search, we have to use a couple of commands
-        behind the scenes. Pardon our dust.
-
-EOF;
-        $narration = $this->say($text);
-        $narration->start();
-        $toPost = json_encode([
-            'type' => 'change_search_version',
-            'params' => [
-                'kind' => 'solr',
-                'version' => '8',
-            ],
-        ]);
-        $site_id = exec(static::$TERMINUS_EXE . ' site:info ' . $site_name . ' --format=json | jq -r .id');
-
-        $command = sprintf("ygg /sites/%s/environments/%s/workflows -X POST '%s'", $site_id, $env, $toPost);
-        $narration->wait();
-        \Kint::dump(get_defined_vars());
-        exit();
-        return $this->taskSshExec($_SERVER['PANTHEON_YGG'], $_SERVER['PANTHEON_YGG_USER'])
-            ->exec($command)
-            ->run();
-    }
-
 
     /**
      * @param string $site_name
@@ -124,7 +117,10 @@ EOF;
      */
     public function demoCreateSite(string $site_name, array $options = ['org' => null])
     {
-        $text = sprintf('I am generating a demo site we will use for this demo. The site name is: %s', $site_name);
+        $text = sprintf(
+            'I am generating a demo site we will use for this demo. The site name is: %s',
+            $site_name
+        ) . 'In all probability this will take a hot minute';
         $narration = $this->say($text);
         $narration->start();
         $toReturn = $this->taskExec(static::$TERMINUS_EXE)
@@ -145,7 +141,8 @@ EOF;
     public function demoCloneSite(string $site_name)
     {
         $narration = $this->say(
-            'I am using the new local terminus command to clone a copy of the sites codebase into my local folder'
+            'I am using the new local terminus command to clone a copy of the sites codebase into my local folder.'
+               . 'You will need to hit yes to continue.'
         );
         $narration->start();
         $toReturn = $this->taskExec(static::$TERMINUS_EXE)
@@ -162,7 +159,6 @@ EOF;
      */
     public function demoRequireSolr(string $site_name)
     {
-
         $narration = $this->say(
             'I am requiring the Search A P I Pantheon module for this site with composer'
         );
@@ -259,9 +255,9 @@ EOF;
                 ->options([
                     'account-name' => 'admin',
                     'site-name' => $site_name,
-                    'locale' => 'en'
+                    'locale' => 'en',
                 ])
-            ->run();
+                ->run();
             $narration->wait();
             $narration = $this->say(
                 'And now I am enabling the modules necessary to run search A P I and generate dummy content.'
@@ -280,7 +276,7 @@ EOF;
                     'search_api_pantheon',
                     'search_api_pantheon_admin',
                 )
-            ->run();
+                ->run();
             $narration->wait();
         }
         if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
@@ -294,25 +290,37 @@ EOF;
         return ResultData::EXITCODE_OK;
     }
 
-    public function demoCheckT3()
+    /**
+     * @param string $site_name
+     * @param string $env
+     */
+    public function demoSetSearch(string $site_name, string $env = 'dev')
     {
-        if (!file_exists(static::$TERMINUS_EXE) || !is_executable(static::$TERMINUS_EXE)) {
-            $narration = $this->say('This demo makes extensive use of the Terminus 3 phar. Can I install it for you?');
-            $narration->start();
-            $this->confirm(
-                'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
-            );
-            $narration->wait();
-            $result = $this->taskExec('brew install pantheon-systems/external/t3')->run();
-            if (!$result->wasSuccessful()) {
-                $narration = $this->say(
-                    'Unfortunately the install was not successful and we will need to stop the demo at this time.'
-                );
-                $narration->start();
-                $narration->wait();
-                exit(1);
-            }
-        }
-        return Result::EXITCODE_OK;
+        $text = <<<EOF
+
+        When pantheon_search goes into general availability you will be able to
+        set the search type using the pantheon dot Y M L file.
+        During the pre-launch of Pantheon Search, we have to use a couple of commands
+        behind the scenes. Pardon our dust.
+
+EOF;
+        $narration = $this->say($text);
+        $narration->start();
+        $toPost = json_encode([
+            'type' => 'change_search_version',
+            'params' => [
+                'kind' => 'solr',
+                'version' => '8',
+            ],
+        ]);
+        $site_id = exec(static::$TERMINUS_EXE . ' site:info ' . $site_name . ' --format=json | jq -r .id');
+
+        $command = sprintf("ygg /sites/%s/environments/%s/workflows -X POST '%s'", $site_id, $env, $toPost);
+        $narration->wait();
+        \Kint::dump(get_defined_vars());
+        exit();
+        return $this->taskSshExec($_SERVER['PANTHEON_YGG'], $_SERVER['PANTHEON_YGG_USER'])
+            ->exec($command)
+            ->run();
     }
 }
