@@ -46,9 +46,11 @@
     },
     "require-dev": {
         "consolidation/robo": "^3.0",
+        "czproject/git-php": "^4.0",
         "drupal/coder": "@stable",
         "phpunit/phpunit": "@stable",
         "psy/psysh": "@stable",
+        "spatie/async": "^1.5",
         "squizlabs/php_codesniffer": "@stable"
     },
     "scripts": {
