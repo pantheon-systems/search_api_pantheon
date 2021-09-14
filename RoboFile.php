@@ -6,6 +6,7 @@
  * @see http://robo.li/
  */
 
+use Robo\Result;
 use Robo\ResultData;
 use Robo\Tasks;
 use Spatie\Async\Pool;
@@ -41,6 +42,8 @@ class RoboFile extends Tasks
      */
     public function demoFull(string $site_name = null, string $env = 'dev')
     {
+
+
         if (empty($site_name)) {
             $site_name = substr(\uniqid('demo-'), 0, 12);
         }
@@ -81,6 +84,36 @@ class RoboFile extends Tasks
             '-f Daniel',
             $text
         ]);
+    }
+
+    public function demoSetSearch(string $site_name, string $env = 'dev')
+    {
+        $text = <<<EOF
+
+        When pantheon_search goes into general availability you will be able to
+        set the search type using the pantheon dot Y M L file.
+        During the pre-launch of Pantheon Search, we have to use a couple of commands
+        behind the scenes. Pardon our dust.
+
+EOF;
+        $narration = $this->say($text);
+        $narration->start();
+        $toPost = json_encode([
+            'type' => 'change_search_version',
+            'params' => [
+                'kind' => 'solr',
+                'version' => '8',
+            ],
+        ]);
+        $site_id = exec(static::$TERMINUS_EXE . ' site:info ' . $site_name . ' --format=json | jq -r .id');
+
+        $command = sprintf("ygg /sites/%s/environments/%s/workflows -X POST '%s'", $site_id, $env, $toPost);
+        $narration->wait();
+        \Kint::dump(get_defined_vars());
+        exit();
+        return $this->taskSshExec($_SERVER['PANTHEON_YGG'], $_SERVER['PANTHEON_YGG_USER'])
+            ->exec($command)
+            ->run();
     }
 
 
@@ -125,7 +158,7 @@ class RoboFile extends Tasks
     /**
      * @param string $site_name
      *
-     * @return \Robo\Result
+     * @return int
      */
     public function demoRequireSolr(string $site_name)
     {
@@ -136,11 +169,17 @@ class RoboFile extends Tasks
         $narration->start();
         $site_folder = $this->getSiteFolder($site_name);
         chdir($site_folder);
-        $toReturn = $this->taskExec('composer')
-            ->args('require', 'pantheon-systems/search_api_pantheon', '^8')
+        $this->taskExec('composer')
+            ->args(
+                'require',
+                'pantheon-systems/search_api_pantheon ^8',
+                'drupal/redis',
+                'drupal/devel',
+                'drupal/devel_generate'
+            )
             ->run();
         $narration->wait();
-        return $toReturn;
+        return Result::EXITCODE_OK;
     }
 
     /**
@@ -202,18 +241,32 @@ class RoboFile extends Tasks
      */
     public function demoSiteInstall(string $site_name, string $env = 'dev', string $profile = 'demo_umami')
     {
+        $text = sprintf(
+            'In order to build a new site, is it ok if I erase everything in the database on %s %s environment?',
+            $site_name,
+            $env
+        );
+        $narration = $this->say($text);
+        $narration->start();
         $this->confirm(
             "Type 'y' to erase the database {$site_name}.${env} with '{$profile}' profile"
         );
         if (!isset($_ENV['PANTHEON_ENVIRONMENT'])) {
+            $narration = $this->say('I am installing a default demo umahmey site.');
+            $narration->start();
             $this->taskExec(static::$TERMINUS_EXE)
-                ->args('drush', $site_name . ".dev", 'site:install', 'drupal9')
+                ->args('drush', $site_name . '.' . $env, '--', 'site:install', $profile, '-y')
                 ->options([
                     'account-name' => 'admin',
                     'site-name' => $site_name,
-                    'locale' => 'en',
-                    'yes',
-                ]);
+                    'locale' => 'en'
+                ])
+            ->run();
+            $narration->wait();
+            $narration = $this->say(
+                'And now I am enabling the modules necessary to run search A P I and generate dummy content.'
+            );
+            $narration->start();
             $this->taskExec(static::$TERMINUS_EXE)
                 ->args(
                     'drush',
@@ -226,7 +279,9 @@ class RoboFile extends Tasks
                     'search_api_solr',
                     'search_api_pantheon',
                     'search_api_pantheon_admin',
-                );
+                )
+            ->run();
+            $narration->wait();
         }
         if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
             $this->_exec(
@@ -237,5 +292,27 @@ class RoboFile extends Tasks
             );
         }
         return ResultData::EXITCODE_OK;
+    }
+
+    public function demoCheckT3()
+    {
+        if (!file_exists(static::$TERMINUS_EXE) || !is_executable(static::$TERMINUS_EXE)) {
+            $narration = $this->say('This demo makes extensive use of the Terminus 3 phar. Can I install it for you?');
+            $narration->start();
+            $this->confirm(
+                'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
+            );
+            $narration->wait();
+            $result = $this->taskExec('brew install pantheon-systems/external/t3')->run();
+            if (!$result->wasSuccessful()) {
+                $narration = $this->say(
+                    'Unfortunately the install was not successful and we will need to stop the demo at this time.'
+                );
+                $narration->start();
+                $narration->wait();
+                exit(1);
+            }
+        }
+        return Result::EXITCODE_OK;
     }
 }
