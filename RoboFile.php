@@ -9,7 +9,6 @@
 use Robo\Result;
 use Robo\ResultData;
 use Robo\Tasks;
-use Spatie\Async\Pool;
 
 /**
  *
@@ -20,32 +19,14 @@ class RoboFile extends Tasks
      * @var string
      */
     public static $TERMINUS_EXE = '/usr/local/bin/t3';
-    /**
-     * @var \Spatie\Async\Pool
-     */
-    protected Pool $pool;
+    public DateTime $started;
 
     /**
      * Class constructor
      */
     public function __construct()
     {
-        $this->pool = new Pool();
-        $speech = $this->say('Starting the demo...');
-        $speech->start();
-        $speech->wait();
-    }
-
-    /**
-     * @param string $text
-     */
-    protected function say($text)
-    {
-        return new Symfony\Component\Process\Process([
-            '/usr/bin/say',
-            '-f Daniel',
-            $text,
-        ]);
+        $this->started = new DateTime();
     }
 
     /**
@@ -53,6 +34,7 @@ class RoboFile extends Tasks
      */
     public function demoFull(string $site_name = null, string $env = 'dev')
     {
+        $this->demoIntro();
         $this->demoCheckT3();
 
         if (empty($site_name)) {
@@ -73,7 +55,10 @@ class RoboFile extends Tasks
         // Step 4: Check in updated composer.*
         $this->demoGitPush($site_name);
 
-        // Step 5: Do a site install & Enable search_api_pantheon
+        // Step 5: Set Search type to solr 8
+        $this->demoSetSearch($site_name);
+
+        // Step 6: Do a site install & Enable search_api_pantheon
         $this->demoSiteInstall($site_name);
 
         // Step 7: Generate Sample Content
@@ -83,6 +68,44 @@ class RoboFile extends Tasks
         // Step 9: Create a search page for the new index
 
         // Step 10: Show search page returning results
+    }
+
+    public function demoIntro()
+    {
+        $narration_text = <<<EOF
+
+            Hello, this video will walk through the basic search functionality made
+            possible with work done in the last few quarters. The end result of this
+            work is that our customers get a supported Pantheon-path for running the
+            latest version of Drupal with the latest version of Solr. the value to
+            our customers that we'll see here in this video is not a unique search
+            experience for the end visitors to the websites. The search interface we'll
+            see is a basic text search and some faceting based on taxonomy term.
+            Nothing groundbreaking there. The value we are delivering now is that this
+            baseline functionality can work all under the Pantheon roof.
+
+EOF;
+        $narration = $this->say($narration_text);
+        $narration->start();
+        $narration->wait();
+    }
+
+    /**
+     * @param string $text
+     */
+    protected function say($text)
+    {
+        $now = new \DateTime();
+        $filename = 'narration-' . $now->diff($this->started)->f . '.mp4';
+        $this->output->writeln($filename);
+        return (new Symfony\Component\Process\Process([
+            '/usr/bin/say',
+            "-o {$filename}",
+            '--file-format=mp4f',
+            $text,
+        ], '/Users/Shared'))
+            ->enableOutput()
+            ->setTty(true);
     }
 
     /**
@@ -118,9 +141,9 @@ class RoboFile extends Tasks
     public function demoCreateSite(string $site_name, array $options = ['org' => null])
     {
         $text = sprintf(
-            'I am generating a demo site we will use for this demo. The site name is: %s',
-            $site_name
-        ) . 'In all probability this will take a hot minute';
+                'I am generating a new site we will use for this demo. The site name is: %s',
+                $site_name
+            ) . ' In all probability this will take a hot minute';
         $narration = $this->say($text);
         $narration->start();
         $toReturn = $this->taskExec(static::$TERMINUS_EXE)
@@ -142,7 +165,7 @@ class RoboFile extends Tasks
     {
         $narration = $this->say(
             'I am using the new local terminus command to clone a copy of the sites codebase into my local folder.'
-               . 'You will need to hit yes to continue.'
+            . 'You will need to hit yes to continue.'
         );
         $narration->start();
         $toReturn = $this->taskExec(static::$TERMINUS_EXE)
@@ -159,9 +182,13 @@ class RoboFile extends Tasks
      */
     public function demoRequireSolr(string $site_name)
     {
-        $narration = $this->say(
-            'I am requiring the Search A P I Pantheon module for this site with composer'
-        );
+        $narration_content = <<<EOF
+
+        I'm
+
+EOF;
+
+        $narration = $this->say($narration_content);
         $narration->start();
         $site_folder = $this->getSiteFolder($site_name);
         chdir($site_folder);
@@ -169,6 +196,10 @@ class RoboFile extends Tasks
             ->args(
                 'require',
                 'pantheon-systems/search_api_pantheon ^8',
+                'drupal/facets',
+                'drupal/facets_pretty_paths',
+                'drupal/search_api_autocomplete',
+                'drupal/search_api_sorts',
                 'drupal/redis',
                 'drupal/devel',
                 'drupal/devel_generate'
@@ -231,6 +262,60 @@ class RoboFile extends Tasks
     /**
      * @param string $site_name
      * @param string $env
+     */
+    public function demoSetSearch(string $site_name, string $env = 'dev')
+    {
+        $text = <<<EOF
+
+        When pantheon_search goes into general availability you will be able to
+        set the search type using the pantheon dot Y M L file.
+        During the pre-launch of Pantheon Search, we have to use a couple of commands
+        behind the scenes. Pardon our dust.
+
+EOF;
+        $narration = $this->say($text);
+        $narration->start();
+        $toPost = json_encode([
+            'type' => 'change_search_version',
+            'params' => [
+                'kind' => 'solr',
+                'version' => '8',
+            ],
+        ]);
+        $site_id = exec(static::$TERMINUS_EXE . ' site:info ' . $site_name . ' --format=json | jq -r .id');
+
+        $command = sprintf(
+            "ygg /sites/%s/environments/%s/workflows -X POST -d '%s'",
+            $site_id,
+            $env,
+            $toPost
+        );
+
+        $this->output()->write($command);
+        $narration->wait();
+        exit();
+
+        $ssh = sprintf(
+            'ssh -F %s -I %s -t %s@%s "%s"',
+            $_SERVER['HOME'] . '.ssh/config',
+            '/usr/local/lib/opensc-pkcs11.so',
+            $_SERVER['PANTHEON_YGG_USER'],
+            $_SERVER['PANTHEON_YGG'],
+            $command
+        );
+
+        $narration->wait();
+        $narration = $this->say('Now I need to make sure Solr is enabled for this site and env in the dashboard.');
+        $narration->start();
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args('solr:enable', $site_name . '.' . $env)
+            ->run();
+        $narration->wait();
+    }
+
+    /**
+     * @param string $site_name
+     * @param string $env
      * @param string $profile
      *
      * @return int
@@ -288,39 +373,5 @@ class RoboFile extends Tasks
             );
         }
         return ResultData::EXITCODE_OK;
-    }
-
-    /**
-     * @param string $site_name
-     * @param string $env
-     */
-    public function demoSetSearch(string $site_name, string $env = 'dev')
-    {
-        $text = <<<EOF
-
-        When pantheon_search goes into general availability you will be able to
-        set the search type using the pantheon dot Y M L file.
-        During the pre-launch of Pantheon Search, we have to use a couple of commands
-        behind the scenes. Pardon our dust.
-
-EOF;
-        $narration = $this->say($text);
-        $narration->start();
-        $toPost = json_encode([
-            'type' => 'change_search_version',
-            'params' => [
-                'kind' => 'solr',
-                'version' => '8',
-            ],
-        ]);
-        $site_id = exec(static::$TERMINUS_EXE . ' site:info ' . $site_name . ' --format=json | jq -r .id');
-
-        $command = sprintf("ygg /sites/%s/environments/%s/workflows -X POST '%s'", $site_id, $env, $toPost);
-        $narration->wait();
-        \Kint::dump(get_defined_vars());
-        exit();
-        return $this->taskSshExec($_SERVER['PANTHEON_YGG'], $_SERVER['PANTHEON_YGG_USER'])
-            ->exec($command)
-            ->run();
     }
 }
