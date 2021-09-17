@@ -61,7 +61,6 @@ class RoboFile extends Tasks
         $this->narrateDisambiguation();
         $this->narrateCreatePage();
         $this->narrateOutro();
-        sleep(30);
         $this->demoModuleEnable($site_name);
         $this->demoLoginBrowser($site_name);
     }
@@ -99,7 +98,7 @@ class RoboFile extends Tasks
         $now = new \DateTime();
 
         $filename = 'narration-' .
-            $step_id . '-' . $now->diff($this->started)->format('%I-%S-%F') . '.m4a';
+            $now->diff($this->started)->format('%I-%S-%F') . '-' . $step_id . '.m4a';
         $this->output->writeln('/Users/Shared/' . $filename);
         return (new Symfony\Component\Process\Process([
             '/usr/bin/say',
@@ -237,21 +236,6 @@ EOF;
             ->args('redis:enable', $site_name)
             ->run();
         $this->waitForWorkflow($site_name);
-    }
-
-    /**
-     *
-     */
-    public function narrateEnableRedis()
-    {
-        $narration_content = <<<EOF
-
-        One more thing we need to do is enable the Redis caching server.
-
-EOF;
-        $narration = $this->say($narration_content, __FUNCTION__);
-        $narration->start();
-        $narration->wait();
     }
 
     /**
@@ -494,87 +478,6 @@ EOF;
     }
 
     /**
-     * @param string $site_name
-     * @param string $env
-     * @param string $profile
-     */
-    public function demoModuleEnable(string $site_name, string $env = 'dev', string $profile = 'demo_umami')
-    {
-        $this->narrateModuleEnable();
-        $this->waitForWorkflow($site_name);
-        $this->taskExec(static::$TERMINUS_EXE)
-            ->args(
-                'drush',
-                $site_name . '.' . $env,
-                'cr'
-            )
-            ->run();
-        $this->taskExec(static::$TERMINUS_EXE)
-            ->args(
-                'drush',
-                $site_name . '.' . $env,
-                'pm-uninstall',
-                'search',
-            )
-            ->run();
-        $this->taskExec(static::$TERMINUS_EXE)
-            ->args(
-                'drush',
-                $site_name . '.' . $env,
-                'pm-enable',
-                'redis',
-                'devel',
-                'devel_generate',
-                'search_api',
-                'search_api_solr',
-                'search_api_pantheon',
-                'search_api_page',
-                'search_api_pantheon_admin',
-            )
-            ->run();
-        $this->taskExec(static::$TERMINUS_EXE)
-            ->args(
-                'drush',
-                $site_name . '.' . $env,
-                'cr'
-            )
-            ->run();
-    }
-
-    /**
-     *
-     */
-    public function narrateModuleEnable()
-    {
-        $narration_content = <<<EOF
-
-        And now I am enabling the modules necessary to run search A P I and generate dummy content.
-
-        I want to disable the default search module then enable search A P I pantheon and a few others.
-
-EOF;
-        $narration = $this->say($narration_content, __FUNCTION__);
-        $narration->start();
-        $narration->wait();
-    }
-
-    /**
-     * @param string $site_name
-     * @param string $env
-     */
-    public function demoLoginBrowser(string $site_name, string $env = 'dev')
-    {
-        exec(
-            't3 drush ' . $site_name . '.' . $env . ' -- uli admin',
-            $finished,
-            $status
-        );
-        $finished = trim(join('', $finished));
-        $this->output()->writeln($finished);
-        $this->_exec('open ' . $finished);
-    }
-
-    /**
      *
      */
     public function narrateCreateIndex()
@@ -647,6 +550,109 @@ EOF;
         $narration_content = <<<EOF
 
         Thank you for watching and happy searching.
+
+EOF;
+        $narration = $this->say($narration_content, __FUNCTION__);
+        $narration->start();
+        $narration->wait();
+    }
+
+    /**
+     * @param string $site_name
+     * @param string $env
+     * @param string $profile
+     */
+    public function demoModuleEnable(string $site_name, string $env = 'dev', string $profile = 'demo_umami')
+    {
+        $this->narrateModuleEnable();
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args(
+                'drush',
+                $site_name . '.' . $env,
+                'cr'
+            )
+            ->run();
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args(
+                'drush',
+                $site_name . '.' . $env,
+                'pm-uninstall',
+                'search',
+            )
+            ->run();
+        sleep(60);
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args(
+                'drush',
+                $site_name . '.' . $env,
+                'cr'
+            )
+            ->run();
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args(
+                'drush',
+                $site_name . '.' . $env,
+                'pm-enable',
+                'redis',
+                'devel',
+                'devel_generate',
+                'search_api',
+                'search_api_solr',
+                'search_api_pantheon',
+                'search_api_page',
+                'search_api_pantheon_admin',
+            )
+            ->run();
+        $this->taskExec(static::$TERMINUS_EXE)
+            ->args(
+                'drush',
+                $site_name . '.' . $env,
+                'cr'
+            )
+            ->run();
+    }
+
+    /**
+     *
+     */
+    public function narrateModuleEnable()
+    {
+        $narration_content = <<<EOF
+
+        And now I am enabling the modules necessary to run search A P I and generate dummy content.
+
+        I want to disable the default search module then enable search A P I pantheon and a few others.
+
+EOF;
+        $narration = $this->say($narration_content, __FUNCTION__);
+        $narration->start();
+        $narration->wait();
+    }
+
+    /**
+     * @param string $site_name
+     * @param string $env
+     */
+    public function demoLoginBrowser(string $site_name, string $env = 'dev')
+    {
+        exec(
+            't3 drush ' . $site_name . '.' . $env . ' -- uli admin',
+            $finished,
+            $status
+        );
+        $finished = trim(join('', $finished));
+        $this->output()->writeln($finished);
+        $this->_exec('open ' . $finished);
+    }
+
+    /**
+     *
+     */
+    public function narrateEnableRedis()
+    {
+        $narration_content = <<<EOF
+
+        One more thing we need to do is enable the Redis caching server.
 
 EOF;
         $narration = $this->say($narration_content, __FUNCTION__);
