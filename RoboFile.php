@@ -373,12 +373,13 @@ EOF;
         modules to enable solr.
 
         I am requiring the Search A P I pantheon module as well as facets, autocomplete,
-        sorts and the devel module to generate additional random content.
+        sorts and the "devel" module to generate additional random content.
 
-        Notice I am not worrying about the version of search A P I solar that I need.
-        Search A P I Pantheon will require the version of solar it needs. You need never
-        consult a grid to figure out what version you need of anything again. We're
+        Notice I am not worrying about the version of search A P I solar.
+        Search A P I Pantheon will require the version of solar it needs. Its no longer
+        necessary to consult a grid to figure out what version. We're
         running solr eight, ergo you need search A P I pantheon version eight.
+        Composer will figure out the rest.
 
 EOF;
         $narration = $this->say($narration_content, __FUNCTION__);
@@ -486,11 +487,11 @@ EOF;
 
         A nice detail of the value Pantheon uniquely adds is that just by enabling
         these modules I get the Search API configuration for a server connection
-        automatically configured. Now as the developer I can jump straight to
-        configuring an index that determines what content is indexed and how.
+        automatically created. Now as the developer I can jump straight to
+        adding an index that determines what content is indexed and how.
 
-        I will start just by indexing a few fields in the content and add the tags field
-        to the index so we can use facets.
+        I will start just by adding a few fields in the content and add the tags field
+        to the index.
 
         Once I have fields configured, I can send all the demo content we
         installed with "U-mommie" to the solr server.
