@@ -1,0 +1,29 @@
+<?php
+
+
+/**
+ * Implementation of hook_requirements.
+ *
+ * @param $phase
+ *
+ * @return array
+ */
+function search_api_pantheon_requirements($phase)
+{
+  $requirements = [];
+  $severity = (
+    empty(getenv('PANTHEON_INDEX_SCHEME')) ||
+    empty(getenv('PANTHEON_INDEX_HOST')) ||
+    empty(getenv('PANTHEON_INDEX_PORT')) ||
+    empty(getenv('PANTHEON_INDEX_PATH')) ||
+    empty(getenv('PANTHEON_INDEX_CORE')) ||
+    empty(getenv('PANTHEON_INDEX_SCHEMA'))
+  ) ? REQUIREMENT_ERROR : REQUIREMENT_OK;
+
+  $requirements['search_api_pantheon'] = [
+    'title' => t('Search API Pantheon'),
+    'value' => \Drupal::VERSION,
+    'severity' => $severity,
+  ];
+  return $requirements;
+}
