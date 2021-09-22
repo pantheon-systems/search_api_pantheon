@@ -62,10 +62,10 @@ class RoboFile extends Tasks {
     }
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
-    $this->testModuleEnable($site_name);
-
+    $this->testGitPush($site_name);
+    $this->waitForWorkflow($site_name);
     // This should succeed:
-    // $this->testModuleEnable($site_name);
+    $this->testModuleEnable($site_name);
   }
 
   /**
@@ -341,26 +341,26 @@ class RoboFile extends Tasks {
    *
    * @return mixed|null
    */
-  protected function siteInfo(string $site_name)
-  {
+  protected function siteInfo(string $site_name) {
     try {
-       exec(static::$TERMINUS_EXE . ' site:info --format=json ' . $site_name, $output, $status);
-       if (!empty($output)) {
-         $result = json_decode(join("", $output), true, 512, JSON_THROW_ON_ERROR);
-         return $result;
-       }
+      exec(static::$TERMINUS_EXE . ' site:info --format=json ' . $site_name, $output, $status);
+      if (!empty($output)) {
+        $result = json_decode(join("", $output), TRUE, 512, JSON_THROW_ON_ERROR);
+        return $result;
+      }
     }
-    catch(\Exception $e){ }
-    catch(\Throwable $t){ }
-    return null;
+    catch (\Exception $e) {
+    }
+    catch (\Throwable $t) {
+    }
+    return NULL;
   }
 
   /**
    * @param string $site_name
    * @param string $env
    */
-  public function testEnvSolr(string $site_name, string $env = 'dev')
-  {
+  public function testEnvSolr(string $site_name, string $env = 'dev') {
     $site_folder = $this->getSiteFolder($site_name);
     $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
     $pantheon_yml_contents['search'] = ['version' => 8];

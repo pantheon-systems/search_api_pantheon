@@ -1,15 +1,13 @@
 <?php
 
+/**
+ * @file
+ */
 
 /**
- * Implementation of hook_requirements.
- *
- * @param $phase
- *
- * @return array
+ * Implements hook_requirements().
  */
-function search_api_pantheon_requirements($phase)
-{
+function search_api_pantheon_requirements($phase) {
   $requirements = [];
   $severity = (
     empty(getenv('PANTHEON_INDEX_SCHEME')) ||
