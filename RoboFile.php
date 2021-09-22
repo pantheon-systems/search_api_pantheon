@@ -61,6 +61,9 @@ class RoboFile extends Tasks {
       exit(1);
     }
     $this->setSiteSearch($site_name, 'enable');
+    $this->testEnvSolr($site_name);
+    $this->testModuleEnable($site_name);
+
     // This should succeed:
     // $this->testModuleEnable($site_name);
   }
@@ -271,7 +274,9 @@ class RoboFile extends Tasks {
       ->args(
               'drush',
               $site_name . '.' . $env,
+              '--',
               'pm-enable',
+              '--yes',
               'search_api_pantheon',
               'search_api_pantheon_admin',
           )
@@ -348,6 +353,20 @@ class RoboFile extends Tasks {
     catch(\Exception $e){ }
     catch(\Throwable $t){ }
     return null;
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testEnvSolr(string $site_name, string $env = 'dev')
+  {
+    $site_folder = $this->getSiteFolder($site_name);
+    $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
+    $pantheon_yml_contents['search'] = ['version' => 8];
+    $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
+    file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
+    $this->output->writeln($pantheon_yml_contents);
   }
 
 }
