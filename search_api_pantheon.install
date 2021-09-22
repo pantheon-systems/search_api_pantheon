@@ -18,6 +18,11 @@ function search_api_pantheon_requirements($phase) {
     empty(getenv('PANTHEON_INDEX_SCHEMA'))
   ) ? REQUIREMENT_ERROR : REQUIREMENT_OK;
 
+  if ($severity == REQUIREMENT_ERROR) {
+    \Drupal::messenger()
+      ->addError('Search API Pantheon needs to be enabled with an entry in the pantheon.yml');
+  }
+
   $requirements['search_api_pantheon'] = [
     'title' => t('Search API Pantheon'),
     'value' => \Drupal::VERSION,
