@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ */
+
+const SEARCH_API_PANTHEON_ERROR_MESSAGE = <<<EOF
+
+      Search API Pantheon needs to be enabled with, first, enabling search on the site,
+      and then an entry in the pantheon.yml to switch the environment to solr v8. Please refer to
+      <a href="https://pantheon.io/docs/guides/solr-drupal/solr-drupal-9">this tutorial:</a>
+
+EOF;
+
+/**
+ * Implements hook_requirements().
+ */
+function search_api_pantheon_requirements($phase) {
+  $requirements = [];
+  $severity = (
+    empty(getenv('PANTHEON_INDEX_SCHEME')) ||
+    empty(getenv('PANTHEON_INDEX_HOST')) ||
+    empty(getenv('PANTHEON_INDEX_PORT')) ||
+    empty(getenv('PANTHEON_INDEX_PATH')) ||
+    empty(getenv('PANTHEON_INDEX_CORE')) ||
+    empty(getenv('PANTHEON_INDEX_SCHEMA'))
+  ) ? REQUIREMENT_ERROR : REQUIREMENT_OK;
+
+  if ($severity == REQUIREMENT_ERROR) {
+    \Drupal::messenger()
+      ->addError(SEARCH_API_PANTHEON_ERROR_MESSAGE);
+  }
+
+  $requirements['search_api_pantheon'] = [
+    'title' => t('Search API Pantheon'),
+    'value' => \Drupal::VERSION,
+    'severity' => $severity,
+  ];
+  return $requirements;
+}
