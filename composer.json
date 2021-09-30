@@ -55,7 +55,8 @@
         "drupal/coder": "@stable",
         "phpunit/phpunit": "@stable",
         "psy/psysh": "@stable",
-        "squizlabs/php_codesniffer": "@stable"
+        "squizlabs/php_codesniffer": "@stable",
+        "symfony/yaml": "^4"
     },
     "suggest":{
         "drupal/search_api_autocomplete": "^1",
