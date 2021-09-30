@@ -11,6 +11,7 @@ use Robo\Result;
 use Robo\ResultData;
 use Robo\Tasks;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  *
@@ -136,7 +137,6 @@ class RoboFile extends Tasks {
     $this->taskExec(static::$TERMINUS_EXE)
       ->args('solr:' . $value, $site_name)
       ->run();
-    $this->waitForWorkflow($site_name);
   }
 
   /**
@@ -147,7 +147,6 @@ class RoboFile extends Tasks {
     $this->taskExec('t3')
       ->args('connection:set', $site_name . '.' . $env, $connection)
       ->run();
-    $this->waitForWorkflow($site_name);
   }
 
   /**
@@ -179,6 +178,7 @@ class RoboFile extends Tasks {
               'pantheon-systems/search_api_pantheon ' . $solr_branch,
               'drupal/search_api_autocomplete',
               'drupal/search_api_sorts',
+              'drupal/facets',
               'drupal/redis',
               'drupal/devel',
               'drupal/devel_generate'
