@@ -1,0 +1,51 @@
+plugin.plugin_configuration.search_api_solr_connector.pantheon:
+  type: config_object
+  label: 'Search API Solr Pantheon connector settings'
+  mapping:
+    timeout:
+      type: integer
+      label: 'Timeout for search queries'
+    index_timeout:
+      type: integer
+      label: 'Timeout for indexing requests'
+    optimize_timeout:
+      type: integer
+      label: 'Timeout for optimize requests'
+    finalize_timeout:
+      type: integer
+      label: 'Timeout for finalize requests'
+    commit_within:
+      type: integer
+      label: 'Time until a soft commit has to happen'
+    workarounds:
+      type: mapping
+      mapping:
+        solr_version:
+          type: string
+          label: 'Solr version override'
+        http_method:
+          type: string
+          label: 'The HTTP method to use for sending queries'
+        skip_schema_check:
+          type: integer
+          label: 'Do not validate if the schema is correct'
+    advanced:
+      type: mapping
+      mapping:
+        jmx:
+          type: integer
+          label: 'Enable JMX'
+        solr_install_dir:
+          type: string
+          label: 'solr.install.dir property'
+    jmx:
+      type: boolean
+      label: 'Enable JMX'
+    skip_schema_check:
+      type: boolean
+      label: 'Do not validate if the schema is correct'
+    endpoint:
+      type: sequence
+      label: 'Endpoints'
+      sequence:
+        type: string
