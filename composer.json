@@ -2,8 +2,8 @@
     "name": "drupal/search_api_pantheon",
     "type": "drupal-module",
     "require-dev": {
-        "drupal/coder": "^8.3",
-        "squizlabs/php_codesniffer": "^3.5",
+        "drupal/coder": "2.0-beta1",
+        "squizlabs/php_codesniffer": "2.0.*@dev",
         "drush-ops/behat-drush-endpoint": "*",
         "drupal/drupal-extension": "^3.4"
     },
