@@ -1,4 +1,4 @@
-Search API Patheon 3.0.x, xxxx-xx-xx
+Search API Patheon 3.0.0, 2021-10-06
 ------------------------------------
 By stovak: Fixing code style issues causing CI failures with new version of
   drupal/coder.
