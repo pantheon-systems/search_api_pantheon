@@ -104,7 +104,7 @@ class RoboFile extends Tasks {
     if (empty($site_info)) {
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
         ->args('site:create', $site_name, $site_name, 'drupal9');
-      if ($options['org'] !== NULL) {
+      if ( !empty( $options['org'] ) ) {
         $toReturn->option('org', $options['org']);
       }
       $toReturn->run();
