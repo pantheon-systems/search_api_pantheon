@@ -31,6 +31,7 @@ class RoboFile extends Tasks {
    */
   public function __construct() {
     $this->started = new DateTime();
+    require_once 'vendor/autoload.php';
   }
 
   /**
