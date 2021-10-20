@@ -117,8 +117,31 @@ class RoboFile extends Tasks {
    * @param string $site_name
    */
   public function waitForWorkflow(string $site_name, string $env = 'dev') {
-    $this->output()->write('Waiting for platform');
+    $this->output()->write('Checking workflow status', true);
+
     exec(
+      "t3 workflow:info:status $site_name.$env",
+      $info
+    );
+
+    foreach ($info as $line => $value) {
+      $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
+
+      if ( count( $ln ) > 1  ) {
+        // Convert times to unix timestamps for easier use later.
+        if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
+          $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
+          $ln[1] = strtotime( $ln[1] );
+        }
+
+        $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
+      }
+
+      // Clean up the scope to remove no-longer-needed variables.
+      unset( $info[ $line ], $ln, $line, $value );
+    }
+
+    $this->output()->write( $info['workflow'], true );
           't3 build:workflow:wait --max=260 --progress-delay=5 ' . $site_name . '.' . $env,
           $finished,
           $status
