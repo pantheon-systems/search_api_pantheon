@@ -52,7 +52,6 @@ class RoboFile extends Tasks {
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
     $this->testConnectionGit($site_name, 'dev', 'git');
-    $this->waitForWorkflow($site_name);
     try {
       // This should fail:
       $this->testModuleEnable($site_name);
@@ -64,7 +63,7 @@ class RoboFile extends Tasks {
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
     $this->testGitPush($site_name);
-    $this->waitForWorkflow($site_name);
+    $this->testConnectionGit($site_name, 'dev', 'sftp');
     // This should succeed:
     $this->testModuleEnable($site_name);
   }
