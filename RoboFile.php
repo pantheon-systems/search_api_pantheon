@@ -49,7 +49,6 @@ class RoboFile extends Tasks {
     $this->testCloneSite($site_name);
     $this->testRequireSolr($site_name, 'dev-' . $branch);
     $this->testGitPush($site_name);
-    $this->waitForWorkflow($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
     $this->testConnectionGit($site_name, 'dev', 'git');
