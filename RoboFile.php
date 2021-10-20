@@ -142,10 +142,17 @@ class RoboFile extends Tasks {
     }
 
     $this->output()->write( $info['workflow'], true );
-          't3 build:workflow:wait --max=260 --progress-delay=5 ' . $site_name . '.' . $env,
-          $finished,
-          $status
-      );
+
+    // Wait for workflow to finish if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
+    if ( $info['status'] !== 'succeeded' ) {
+      $this->output()->write('Waiting for platform', true);
+      exec(
+            "t3 build:workflow:wait --max=260 --progress-delay=5 $site_name.$env",
+            $finished,
+            $status
+        );
+    }
+
     if ($this->output()->isVerbose()) {
       \Kint::dump(get_defined_vars());
     }
