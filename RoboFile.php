@@ -126,7 +126,7 @@ class RoboFile extends Tasks {
     $info = $this->cleanUpInfo( $info );
     $this->output()->write( $info['workflow'], true );
 
-    // Wait for workflow to finish if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
+    // Wait for workflow to finish only if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
     if ( $info['status'] !== 'succeeded' ) {
       $this->output()->write('Waiting for platform', true);
       exec(
