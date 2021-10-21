@@ -14,6 +14,7 @@ use Psr\Log\LoggerAwareTrait;
 use Solarium\Client as SolariumClient;
 use Solarium\Core\Client\Endpoint;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 
 /**
  * Pantheon Solr connector.
@@ -38,6 +39,13 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected $solr;
 
   /**
+   * The PantheonGuzzle service.
+   *
+   * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
+   */
+  protected PantheonGuzzle $pantheonGuzzle;
+
+  /**
    * Class constructor.
    *
    * @param array $configuration
@@ -59,6 +67,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $this->container = $container;
     $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
     $this->connect();
+    $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
   }
 
   /**
@@ -310,13 +319,15 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getFile($file = NULL) {
-    $query = $this->solr->createApi([
-          'handler' => 'admin/file',
-      ]);
+    $query = [
+      'action' => 'VIEW',
+    ];
     if ($file) {
-      $query->addParam('file', $file);
+      $query['file'] = $file;
     }
-    return $this->execute($query)->getResponse();
+    return $this->pantheonGuzzle->get('admin/file', [
+      'query' => $query,
+    ]);
   }
 
   /**
