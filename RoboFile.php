@@ -123,24 +123,7 @@ class RoboFile extends Tasks {
       $info
     );
 
-    // Clean up the workflow status data and assign values to an array so it's easier to check.
-    foreach ($info as $line => $value) {
-      $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
-
-      if ( count( $ln ) > 1  ) {
-        // Convert times to unix timestamps for easier use later.
-        if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
-          $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
-          $ln[1] = strtotime( $ln[1] );
-        }
-
-        $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
-      }
-
-      // Clean up the scope to remove no-longer-needed variables.
-      unset( $info[ $line ], $ln, $line, $value );
-    }
-
+    $info = $this->cleanUpInfo( $info );
     $this->output()->write( $info['workflow'], true );
 
     // Wait for workflow to finish if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
@@ -157,6 +140,35 @@ class RoboFile extends Tasks {
       \Kint::dump(get_defined_vars());
     }
     $this->output()->writeln('');
+  }
+
+  /**
+   * Takes the output from a workflow:info:status command and converts it into a human-readable and easily parseable array.
+   *
+   * @param array $info Raw output from 't3 workflow:info:status'
+   *
+   * @return array An array of workflow status info.
+   */
+  private function cleanUpInfo( array $info ) : array {
+    // Clean up the workflow status data and assign values to an array so it's easier to check.
+    foreach ($info as $line => $value) {
+      $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
+
+      if ( count( $ln ) > 1  ) {
+        // Convert times to unix timestamps for easier use later.
+        if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
+          $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
+          $ln[1] = strtotime( $ln[1] );
+        }
+
+        $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
+      }
+
+      // Clean up the scope to remove no-longer-needed variables.
+      unset( $info[ $line ] );
+    }
+
+    return $info;
   }
 
   /**
