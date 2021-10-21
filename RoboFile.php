@@ -156,9 +156,9 @@ class RoboFile extends Tasks {
 
       // Skip lines with only one value. This filters out the ASCII dividers output by the command.
       if ( count( $ln ) > 1  ) {
-        // Convert times to unix timestamps for easier use later.
         if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
           $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
+          // Convert times to unix timestamps for easier use later.
           $ln[1] = strtotime( $ln[1] );
         }
 
