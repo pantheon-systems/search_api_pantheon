@@ -123,6 +123,7 @@ class RoboFile extends Tasks {
       $info
     );
 
+    // Clean up the workflow status data and assign values to an array so it's easier to check.
     foreach ($info as $line => $value) {
       $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
 
