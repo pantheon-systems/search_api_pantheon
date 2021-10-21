@@ -154,6 +154,7 @@ class RoboFile extends Tasks {
     foreach ($info as $line => $value) {
       $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
 
+      // Skip lines with only one value. This filters out the ASCII dividers output by the command.
       if ( count( $ln ) > 1  ) {
         // Convert times to unix timestamps for easier use later.
         if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
@@ -164,7 +165,7 @@ class RoboFile extends Tasks {
         $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
       }
 
-      // Clean up the scope to remove no-longer-needed variables.
+      // Remove the processed line.
       unset( $info[ $line ] );
     }
 
