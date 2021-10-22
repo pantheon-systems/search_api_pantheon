@@ -83,12 +83,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         MessengerInterface $messenger
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->setLogger($logger_factory->get('PantheonSearch'));
-    $this->connect();
     $this->pantheonGuzzle = $pantheon_guzzle;
     $this->solariumClient = $solarium_client;
     $this->dateFormatter = $date_formatter;
     $this->messenger = $messenger;
+    $this->setLogger($logger_factory->get('PantheonSearch'));
+    $this->connect();
   }
 
   /**
