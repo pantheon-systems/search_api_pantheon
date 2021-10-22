@@ -66,7 +66,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
-  protected MessengerInterface $messenger;
+  protected $messenger;
 
   /**
    * Class constructor.
