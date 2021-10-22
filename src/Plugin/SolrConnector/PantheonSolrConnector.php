@@ -52,7 +52,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @var \Drupal\search_api_pantheon\Services\SolariumClient
    */
-  protected SolariumClient $solariumClient;
+  protected PantheonSolariumClient $solariumClient;
 
   /**
    * The date formatter service.
