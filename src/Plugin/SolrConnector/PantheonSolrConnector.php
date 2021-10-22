@@ -8,7 +8,6 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drupal\search_api_pantheon\Services\Endpoint as PantheonEndpoint;
-use League\Container\ContainerAwareTrait;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Client as SolariumClient;
@@ -35,7 +34,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     ContainerFactoryPluginInterface,
     LoggerAwareInterface {
   use LoggerAwareTrait;
-  use ContainerAwareTrait;
 
   /**
    * @var object|null
