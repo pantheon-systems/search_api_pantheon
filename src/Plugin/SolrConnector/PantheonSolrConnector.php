@@ -70,7 +70,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
 
   /**
    * Class constructor.
-
    */
   public function __construct(
         array $configuration,
