@@ -15,6 +15,10 @@ use Solarium\Client as SolariumClient;
 use Solarium\Core\Client\Endpoint;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
+use Drupal\search_api_pantheon\Services\SolariumClient as PantheonSolariumClient;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Pantheon Solr connector.
@@ -46,28 +50,47 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected PantheonGuzzle $pantheonGuzzle;
 
   /**
-   * Class constructor.
+   * The solarium client service.
    *
-   * @param array $configuration
-   *   Configuration array.
-   * @param $plugin_id
-   *   The plugin id.
-   * @param array $plugin_definition
-   *   Plugin Definition array.
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   Standard DJ container.
+   * @var \Drupal\search_api_pantheon\Services\SolariumClient
+   */
+  protected SolariumClient $solariumClient;
+
+  /**
+   * The date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected DateFormatterInterface $dateFormatter;
+
+  /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected MessengerInterface $messenger;
+
+  /**
+   * Class constructor.
+
    */
   public function __construct(
         array $configuration,
         $plugin_id,
         array $plugin_definition,
-        ContainerInterface $container
+        LoggerChannelFactoryInterface $logger_factory,
+        PantheonGuzzle $pantheon_guzzle,
+        PantheonSolariumClient $solarium_client,
+        DateFormatterInterface $date_formatter,
+        MessengerInterface $messenger
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->container = $container;
-    $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
+    $this->setLogger($logger_factory->get('PantheonSearch'));
     $this->connect();
-    $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->pantheonGuzzle = $pantheon_guzzle;
+    $this->solariumClient = $solarium_client;
+    $this->dateFormatter = $date_formatter;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -89,7 +112,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           $configuration,
           $plugin_id,
           $plugin_definition,
-          $container
+          $container->get('logger.factory'),
+          $container->get('search_api_pantheon.pantheon_guzzle'),
+          $container->get('search_api_pantheon.solarium_client'),
+          $container->get('date.formatter'),
+          $container->get('messenger')
       );
   }
 
@@ -190,7 +217,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       $indexStats = $indexResponse['index'] ?? [];
     }
     catch (\Exception $e) {
-      $this->container->get('messenger')->addError(
+      $this->messenger->addError(
         $this->t('Unable to get stats from server!')
       );
     }
@@ -234,8 +261,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
             $indexStats['numDocs'] ?? $this->t('No information available.');
 
     $summary['@autocommit_time_seconds'] = $max_time / 1000;
-    $summary['@autocommit_time'] = $this->container
-      ->get('date.formatter')
+    $summary['@autocommit_time'] = $this->dateFormatter
       ->formatInterval($max_time / 1000);
     $summary['@deletes_total'] =
             (
@@ -355,7 +381,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return object|\Solarium\Client|null
    */
   protected function createClient(array &$configuration) {
-    return $this->container->get('search_api_pantheon.solarium_client');
+    return $this->solariumClient;
   }
 
   /**
@@ -365,8 +391,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   protected function getStatsQuery(string $handler) {
     return json_decode(
-          $this->container
-            ->get('search_api_pantheon.pantheon_guzzle')
+          $this->pantheonGuzzle
             ->get(
                   $handler,
                   [
