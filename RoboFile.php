@@ -40,6 +40,7 @@ class RoboFile extends Tasks {
   public function testFull(string $site_name = NULL) {
     $branch = $this->getCurrentBranch() ?? '^8';
     $this->testCheckT3();
+    // This is a GitHub secret.
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
     if (empty($site_name)) {
       $site_name = substr(\uniqid('test-'), 0, 12);
@@ -53,7 +54,7 @@ class RoboFile extends Tasks {
     $this->testSiteInstall($site_name);
     $this->testConnectionGit($site_name, 'dev', 'git');
     try {
-      // This should fail:
+      // This should fail because Solr has not been enabled yet.
       $this->testModuleEnable($site_name);
     }
     catch (\Exception $e) {
