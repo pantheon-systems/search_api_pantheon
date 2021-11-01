@@ -66,6 +66,9 @@ class RoboFile extends Tasks {
     $this->testGitPush($site_name);
     // This should succeed:
     $this->testModuleEnable($site_name);
+    // Todo: Enable jsonapi
+    // Todo: Enable Oauth
+    // Todo: Connect to jsonapi via Oauth
   }
 
   /**
