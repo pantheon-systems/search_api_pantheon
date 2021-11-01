@@ -64,7 +64,6 @@ class RoboFile extends Tasks {
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
     $this->testGitPush($site_name);
-    $this->testConnectionGit($site_name, 'dev', 'sftp');
     // This should succeed:
     $this->testModuleEnable($site_name);
   }
