@@ -48,10 +48,7 @@ jobs:
           chmod +x terminus
           mv terminus /usr/local/bin/t3
 
-      - name: Authenticate Terminus
-        run: t3 auth:login --email=tom.stovall@getpantheon.com --machine-token="$TERMINUS_TOKEN"
-
-      - name: Tests
+      - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
@@ -66,4 +63,6 @@ jobs:
             TAG=`echo $GITHUB_REF | cut -c11-`
             export GIT_REF=${TAG}
           fi
+
+          t3 auth:login --email="$GIT_EMAIL" --machine-token="$TERMINUS_TOKEN"
           ./vendor/bin/robo test:full $TERMINUS_SITE
