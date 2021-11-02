@@ -49,7 +49,7 @@ jobs:
           mv terminus /usr/local/bin/t3
 
       - name: Authenticate Terminus
-        run: t3 auth:login --machine-token="$TERMINUS_TOKEN"
+        run: t3 auth:login --machine-token="$MACHINE_TOKEN"
 
       - name: Tests
         run: |
