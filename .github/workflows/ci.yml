@@ -47,6 +47,8 @@ jobs:
           wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
           chmod +x terminus
           mv terminus /usr/local/bin/t3
+          mkdir ~/.terminus
+          t3 self:info
 
       - name: Run tests
         run: |
