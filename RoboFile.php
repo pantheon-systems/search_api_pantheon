@@ -357,25 +357,72 @@ class RoboFile extends Tasks {
         ->run();
   }
 
-  public function testEnableApiAuth( string $site_name, string $env = 'dev' ) {
-    $this->taskExec( static::$TERMINUS_EXE )
-      ->args(
-        'drush',
-        "$site_name.$env",
-        '--',
-        'pm-enable',
-        '--yes',
-        'rest_api_authentication'
-      )
-      ->run();
+  /**
+   * Run through various diagnostics to ensure that Solr8 is enabled and working.
+   *
+   * @param string $site_name
+   * @param string $env
+   *
+   * @return \Robo\Result
+   */
+  public function testSolrEnabled( string $site_name, string $env = 'dev' ) {
 
-      $this->taskExec( static::$TERMINUS_EXE )
+    try {
+      // Attempt to ping the Pantheon Solr server.
+      $this->output()->write('Attempting to ping the Solr server...', true);
+      $ping = $this->taskExec( static::$TERMINUS_EXE )
         ->args(
           'drush',
           "$site_name.$env",
-          'cr'
+          '--',
+          'search-api-pantheon:ping'
         )
         ->run();
+
+        if ( $ping instanceof Result && ! $ping->wasSuccessful() ) {
+          \Kint::dump( $ping );
+          throw new \Exception( 'An error occurred attempting to ping Solr server' );
+        }
+
+        // Check that Solr8 is enabled.
+        $this->output()->write('Checking for Solr8 search API server...', true);
+        exec(
+          "t3 remote:drush $site_name.$env -- search-api-server-list | grep pantheon_solr8",
+          $server_list
+        );
+
+        if ( stripos( $server_list[0], 'enabled' ) === false ) {
+          \Kint::dump( $server_list );
+          throw new \Exception( 'An error occurred checking that Solr8 was enable.d' );
+        }
+
+      // Run a diagnose command to make sure everything is okay.
+      $this->output()->write('Running search-api-pantheon:diagnose...', true);
+      $diagnose = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'search-api-pantheon:diagnose'
+        )
+        ->run();
+
+      if ( $diagnose instanceof Result && ! $diagnose->wasSuccessful() ) {
+        \Kint::dump( $diagnose );
+        throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
+      }
+    }
+
+    catch (\Exception $e) {
+      $this->output()->write($e->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+    catch (\Throwable $t) {
+      $this->output()->write($t->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+
+    return ResultData::EXITCODE_OK;
   }
 
   /**
