@@ -1,4 +1,4 @@
-# Troubleshooting
+# Troubleshooting Indices
 
 This document answers the question: "I have everything in stalled and my server says "can be reached" but my index isn't returning any documents when I search. What do I do?"
 
