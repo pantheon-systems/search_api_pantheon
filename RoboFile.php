@@ -54,7 +54,7 @@ class RoboFile extends Tasks {
     $this->testSiteInstall($site_name);
     $this->testConnectionGit($site_name, 'dev', 'git');
     try {
-      // This should fail because Solr has not been enabled yet.
+      // This should fail because Solr has not been enabled on the environment yet.
       $this->testModuleEnable($site_name);
     }
     catch (\Exception $e) {
@@ -64,11 +64,11 @@ class RoboFile extends Tasks {
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
     $this->testGitPush($site_name);
-    // This should succeed:
+    // This should succeed now that Solr has been enabled.
     $this->testModuleEnable($site_name);
-    $this->testEnableJsonApi( $site_name );
-    // Todo: Enable Oauth
-    // Todo: Connect to jsonapi via Oauth
+
+    // Test all the Solr things.
+    $this->testSolrEnabled($site_name);
   }
 
   /**
