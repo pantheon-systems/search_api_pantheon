@@ -9,7 +9,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;
-use League\Container\ContainerAwareTrait;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +16,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -29,7 +28,6 @@ class PantheonGuzzle extends Client implements
     LoggerAwareInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
-  use ContainerAwareTrait;
 
   public static $messageFormats = [
         '{method} {uri} HTTP/{version}',
@@ -40,12 +38,8 @@ class PantheonGuzzle extends Client implements
 
   /**
    * Class Constructor.
-   *
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   Container Interface.
    */
-  public function __construct(ContainerInterface $container) {
-    $endpoint = $container->get('search_api_pantheon.endpoint');
+  public function __construct(Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory) {
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
@@ -76,9 +70,8 @@ class PantheonGuzzle extends Client implements
       $config['cert'] = $cert;
     }
     parent::__construct($config);
-    $this->container = $container;
     $this->endpoint = $endpoint;
-    $this->logger = $container->get('logger.factory')->get('PantheonGuzzle');
+    $this->logger = $logger_factory->get('PantheonGuzzle');
   }
 
   /**

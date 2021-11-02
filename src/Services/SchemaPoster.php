@@ -11,13 +11,13 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils;
-use League\Container\ContainerAwareTrait;
 use Psr\Http\Client\ClientInterface as PSR18Interface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Posting schema for Pantheon-specific solr driver.
@@ -27,7 +27,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SchemaPoster implements LoggerAwareInterface {
 
   use LoggerAwareTrait;
-  use ContainerAwareTrait;
   use StringTranslationTrait;
 
   /**
@@ -45,17 +44,23 @@ class SchemaPoster implements LoggerAwareInterface {
   protected PSR18Interface $client;
 
   /**
-   * Class Constructor.
+   * The entity type manager service.
    *
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   Container Interface.
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * Class Constructor.
    */
   public function __construct(
-        ContainerInterface $container
+        LoggerChannelFactoryInterface $logger_factory,
+        PantheonGuzzle $client,
+        EntityTypeManagerInterface $entity_type_manager
     ) {
-    $this->container = $container;
-    $this->logger = $container->get('logger.factory')->get('PantheonSearch');
-    $this->client = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->logger = $logger_factory->get('PantheonSearch');
+    $this->client = $client;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -211,7 +216,7 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   public function getSolrFiles(string $server_id = 'pantheon_solr8') {
     /** @var \Drupal\search_api\ServerInterface $server */
-    $server = \Drupal::entityTypeManager()
+    $server = $this->entityTypeManager
       ->getStorage('search_api_server')
       ->load($server_id);
 

@@ -2,8 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use League\Container\ContainerAwareTrait;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Client;
 use Solarium\Core\Client\Request;
@@ -11,32 +9,24 @@ use Solarium\Core\Client\Response;
 use Solarium\Core\Query\QueryInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
 /**
  * Customized Solrium Client to send Guzzle debugging to log entries.
  */
 class SolariumClient extends Client {
   use LoggerAwareTrait;
-  use ContainerAwareTrait;
 
   /**
    * Class constructor.
-   *
-   * @param \Psr\Container\ContainerInterface $container
-   *   Container interface.
    */
-  public function __construct(ContainerInterface $container) {
-    $guzzle = $container->get('search_api_pantheon.pantheon_guzzle');
-    $endpoint = $container->get('search_api_pantheon.endpoint');
+  public function __construct(PantheonGuzzle $guzzle, Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory) {
     parent::__construct(
           $guzzle->getPsr18Adapter(),
           new EventDispatcher(),
           ['endpoint' => [$endpoint]]
       );
-    $this->container = $container;
-    $this->logger = $container
-      ->get('logger.factory')
-      ->get('PantheonSolariumClient');
+    $this->logger = $logger_factory->get('PantheonSolariumClient');
     $this->setDefaultEndpoint($endpoint);
   }
 
