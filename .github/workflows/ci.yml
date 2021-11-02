@@ -44,10 +44,7 @@ jobs:
 
       - name: Install Terminus
         run: |
-          wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
-          chmod +x terminus
-          mv terminus /usr/local/bin/t3
-          mkdir ~/.terminus
+        curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-version=3.0.0-beta1 --install-dir=/usr/local/bin
           t3 self:info
 
       - name: Run tests
