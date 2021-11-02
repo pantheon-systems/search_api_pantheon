@@ -44,7 +44,7 @@ jobs:
 
       - name: Install Terminus
         run: |
-        curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-version=3.0.0-beta1 --install-dir=/usr/local/bin
+          curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-version=3.0.0-beta1 --install-dir=/usr/local/bin
           t3 self:info
 
       - name: Run tests
