@@ -17,6 +17,7 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
@@ -54,6 +55,7 @@ jobs:
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
+          export TERMINUS_ORG=$TERMINUS_ORG
           echo "$SSH_PRIVATE_KEY" > ../private.key
           chmod 600 ../private.key
           eval `ssh-agent -s`
