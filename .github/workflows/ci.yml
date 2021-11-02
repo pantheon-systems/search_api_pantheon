@@ -45,8 +45,8 @@ jobs:
 
       - name: Install Terminus
         run: |
-          wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus -O ~/bin/terminus
-          chmod +x ~/bin/terminus
+          wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
+          chmod +x terminus
 
       - name: Tests
         run: |
