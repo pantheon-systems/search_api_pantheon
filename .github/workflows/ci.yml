@@ -66,5 +66,5 @@ jobs:
             export GIT_REF=${TAG}
           fi
 
-          t3 auth:login --email="$GIT_EMAIL" --machine-token="$TERMINUS_TOKEN"
+          t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
           ./vendor/bin/robo test:full $TERMINUS_SITE
