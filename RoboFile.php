@@ -336,27 +336,6 @@ class RoboFile extends Tasks {
       ->run();
   }
 
-  public function testEnableJsonApi( string $site_name, string $env = 'dev' ) {
-    $this->taskExec( static::$TERMINUS_EXE )
-      ->args(
-        'drush',
-        "$site_name.$env",
-        '--',
-        'pm-enable',
-        '--yes',
-        'jsonapi'
-      )
-      ->run();
-
-      $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          'cr'
-        )
-        ->run();
-  }
-
   /**
    * Run through various diagnostics to ensure that Solr8 is enabled and working.
    *
