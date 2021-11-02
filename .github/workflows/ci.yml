@@ -16,7 +16,7 @@ jobs:
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
-      TERMINUS_TOKEN: ${{ secrets.MACHINE_TOKEN }}
+      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
@@ -49,7 +49,7 @@ jobs:
           mv terminus /usr/local/bin/t3
 
       - name: Authenticate Terminus
-        run: t3 auth:login --machine-token="$TERMINUS_TOKEN"
+        run: t3 auth:login --email=tom.stovall@getpantheon.com --machine-token="$TERMINUS_TOKEN"
 
       - name: Tests
         run: |
