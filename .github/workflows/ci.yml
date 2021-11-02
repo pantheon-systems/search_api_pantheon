@@ -32,7 +32,6 @@ jobs:
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
           mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
-          terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
 
       - name: Composer install
         run: composer install --ignore-platform-req=php
@@ -48,6 +47,9 @@ jobs:
           wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
           chmod +x terminus
           mv terminus /usr/local/bin/t3
+
+      - name: Authenticate Terminus
+        run: t3 auth:login --machine-token="$TERMINUS_TOKEN"
 
       - name: Tests
         run: |
