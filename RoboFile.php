@@ -357,6 +357,27 @@ class RoboFile extends Tasks {
         ->run();
   }
 
+  public function testEnableApiAuth( string $site_name, string $env = 'dev' ) {
+    $this->taskExec( static::$TERMINUS_EXE )
+      ->args(
+        'drush',
+        "$site_name.$env",
+        '--',
+        'pm-enable',
+        '--yes',
+        'rest_api_authentication'
+      )
+      ->run();
+
+      $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          'cr'
+        )
+        ->run();
+  }
+
   /**
    * @param string $site_name
    * @param string $env
