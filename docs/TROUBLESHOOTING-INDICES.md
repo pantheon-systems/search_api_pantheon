@@ -11,7 +11,7 @@ Troubleshooting your search_api_pantheon search results:
 
    ```bash
 
-   terminus drush {site_name border="2" />.{env border="2" /> -- search-api-pantheon:diagnose
+   terminus drush {site_name}.{env} -- search-api-pantheon:diagnose
 
    ```
 
