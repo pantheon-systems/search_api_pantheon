@@ -52,6 +52,10 @@
         "psy/psysh": "@stable",
         "squizlabs/php_codesniffer": "@stable"
     },
+    "suggest":{
+        "drupal/search_api_page": "^1.0",
+        "drupal/facets": "^1.8"
+    },
     "scripts": {
         "code:test" : [
             "vendor/bin/phpunit -c ./phpunit.xml"
