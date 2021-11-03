@@ -51,6 +51,12 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
+      - name: Setup SSH
+        uses: MrSquaare/ssh-setup-action@v1
+        with:
+          host: drush.in
+          private-key: ${{ $SSH_PRIVATE_KEY }}
+
       - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
