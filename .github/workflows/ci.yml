@@ -33,7 +33,12 @@ jobs:
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
-          mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
+          mkdir -p /root/.ssh && echo "
+          Host *.drush.in
+            StrictHostKeyChecking no
+            HostkeyAlgorithms +ssh-rsa
+            PubkeyAcceptedAlgorithms +ssh-rsa
+          " >> "/root/.ssh/config"
 
       - name: Composer install
         run: composer install --ignore-platform-req=php
