@@ -49,6 +49,12 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
+      - name: Install Terminus Build Tools
+        run: |
+          mkdir -p ~/.terminus/plugins
+          composer create-project --no-dev -d ~/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:^2.0.0
+          t3 self:plugin:list
+
       - name: Log in to Terminus
         run: |
           t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
