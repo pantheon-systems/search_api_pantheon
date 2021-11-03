@@ -2,16 +2,13 @@
 
 namespace Drupal\search_api_pantheon\Events;
 
-
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher as SymfonyEventDispatcher;
 
 /**
- * Pantheon Event Dispatcher
+ * Pantheon Event Dispatcher.
  */
-class PantheonEventDispatcher
-  extends SymfonyEventDispatcher
-  implements EventDispatcherInterface {
+class PantheonEventDispatcher extends SymfonyEventDispatcher implements EventDispatcherInterface {
 
   /**
    * @var array
@@ -27,13 +24,13 @@ class PantheonEventDispatcher
    * Override to fix issues with zero listeners.
    *
    * @param null $eventName
-   *    Name of the Event in question.
+   *   Name of the Event in question.
    *
    * @return array|mixed
-   *    Any listeners or empty array.
+   *   Any listeners or empty array.
    */
   public function getListeners($eventName = NULL) {
-    if (empty($this->listeners)){
+    if (empty($this->listeners)) {
       return [];
     }
 
