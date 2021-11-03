@@ -52,11 +52,11 @@ jobs:
           t3 self:info
 
       - name: Setup SSH
-        uses: MrSquaare/ssh-setup-action@v1
+        uses: webfactory/ssh-agent@v0.5.3
         with:
-          host: drush.in
-          private-key: ${{ secrets.SANDBOX_SSH_KEY }}
-          private-key-name: sandbox
+          ssh-private-key: |
+            ${{ secrets.SANDBOX_SSH_KEY }}
+            $SSH_PRIVATE_KEY
 
       - name: Run tests
         run: |
