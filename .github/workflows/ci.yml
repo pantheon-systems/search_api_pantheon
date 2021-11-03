@@ -23,6 +23,7 @@ jobs:
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SANDBOX_KEY: ${{ secrets.SANDBOX_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
       - name: Checkout
@@ -56,10 +57,15 @@ jobs:
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           export TERMINUS_ORG=$TERMINUS_ORG
-          echo "$SANDBOX_KEY" > ../private.key
+          echo "Setting up SSH keys..."
+          echo "$SSH_PRIVATE_KEY" > ../private.key
           chmod 600 ../private.key
           eval `ssh-agent -s`
           ssh-add ../private.key
+          echo "${{ secrets.SANDBOX_KEY }}" > ../sandbox.key
+          chmod 600 ../sandbox.key
+          eval `ssh-agent -s`
+          ssh-add ../sandbox.key
           if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
             BRANCH=`echo $GITHUB_REF | cut -c12-`
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
@@ -67,6 +73,8 @@ jobs:
             TAG=`echo $GITHUB_REF | cut -c11-`
             export GIT_REF=${TAG}
           fi
-
+          echo "Logging into Terminus..."
           t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
+
+          echo "Running tests..."
           ./vendor/bin/robo test:full $TERMINUS_SITE
