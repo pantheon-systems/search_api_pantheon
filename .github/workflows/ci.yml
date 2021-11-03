@@ -51,11 +51,6 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: $SSH_PRIVATE_KEY
-
       - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
