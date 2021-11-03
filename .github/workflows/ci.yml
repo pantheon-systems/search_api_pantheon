@@ -55,7 +55,7 @@ jobs:
         uses: MrSquaare/ssh-setup-action@v1
         with:
           host: drush.in
-          private-key: ${{ $SSH_PRIVATE_KEY }}
+          private-key: $SSH_PRIVATE_KEY
 
       - name: Run tests
         run: |
