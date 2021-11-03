@@ -64,6 +64,11 @@ jobs:
           eval `ssh-agent -s`
           ssh-add ../private.key
 
+      - name: Log in to Terminus
+        run: |
+          t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
+          t3 auth:whoami
+
       - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
@@ -76,8 +81,4 @@ jobs:
             TAG=`echo $GITHUB_REF | cut -c11-`
             export GIT_REF=${TAG}
           fi
-          echo "Logging into Terminus..."
-          t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
-
-          echo "Running tests..."
           ./vendor/bin/robo test:full $TERMINUS_SITE
