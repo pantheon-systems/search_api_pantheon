@@ -23,7 +23,7 @@ jobs:
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SANDBOX_KEY: ${{ secrets.SANDBOX_KEY }}
+      SANDBOX_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
       - name: Checkout
@@ -52,16 +52,18 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
+      - name: Setup SSH Keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: |
+            $SANDBOX_SSH_KEY
+            $SSH_PRIVATE_KEY
+
       - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           export TERMINUS_ORG=$TERMINUS_ORG
-          echo "Setting up SSH keys..."
-          echo "${{ secrets.SANDBOX_SSH_KEY }}" > ../sandbox.key
-          chmod 600 ../sandbox.key
-          eval `ssh-agent -s`
-          ssh-add ../sandbox.key
           if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
             BRANCH=`echo $GITHUB_REF | cut -c12-`
             export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
