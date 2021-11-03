@@ -23,7 +23,7 @@ jobs:
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SANDBOX_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
+      SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
       - name: Checkout
