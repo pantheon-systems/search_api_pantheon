@@ -57,15 +57,15 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
-      - name: Setup SSH Keys
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
-
       - name: Log in to Terminus
         run: |
           t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
           t3 auth:whoami
+
+      - name: Setup SSH Keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
       - name: Run tests
         run: |
