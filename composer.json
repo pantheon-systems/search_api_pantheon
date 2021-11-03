@@ -41,8 +41,9 @@
         "drupal/search_api_solr": "^4.2.1",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
+        "kint-php/kint": "@stable",
         "php-http/guzzle6-adapter": "^2.0",
-        "kint-php/kint": "@stable"
+        "psr/event-dispatcher": "^1.0"
     },
     "require-dev": {
         "consolidation/robo": "^3.0",
