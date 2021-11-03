@@ -55,7 +55,7 @@ jobs:
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: $SANDBOX_SSH_KEY
+          ssh-private-key: "$SANDBOX_SSH_KEY"
 
       - name: Run tests
         run: |
