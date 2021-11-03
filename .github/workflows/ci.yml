@@ -23,7 +23,6 @@ jobs:
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SANDBOX_KEY: ${{ secrets.SANDBOX_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
       - name: Checkout
@@ -51,6 +50,11 @@ jobs:
           mv terminus /usr/local/bin/t3
           mkdir ~/.terminus
           t3 self:info
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: $SSH_PRIVATE_KEY
 
       - name: Run tests
         run: |
