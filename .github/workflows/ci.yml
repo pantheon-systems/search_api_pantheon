@@ -58,9 +58,11 @@ jobs:
           t3 self:info
 
       - name: Setup SSH Keys
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: "$SANDBOX_SSH_KEY"
+        run: |
+          echo "$SANDBOX_SSH_KEY" > ../private.key
+          chmod 600 ../private.key
+          eval `ssh-agent -s`
+          ssh-add ../private.key
 
       - name: Run tests
         run: |
