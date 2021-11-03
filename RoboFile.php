@@ -69,6 +69,9 @@ class RoboFile extends Tasks {
 
     // Test all the Solr things.
     $this->testSolrEnabled($site_name);
+
+    $this->output()->write( 'All done! 🎉' );
+    return ResultData::EXITCODE_OK;
   }
 
   /**
