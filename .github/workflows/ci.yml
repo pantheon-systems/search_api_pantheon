@@ -58,10 +58,6 @@ jobs:
           export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           export TERMINUS_ORG=$TERMINUS_ORG
           echo "Setting up SSH keys..."
-          echo "$SSH_PRIVATE_KEY" > ../private.key
-          chmod 600 ../private.key
-          eval `ssh-agent -s`
-          ssh-add ../private.key
           echo "${{ secrets.SANDBOX_SSH_KEY }}" > ../sandbox.key
           chmod 600 ../sandbox.key
           eval `ssh-agent -s`
