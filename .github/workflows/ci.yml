@@ -57,13 +57,10 @@ jobs:
           mkdir ~/.terminus
           t3 self:info
 
-      - name: Dump some stuff
-        run: echo $SANDBOX_SSH_KEY
-
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: $SANDBOX_SSH_KEY
+          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
       - name: Log in to Terminus
         run: |
