@@ -56,6 +56,7 @@ jobs:
         with:
           host: drush.in
           private-key: ${{ secrets.SANDBOX_SSH_KEY }}
+          private-key-name: sandbox
 
       - name: Run tests
         run: |
