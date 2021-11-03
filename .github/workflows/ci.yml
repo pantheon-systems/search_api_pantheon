@@ -51,8 +51,7 @@ jobs:
 
       - name: Install Terminus Build Tools
         run: |
-          mkdir -p ~/.terminus/plugins
-          composer create-project --no-dev -d ~/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:^2.0.0
+          t3 self:plugin:install terminus-build-tools-plugin
           t3 self:plugin:list
 
       - name: Log in to Terminus
