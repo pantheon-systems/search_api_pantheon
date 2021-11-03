@@ -62,7 +62,7 @@ jobs:
           chmod 600 ../private.key
           eval `ssh-agent -s`
           ssh-add ../private.key
-          echo "${{ secrets.SANDBOX_KEY }}" > ../sandbox.key
+          echo "${{ secrets.SANDBOX_SSH_KEY }}" > ../sandbox.key
           chmod 600 ../sandbox.key
           eval `ssh-agent -s`
           ssh-add ../sandbox.key
