@@ -51,6 +51,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          sudo: false
+
       - name: Run tests
         run: |
           export TERMINUS_ENV=$GITHUB_RUN_NUMBER
