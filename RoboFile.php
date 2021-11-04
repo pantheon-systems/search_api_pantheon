@@ -70,6 +70,12 @@ class RoboFile extends Tasks {
     // Test all the Solr things.
     $this->testSolrEnabled($site_name);
 
+    // Test creating Solr index.
+    $this->testSolrIndexCreate($site_name, 'dev');
+
+    // Test select query.
+    $this->testSolrSelect($site_name, 'dev');
+
     $this->output()->write( 'All done! 🎉' );
     return ResultData::EXITCODE_OK;
   }
@@ -502,6 +508,67 @@ class RoboFile extends Tasks {
     $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
     file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
     $this->output->writeln($pantheon_yml_contents);
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrIndexCreate(string $site_name, string $env = 'dev') {
+    $this->taskExec(static::$TERMINUS_EXE)
+      ->args('drush', $site_name . '.' . $env, '--', 'search-api-pantheon:index-create')
+      ->run();
+
+      $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'cim',
+          '--partial',
+          '--source=modules/composer/search_api_pantheon/tests/Fixtures/config',
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+
+      // Index new solr.
+      $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'sapi-i'
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrSelect(string $site_name, string $env = 'dev') {
+    $this->taskExec(static::$TERMINUS_EXE)
+      ->args('drush', $site_name . '.' . $env, '--', 'search-api-pantheon:index-create')
+      ->run();
+
+      $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'saps',
+          '*:*'
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
   }
 
 }
