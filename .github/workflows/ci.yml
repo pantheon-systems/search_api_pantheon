@@ -10,7 +10,7 @@ jobs:
   build_test:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:7.4.x
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
       options: --user root
     name: Build and test
     env:
@@ -41,23 +41,10 @@ jobs:
       - name: Code sniff
         run: composer run-script code:lint
 
-      - name: Install Terminus
-        run: |
-          wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
-          chmod +x terminus
-          mv terminus /usr/local/bin/t3
-          mkdir ~/.terminus
-          t3 self:info
-
-      - name: Install Terminus Build Tools
-        run: |
-          t3 self:plugin:install terminus-build-tools-plugin
-          t3 self:plugin:list
-
       - name: Log in to Terminus
         run: |
-          t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
-          t3 auth:whoami
+          terminus auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
+          terminus auth:whoami
 
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
