@@ -89,7 +89,7 @@ class RoboFile extends Tasks {
       $this->confirm(
             'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
         );
-      $result = $this->taskExec('brew install pantheon-systems/external/t3')->run();
+      $result = $this->taskExec('brew install pantheon-systems/external/terminus')->run();
       if (!$result->wasSuccessful()) {
         exit(1);
       }
@@ -125,7 +125,7 @@ class RoboFile extends Tasks {
     $this->output()->write('Checking workflow status', true);
 
     exec(
-      "t3 workflow:info:status $site_name.$env",
+      "terminus workflow:info:status $site_name.$env",
       $info
     );
 
@@ -136,7 +136,7 @@ class RoboFile extends Tasks {
     if ( $info['status'] !== 'succeeded' ) {
       $this->output()->write('Waiting for platform', true);
       exec(
-            "t3 build:workflow:wait --max=260 --progress-delay=5 $site_name.$env",
+            "terminus build:workflow:wait --max=260 --progress-delay=5 $site_name.$env",
             $finished,
             $status
         );
@@ -151,7 +151,7 @@ class RoboFile extends Tasks {
   /**
    * Takes the output from a workflow:info:status command and converts it into a human-readable and easily parseable array.
    *
-   * @param array $info Raw output from 't3 workflow:info:status'
+   * @param array $info Raw output from 'terminus workflow:info:status'
    *
    * @return array An array of workflow status info.
    */
@@ -193,7 +193,7 @@ class RoboFile extends Tasks {
    * @param string $env
    */
   public function testConnectionGit(string $site_name, string $env = 'dev', string $connection = 'git') {
-    $this->taskExec('t3')
+    $this->taskExec('terminus')
       ->args('connection:set', $site_name . '.' . $env, $connection)
       ->run();
   }
@@ -369,7 +369,7 @@ class RoboFile extends Tasks {
         // Check that Solr8 is enabled.
         $this->output()->write('Checking for Solr8 search API server...', true);
         exec(
-          "t3 remote:drush $site_name.$env -- search-api-server-list | grep pantheon_solr8",
+          "terminus remote:drush $site_name.$env -- search-api-server-list | grep pantheon_solr8",
           $server_list
         );
 
@@ -424,7 +424,7 @@ class RoboFile extends Tasks {
    */
   public function demoLoginBrowser(string $site_name, string $env = 'dev') {
     exec(
-          't3 drush ' . $site_name . '.' . $env . ' -- uli admin',
+          'terminus drush ' . $site_name . '.' . $env . ' -- uli admin',
           $finished,
           $status
       );
