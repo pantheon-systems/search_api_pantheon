@@ -38,7 +38,7 @@ class RoboFile extends Tasks {
    *
    */
   public function testFull(string $site_name = NULL) {
-    $branch = $this->getCurrentBranch() ?? '^8';
+    $constraint = $this->getCurrentConstraint();
     $this->testCheckT3();
     // This is a GitHub secret.
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
@@ -48,7 +48,7 @@ class RoboFile extends Tasks {
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
-    $this->testRequireSolr($site_name, 'dev-' . $branch);
+    $this->testRequireSolr($site_name, $constraint);
     $this->testGitPush($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
@@ -77,8 +77,26 @@ class RoboFile extends Tasks {
   /**
    *
    */
-  protected function getCurrentBranch(): ?string {
-    return trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
+  protected function getCurrentConstraint(): string {
+    $branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
+    if ($branch !== 'HEAD') {
+      return "${branch}-dev";
+    } else {
+      $tag = trim(shell_exec('git describe --exact-match --tags $(git log -n1 --pretty=\'%h\')'));
+      if ($tag) {
+        return $tag;
+      } else {
+        // Maybe we are on a PR.
+        $branch = $_SERVER['GITHUB_HEAD_REF'];
+        $branch_parts = explode('/', $branch);
+        $branch = end($branch_parts);
+        if ($branch) {
+          return "${branch}-dev";
+        }
+      }
+    }
+    // Final fallback, return "^8";
+    return '^8';
   }
 
   /**
