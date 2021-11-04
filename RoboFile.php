@@ -553,10 +553,6 @@ class RoboFile extends Tasks {
    * @param string $env
    */
   public function testSolrSelect(string $site_name, string $env = 'dev') {
-    $this->taskExec(static::$TERMINUS_EXE)
-      ->args('drush', $site_name . '.' . $env, '--', 'search-api-pantheon:index-create')
-      ->run();
-
       $result = $this->taskExec( static::$TERMINUS_EXE )
         ->args(
           'drush',
