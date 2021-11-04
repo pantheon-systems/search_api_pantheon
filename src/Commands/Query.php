@@ -6,11 +6,8 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
-use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
-use Solarium\QueryType\Update\Query\Document as UpdateDocument;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 
 /**
  * A Drush command file.
@@ -56,11 +53,11 @@ class Query extends DrushCommands {
   /**
    * Search_api_pantheon:select.
    *
-   * @usage search-api-pantheon:select
+   * @usage search-api-pantheon:select <query>
    *   Runs a select query against Pantheon Solr.
    *
    * @command search-api-pantheon:select
-   * @param $query Query to execute against Solr.
+   *
    * @option wt Output format
    * @option rows Number of rows to return
    * @option qf Query fields
@@ -115,6 +112,5 @@ class Query extends DrushCommands {
       $this->logger->error(json_encode($result->getData(), JSON_PRETTY_PRINT));
     }
   }
-
 
 }
