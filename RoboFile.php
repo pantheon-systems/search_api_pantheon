@@ -44,6 +44,10 @@ class RoboFile extends Tasks {
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
     if (empty($site_name)) {
       $site_name = substr(\uniqid('test-'), 0, 12);
+      if ($_SERVER['GITHUB_RUN_NUMBER']) {
+        // Ensure that 2 almost parallel runs do not collide.
+        $site_name .= '-' . $_SERVER['GITHUB_RUN_NUMBER'];
+      }
     }
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
