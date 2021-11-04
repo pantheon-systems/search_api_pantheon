@@ -20,7 +20,7 @@ class RoboFile extends Tasks {
   /**
    * @var string
    */
-  public static $TERMINUS_EXE = '/usr/local/bin/t3';
+  public static $TERMINUS_EXE = '/usr/local/bin/terminus';
   /**
    * @var \DateTime
    */
