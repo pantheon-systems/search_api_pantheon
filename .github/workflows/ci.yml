@@ -17,11 +17,13 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
+      TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
       - name: Checkout
@@ -31,37 +33,47 @@ jobs:
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
-          mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> "/root/.ssh/config"
-          terminus auth:login -n --machine-token="$TERMINUS_TOKEN"
+          mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
 
       - name: Composer install
         run: composer install --ignore-platform-req=php
 
-      - name: render-md-mermaid
-        uses: nielsvaneck/render-md-mermaid@v2
-
       - name: Code sniff
         run: composer run-script code:lint
 
+      - name: Install Terminus
+        run: |
+          wget https://github.com/pantheon-systems/terminus/releases/download/3.0.0-beta1/terminus
+          chmod +x terminus
+          mv terminus /usr/local/bin/t3
+          mkdir ~/.terminus
+          t3 self:info
 
+      - name: Install Terminus Build Tools
+        run: |
+          t3 self:plugin:install terminus-build-tools-plugin
+          t3 self:plugin:list
 
-#      - name: Tests
-#        run: |
-#          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
-#          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
-#          echo "$SSH_PRIVATE_KEY" > ../private.key
-#          chmod 600 ../private.key
-#          eval `ssh-agent -s`
-#          ssh-add ../private.key
-#          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-#            BRANCH=`echo $GITHUB_REF | cut -c12-`
-#            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
-#          else
-#            TAG=`echo $GITHUB_REF | cut -c11-`
-#            export GIT_REF=${TAG}
-#          fi
-#          cd .ci
-#          ./create-fresh-d8-site.sh
-#          ./setup-d8-repo.sh
-#          ./enable-modules.sh
-#          ./verify-solr.sh
+      - name: Log in to Terminus
+        run: |
+          t3 auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
+          t3 auth:whoami
+
+      - name: Setup SSH Keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
+
+      - name: Run tests
+        run: |
+          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
+          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
+          export TERMINUS_ORG=$TERMINUS_ORG
+          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
+            BRANCH=`echo $GITHUB_REF | cut -c12-`
+            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
+          else
+            TAG=`echo $GITHUB_REF | cut -c11-`
+            export GIT_REF=${TAG}
+          fi
+          ./vendor/bin/robo test:full $TERMINUS_SITE

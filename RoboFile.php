@@ -11,6 +11,7 @@ use Robo\Result;
 use Robo\ResultData;
 use Robo\Tasks;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  *
@@ -30,6 +31,7 @@ class RoboFile extends Tasks {
    */
   public function __construct() {
     $this->started = new DateTime();
+    require_once 'vendor/autoload.php';
   }
 
   /**
@@ -38,6 +40,7 @@ class RoboFile extends Tasks {
   public function testFull(string $site_name = NULL) {
     $branch = $this->getCurrentBranch() ?? '^8';
     $this->testCheckT3();
+    // This is a GitHub secret.
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
     if (empty($site_name)) {
       $site_name = substr(\uniqid('test-'), 0, 12);
@@ -47,13 +50,11 @@ class RoboFile extends Tasks {
     $this->testCloneSite($site_name);
     $this->testRequireSolr($site_name, 'dev-' . $branch);
     $this->testGitPush($site_name);
-    $this->waitForWorkflow($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
     $this->testConnectionGit($site_name, 'dev', 'git');
-    $this->waitForWorkflow($site_name);
     try {
-      // This should fail:
+      // This should fail because Solr has not been enabled on the environment yet.
       $this->testModuleEnable($site_name);
     }
     catch (\Exception $e) {
@@ -63,9 +64,14 @@ class RoboFile extends Tasks {
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
     $this->testGitPush($site_name);
-    $this->waitForWorkflow($site_name);
-    // This should succeed:
+    // This should succeed now that Solr has been enabled.
     $this->testModuleEnable($site_name);
+
+    // Test all the Solr things.
+    $this->testSolrEnabled($site_name);
+
+    $this->output()->write( 'All done! 🎉' );
+    return ResultData::EXITCODE_OK;
   }
 
   /**
@@ -102,7 +108,7 @@ class RoboFile extends Tasks {
     if (empty($site_info)) {
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
         ->args('site:create', $site_name, $site_name, 'drupal9');
-      if ($options['org'] !== NULL) {
+      if ( !empty( $options['org'] ) ) {
         $toReturn->option('org', $options['org']);
       }
       $toReturn->run();
@@ -116,16 +122,60 @@ class RoboFile extends Tasks {
    * @param string $site_name
    */
   public function waitForWorkflow(string $site_name, string $env = 'dev') {
-    $this->output()->write('Waiting for platform');
+    $this->output()->write('Checking workflow status', true);
+
     exec(
-          't3 build:workflow:wait --max=260 --progress-delay=5 ' . $site_name . '.' . $env,
-          $finished,
-          $status
-      );
+      "t3 workflow:info:status $site_name.$env",
+      $info
+    );
+
+    $info = $this->cleanUpInfo( $info );
+    $this->output()->write( $info['workflow'], true );
+
+    // Wait for workflow to finish only if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
+    if ( $info['status'] !== 'succeeded' ) {
+      $this->output()->write('Waiting for platform', true);
+      exec(
+            "t3 build:workflow:wait --max=260 --progress-delay=5 $site_name.$env",
+            $finished,
+            $status
+        );
+    }
+
     if ($this->output()->isVerbose()) {
       \Kint::dump(get_defined_vars());
     }
     $this->output()->writeln('');
+  }
+
+  /**
+   * Takes the output from a workflow:info:status command and converts it into a human-readable and easily parseable array.
+   *
+   * @param array $info Raw output from 't3 workflow:info:status'
+   *
+   * @return array An array of workflow status info.
+   */
+  private function cleanUpInfo( array $info ) : array {
+    // Clean up the workflow status data and assign values to an array so it's easier to check.
+    foreach ($info as $line => $value) {
+      $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
+
+      // Skip lines with only one value. This filters out the ASCII dividers output by the command.
+      if ( count( $ln ) > 1  ) {
+        if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
+          $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
+          // Convert times to unix timestamps for easier use later.
+          $ln[1] = strtotime( $ln[1] );
+        }
+
+        $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
+      }
+
+      // Remove the processed line.
+      unset( $info[ $line ] );
+    }
+
+    return $info;
   }
 
   /**
@@ -136,7 +186,6 @@ class RoboFile extends Tasks {
     $this->taskExec(static::$TERMINUS_EXE)
       ->args('solr:' . $value, $site_name)
       ->run();
-    $this->waitForWorkflow($site_name);
   }
 
   /**
@@ -147,7 +196,6 @@ class RoboFile extends Tasks {
     $this->taskExec('t3')
       ->args('connection:set', $site_name . '.' . $env, $connection)
       ->run();
-    $this->waitForWorkflow($site_name);
   }
 
   /**
@@ -179,6 +227,7 @@ class RoboFile extends Tasks {
               'pantheon-systems/search_api_pantheon ' . $solr_branch,
               'drupal/search_api_autocomplete',
               'drupal/search_api_sorts',
+              'drupal/facets',
               'drupal/redis',
               'drupal/devel',
               'drupal/devel_generate'
@@ -288,6 +337,74 @@ class RoboFile extends Tasks {
               'cr'
           )
       ->run();
+  }
+
+  /**
+   * Run through various diagnostics to ensure that Solr8 is enabled and working.
+   *
+   * @param string $site_name
+   * @param string $env
+   *
+   * @return \Robo\Result
+   */
+  public function testSolrEnabled( string $site_name, string $env = 'dev' ) {
+
+    try {
+      // Attempt to ping the Pantheon Solr server.
+      $this->output()->write('Attempting to ping the Solr server...', true);
+      $ping = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'search-api-pantheon:ping'
+        )
+        ->run();
+
+        if ( $ping instanceof Result && ! $ping->wasSuccessful() ) {
+          \Kint::dump( $ping );
+          throw new \Exception( 'An error occurred attempting to ping Solr server' );
+        }
+
+        // Check that Solr8 is enabled.
+        $this->output()->write('Checking for Solr8 search API server...', true);
+        exec(
+          "t3 remote:drush $site_name.$env -- search-api-server-list | grep pantheon_solr8",
+          $server_list
+        );
+
+        if ( stripos( $server_list[0], 'enabled' ) === false ) {
+          \Kint::dump( $server_list );
+          throw new \Exception( 'An error occurred checking that Solr8 was enable.d' );
+        }
+
+      // Run a diagnose command to make sure everything is okay.
+      $this->output()->write('Running search-api-pantheon:diagnose...', true);
+      $diagnose = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'search-api-pantheon:diagnose'
+        )
+        ->run();
+
+      if ( $diagnose instanceof Result && ! $diagnose->wasSuccessful() ) {
+        \Kint::dump( $diagnose );
+        throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
+      }
+    }
+
+    catch (\Exception $e) {
+      $this->output()->write($e->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+    catch (\Throwable $t) {
+      $this->output()->write($t->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+
+    return ResultData::EXITCODE_OK;
   }
 
   /**
