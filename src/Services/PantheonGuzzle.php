@@ -55,7 +55,7 @@ class PantheonGuzzle extends Client implements
      * ), 'logger'
      * );
      **/
-    $cert = $_SERVER['HOME'] . '/certs/binding.pem';
+    $cert = ($_SERVER['HOME'] ?? '') . '/certs/binding.pem';
     $config = [
           'base_uri' => $endpoint->getBaseUri(),
           'http_errors' => FALSE,
