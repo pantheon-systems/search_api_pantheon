@@ -46,15 +46,14 @@ jobs:
           terminus auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
           terminus auth:whoami
 
+      - name: Install build tools plugin
+        run: |
+          terminus self:plugin:add terminus-build-tools-plugin
+
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          sudo: false
 
       - name: Run tests
         run: |
