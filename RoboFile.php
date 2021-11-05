@@ -407,7 +407,7 @@ class RoboFile extends Tasks {
         }
 
       // Run a diagnose command to make sure everything is okay.
-      $this->output()->write('Running search-api-pantheon:diagnose...', true);
+      /*$this->output()->write('Running search-api-pantheon:diagnose...', true);
       $diagnose = $this->taskExec( static::$TERMINUS_EXE )
         ->args(
           'drush',
@@ -420,7 +420,7 @@ class RoboFile extends Tasks {
       if ( $diagnose instanceof Result && ! $diagnose->wasSuccessful() ) {
         \Kint::dump( $diagnose );
         throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
-      }
+      }*/
     }
 
     catch (\Exception $e) {
