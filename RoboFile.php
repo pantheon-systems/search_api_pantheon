@@ -553,6 +553,23 @@ class RoboFile extends Tasks {
    * @param string $env
    */
   public function testSolrSelect(string $site_name, string $env = 'dev') {
+      $sapi_s_result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'sapi-s',
+          '--field=Indexed'
+        )
+        ->run();
+
+      if (!$sapi_s_result->wasSuccessful()) {
+        exit(1);
+      }
+      $data = $sapi_s_result->getOutputData();
+      $this->output->writeln('DATA: ' . $data);
+      $this->output->writeln('DATA 2: ' . intval($data));
+
       $result = $this->taskExec( static::$TERMINUS_EXE )
         ->args(
           'drush',
@@ -565,6 +582,8 @@ class RoboFile extends Tasks {
       if (!$result->wasSuccessful()) {
         exit(1);
       }
+      $data = $result->getOutputData();
+      $this->output->writeln('DATA 3: ' . $data);
   }
 
 }
