@@ -101,7 +101,6 @@ To configure the connection with Pantheon, do the following steps on your Dev en
       version: 10.4
     drush_version: 10
     search:
-      type: solr
       version: 8
     ```
 
