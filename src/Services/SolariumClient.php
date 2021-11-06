@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\search_api_pantheon\Events\PantheonEventDispatcher;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Client;
 use Solarium\Core\Client\Request;
@@ -10,6 +9,8 @@ use Solarium\Core\Client\Response;
 use Solarium\Core\Query\QueryInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\search_api_solr\Solarium\EventDispatcher\Psr14Bridge;
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 
 /**
  * Customized Solrium Client to send Guzzle debugging to log entries.
@@ -20,10 +21,10 @@ class SolariumClient extends Client {
   /**
    * Class constructor.
    */
-  public function __construct(PantheonGuzzle $guzzle, Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct(PantheonGuzzle $guzzle, Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory, ContainerAwareEventDispatcher $event_dispatcher) {
     parent::__construct(
           $guzzle->getPsr18Adapter(),
-          new PantheonEventDispatcher(),
+          new Psr14Bridge($event_dispatcher),
           ['endpoint' => [$endpoint]]
       );
     $this->logger = $logger_factory->get('PantheonSolariumClient');
