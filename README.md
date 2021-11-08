@@ -1,4 +1,4 @@
-# Search API Pantheon version 8.0 (for solr 8 & Drupal 9)
+# Search API Pantheon version 8.0 (for solr 8 & Drupal 8/9)
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 
