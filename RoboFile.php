@@ -80,6 +80,9 @@ class RoboFile extends Tasks {
     // Test select query.
     $this->testSolrSelect($site_name, 'dev');
 
+    // Finally, run Solr diagnose.
+    $this->testSolrDiagnose($site_name, 'dev');
+
     $this->output()->write( 'All done! 🎉' );
     return ResultData::EXITCODE_OK;
   }
@@ -405,7 +408,26 @@ class RoboFile extends Tasks {
           \Kint::dump( $server_list );
           throw new \Exception( 'An error occurred checking that Solr8 was enable.d' );
         }
+    }
 
+    catch (\Exception $e) {
+      $this->output()->write($e->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+    catch (\Throwable $t) {
+      $this->output()->write($t->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+
+    return ResultData::EXITCODE_OK;
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrDiagnose( string $site_name, string $env = 'dev' ) {
+    try {
       // Run a diagnose command to make sure everything is okay.
       $this->output()->write('Running search-api-pantheon:diagnose...', true);
       $diagnose = $this->taskExec( static::$TERMINUS_EXE )
@@ -422,16 +444,10 @@ class RoboFile extends Tasks {
         throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
       }
     }
-
     catch (\Exception $e) {
       $this->output()->write($e->getMessage());
       return ResultData::EXITCODE_ERROR;
     }
-    catch (\Throwable $t) {
-      $this->output()->write($t->getMessage());
-      return ResultData::EXITCODE_ERROR;
-    }
-
     return ResultData::EXITCODE_OK;
   }
 
