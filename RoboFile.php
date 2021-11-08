@@ -553,37 +553,51 @@ class RoboFile extends Tasks {
    * @param string $env
    */
   public function testSolrSelect(string $site_name, string $env = 'dev') {
-      $sapi_s_result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
+      $sapi_s = new Process([
+          static::$TERMINUS_EXE,
           'drush',
           "$site_name.$env",
           '--',
           'sapi-s',
-          '--field=Indexed'
-        )
-        ->run();
+          '--field=Indexed',
+      ]);
+      $total_indexed = 0;
+      $sapi_s->run();
+      if ($sapi_s->isSuccessful()) {
+        $result = $sapi_s->getOutput();
+        $result_parts = explode("\n", $result);
+        foreach ($result_parts as $part) {
+          if (is_numeric(trim($part))) {
+            $total_indexed = trim($part);
+          }
+        }
+      }
 
-      if (!$sapi_s_result->wasSuccessful()) {
+      $saps = new Process([
+        static::$TERMINUS_EXE,
+        'drush',
+        "$site_name.$env",
+        '--',
+        'saps',
+        '*:*'
+      ]);
+      $num_found = 0;
+      $saps->run();
+      if ($saps->isSuccessful()) {
+        $result = $saps->getOutput();
+        $result_parts = explode("\n", $result);
+        foreach ($result_parts as $part) {
+          if (strpos($part, 'numFound') !== FALSE) {
+            $num_found = trim(str_replace('"numFound":', '', $part), ' ,');
+            break;
+          }
+        }
+      }
+
+      if ($total_indexed && $num_found && $total_indexed != $num_found) {
+        $this->output->writeln('Solr indexing error. Total indexed: ' . $total_indexed . ' but found: ' . $num_found);
         exit(1);
       }
-      $data = $sapi_s_result->getOutputData();
-      $this->output->writeln('DATA: ' . $data);
-      $this->output->writeln('DATA 2: ' . intval($data));
-
-      $result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'saps',
-          '*:*'
-        )
-        ->run();
-      if (!$result->wasSuccessful()) {
-        exit(1);
-      }
-      $data = $result->getOutputData();
-      $this->output->writeln('DATA 3: ' . $data);
   }
 
 }
