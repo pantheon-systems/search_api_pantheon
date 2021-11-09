@@ -7,8 +7,7 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * A proxy for events defined by symfony contracts to be used with older Drupal.
  */
-class EventProxy extends Event
-{
+class EventProxy extends Event {
   /**
    * @var \Symfony\Contracts\EventDispatcher\Event
    */
