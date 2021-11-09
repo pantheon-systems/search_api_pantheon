@@ -37,7 +37,7 @@ class RoboFile extends Tasks {
   /**
    *
    */
-  public function testFull(string $site_name = NULL) {
+  public function testFull(int $drupal_version = 9, string $site_name = NULL) {
     $constraint = $this->getCurrentConstraint();
     $this->testCheckT3();
     // This is a GitHub secret.
@@ -52,6 +52,9 @@ class RoboFile extends Tasks {
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
+    if ($drupal_version === 8) {
+      $this->testDowngradeToDrupal8($site_name);
+    }
     $this->testRequireSolr($site_name, $constraint);
     $this->testGitPush($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
@@ -241,6 +244,36 @@ class RoboFile extends Tasks {
         ->run();
       return $toReturn;
     }
+    return ResultData::EXITCODE_OK;
+  }
+
+  /**
+   * @param string $site_name
+   *
+   * @return int
+   */
+  public function testDowngradeToDrupal8(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    chdir($site_folder);
+
+    // Remove composer lock.
+    $this->taskExec('rm')
+      ->args('composer.lock')
+      ->run();
+
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        'drupal/core-recommended:^8',
+        'pantheon-systems/drupal-integrations:^8'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args('update')
+      ->run();
     return ResultData::EXITCODE_OK;
   }
 
