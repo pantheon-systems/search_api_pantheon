@@ -576,6 +576,7 @@ class RoboFile extends Tasks {
           'cim',
           '--partial',
           '--source=modules/composer/search_api_pantheon/.ci/config',
+          '-y'
         )
         ->run();
       if (!$result->wasSuccessful()) {
