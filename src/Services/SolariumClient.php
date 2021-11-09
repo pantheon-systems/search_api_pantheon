@@ -9,7 +9,7 @@ use Solarium\Core\Client\Response;
 use Solarium\Core\Query\QueryInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\search_api_solr\Solarium\EventDispatcher\Psr14Bridge;
+use Drupal\search_api_pantheon\Solarium\EventDispatcher\Psr14Bridge;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 
 /**
