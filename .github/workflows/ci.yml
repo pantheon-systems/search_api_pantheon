@@ -80,6 +80,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
+      - name: Composer install
+        run: composer install --ignore-platform-req=php
+
       - name: Run tests
         run: |
           export TERMINUS_ORG=$TERMINUS_ORG
