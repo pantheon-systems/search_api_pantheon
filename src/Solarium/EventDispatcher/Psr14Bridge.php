@@ -30,4 +30,5 @@ final class Psr14Bridge extends ContainerAwareEventDispatcher implements EventDi
   public function addListener($event_name, $listener, $priority = 0) {
     $this->dispatcher->addListener($event_name, $listener, $priority);
   }
+
 }

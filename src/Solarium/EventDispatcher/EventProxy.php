@@ -18,21 +18,19 @@ class EventProxy extends Event
     $this->event = $event;
   }
 
-  public function isPropagationStopped()
-  {
+  public function isPropagationStopped() {
     return $this->event->isPropagationStopped();
   }
 
-  public function stopPropagation()
-  {
+  public function stopPropagation() {
     $this->event->stopPropagation();
   }
 
   /**
    * Proxies all method calls to the original event.
    */
-  public function __call($method, $arguments)
-  {
+  public function __call($method, $arguments) {
     return $this->event->{$method}(...$arguments);
   }
+
 }
