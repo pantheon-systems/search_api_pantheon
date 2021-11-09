@@ -38,17 +38,21 @@ class RoboFile extends Tasks {
    *
    */
   public function testFull(string $site_name = NULL) {
-    $branch = $this->getCurrentBranch() ?? '^8';
+    $constraint = $this->getCurrentConstraint();
     $this->testCheckT3();
     // This is a GitHub secret.
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
     if (empty($site_name)) {
       $site_name = substr(\uniqid('test-'), 0, 12);
+      if ($_SERVER['GITHUB_RUN_NUMBER']) {
+        // Ensure that 2 almost parallel runs do not collide.
+        $site_name .= '-' . $_SERVER['GITHUB_RUN_NUMBER'];
+      }
     }
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
-    $this->testRequireSolr($site_name, 'dev-' . $branch);
+    $this->testRequireSolr($site_name, $constraint);
     $this->testGitPush($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
@@ -70,6 +74,15 @@ class RoboFile extends Tasks {
     // Test all the Solr things.
     $this->testSolrEnabled($site_name);
 
+    // Test creating Solr index.
+    $this->testSolrIndexCreate($site_name, 'dev');
+
+    // Test select query.
+    $this->testSolrSelect($site_name, 'dev');
+
+    // Finally, run Solr diagnose.
+    $this->testSolrDiagnose($site_name, 'dev');
+
     $this->output()->write( 'All done! 🎉' );
     return ResultData::EXITCODE_OK;
   }
@@ -77,8 +90,26 @@ class RoboFile extends Tasks {
   /**
    *
    */
-  protected function getCurrentBranch(): ?string {
-    return trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
+  protected function getCurrentConstraint(): string {
+    $branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
+    if ($branch !== 'HEAD') {
+      return "${branch}-dev";
+    } else {
+      $tag = trim(shell_exec('git describe --exact-match --tags $(git log -n1 --pretty=\'%h\')'));
+      if ($tag) {
+        return $tag;
+      } else {
+        // Maybe we are on a PR.
+        $branch = $_SERVER['GITHUB_HEAD_REF'];
+        $branch_parts = explode('/', $branch);
+        $branch = end($branch_parts);
+        if ($branch) {
+          return "${branch}-dev";
+        }
+      }
+    }
+    // Final fallback, return "^8";
+    return '^8';
   }
 
   /**
@@ -377,7 +408,26 @@ class RoboFile extends Tasks {
           \Kint::dump( $server_list );
           throw new \Exception( 'An error occurred checking that Solr8 was enable.d' );
         }
+    }
 
+    catch (\Exception $e) {
+      $this->output()->write($e->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+    catch (\Throwable $t) {
+      $this->output()->write($t->getMessage());
+      return ResultData::EXITCODE_ERROR;
+    }
+
+    return ResultData::EXITCODE_OK;
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrDiagnose( string $site_name, string $env = 'dev' ) {
+    try {
       // Run a diagnose command to make sure everything is okay.
       $this->output()->write('Running search-api-pantheon:diagnose...', true);
       $diagnose = $this->taskExec( static::$TERMINUS_EXE )
@@ -394,16 +444,10 @@ class RoboFile extends Tasks {
         throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
       }
     }
-
     catch (\Exception $e) {
       $this->output()->write($e->getMessage());
       return ResultData::EXITCODE_ERROR;
     }
-    catch (\Throwable $t) {
-      $this->output()->write($t->getMessage());
-      return ResultData::EXITCODE_ERROR;
-    }
-
     return ResultData::EXITCODE_OK;
   }
 
@@ -484,6 +528,92 @@ class RoboFile extends Tasks {
     $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
     file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
     $this->output->writeln($pantheon_yml_contents);
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrIndexCreate(string $site_name, string $env = 'dev') {
+      $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'cim',
+          '--partial',
+          '--source=modules/composer/search_api_pantheon/.ci/config',
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+
+      // Index new solr.
+      $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'sapi-i'
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+
+  }
+
+  /**
+   * @param string $site_name
+   * @param string $env
+   */
+  public function testSolrSelect(string $site_name, string $env = 'dev') {
+      $sapi_s = new Process([
+          static::$TERMINUS_EXE,
+          'drush',
+          "$site_name.$env",
+          '--',
+          'sapi-s',
+          '--field=Indexed',
+      ]);
+      $total_indexed = 0;
+      $sapi_s->run();
+      if ($sapi_s->isSuccessful()) {
+        $result = $sapi_s->getOutput();
+        $result_parts = explode("\n", $result);
+        foreach ($result_parts as $part) {
+          if (is_numeric(trim($part))) {
+            $total_indexed = trim($part);
+          }
+        }
+      }
+
+      $saps = new Process([
+        static::$TERMINUS_EXE,
+        'drush',
+        "$site_name.$env",
+        '--',
+        'saps',
+        '*:*'
+      ]);
+      $num_found = 0;
+      $saps->run();
+      if ($saps->isSuccessful()) {
+        $result = $saps->getOutput();
+        $result_parts = explode("\n", $result);
+        foreach ($result_parts as $part) {
+          if (strpos($part, 'numFound') !== FALSE) {
+            $num_found = trim(str_replace('"numFound":', '', $part), ' ,');
+            break;
+          }
+        }
+      }
+
+      if ($total_indexed && $num_found && $total_indexed != $num_found) {
+        $this->output->writeln('Solr indexing error. Total indexed: ' . $total_indexed . ' but found: ' . $num_found);
+        exit(1);
+      }
   }
 
 }

@@ -104,12 +104,12 @@ class Query extends DrushCommands {
     if ($result instanceof ResultInterface) {
       $this->logger->notice('Query executed successfully.');
       $this->logger->notice('Query result:');
-      $this->logger->notice(json_encode($result->getData(), JSON_PRETTY_PRINT));
+      return json_encode($result->getData(), JSON_PRETTY_PRINT);
     }
     else {
       $this->logger->error('Query failed.');
       $this->logger->error('Query result:');
-      $this->logger->error(json_encode($result->getData(), JSON_PRETTY_PRINT));
+      return json_encode($result->getData(), JSON_PRETTY_PRINT);
     }
   }
 
