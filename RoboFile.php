@@ -321,13 +321,13 @@ class RoboFile extends Tasks {
    * @param string $constraint
    *   The constraint to use for the search_api_pantheon module.
    */
-  public function testRequireSolr(string $site_name, string $contraint = '^8') {
+  public function testRequireSolr(string $site_name, string $constraint = '^8') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     $this->taskExec('composer')
       ->args(
               'require',
-              'pantheon-systems/search_api_pantheon ' . $contraint,
+              'pantheon-systems/search_api_pantheon ' . $constraint,
               'drupal/search_api_autocomplete',
               'drupal/search_api_sorts',
               'drupal/facets',
@@ -360,7 +360,7 @@ class RoboFile extends Tasks {
    * @param string $commit_msg
    *   The commit message to use.
    */
-  public function testGitPush(string $site_name, $commit_msg = 'Changes committed from demo script.') {
+  public function testGitPush(string $site_name, string $commit_msg = 'Changes committed from demo script.') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     try {
