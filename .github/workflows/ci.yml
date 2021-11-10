@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
-      options: --user root
     name: Code linting
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -41,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
-      options: --user root
     name: Build and test (Drupal ${{ matrix.drupal-version }})
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -70,10 +68,6 @@ jobs:
         run: |
           terminus auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
           terminus auth:whoami
-
-      - name: Install build tools plugin
-        run: |
-          terminus self:plugin:add terminus-build-tools-plugin
 
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
