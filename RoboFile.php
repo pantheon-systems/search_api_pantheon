@@ -39,6 +39,22 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Delete sites created in this test run.
+   */
+  public function testDeleteSites() {
+    $home = $_SERVER['HOME'];
+    $file_contents = file_get_contents("$home/.robo-sites-created");
+    $filenames = explode("\n", $file_contents);
+    foreach ($filenames as $site_name) {
+      if ($site_name) {
+        $this->taskExec(static::$TERMINUS_EXE)
+          ->args('site:delete', '-y', $site_name)
+          ->run();
+      }
+    }
+  }
+
+  /**
    * Run the full test suite for this project.
    */
   public function testFull(int $drupal_version = 9, string $site_name = NULL) {
@@ -160,6 +176,7 @@ class RoboFile extends Tasks {
   public function testCreateSite(string $site_name, array $options = ['org' => NULL]) {
     $site_info = $this->siteInfo($site_name);
     if (empty($site_info)) {
+      $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
         ->args('site:create', $site_name, $site_name, 'drupal9');
       if ( !empty( $options['org'] ) ) {
@@ -168,6 +185,8 @@ class RoboFile extends Tasks {
       $toReturn->run();
       $this->waitForWorkflow($site_name);
       $site_info = $this->siteInfo($site_name);
+      // Write to $HOME/.robo-sites-created to delete them later.
+      exec("echo $site_name >> $home/.robo-sites-created");
     }
     return $site_info;
   }
