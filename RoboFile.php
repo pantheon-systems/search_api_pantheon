@@ -47,6 +47,7 @@ class RoboFile extends Tasks {
     $filenames = explode("\n", $file_contents);
     foreach ($filenames as $site_name) {
       if ($site_name) {
+        $this->output()->writeln("Deleting site $site_name.");
         $this->taskExec(static::$TERMINUS_EXE)
           ->args('site:delete', '-y', $site_name)
           ->run();
