@@ -89,6 +89,6 @@ jobs:
           ./vendor/bin/robo test:full $DRUPAL_VERSION $TERMINUS_SITE
 
       - name: Cleanup sites
-        if: always
+        if: ${{ always() }}
         run: |
           ./vendor/bin/robo test:delete-sites
