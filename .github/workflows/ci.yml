@@ -28,6 +28,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          sudo: false
+
       - name: Composer install
         run: composer install --ignore-platform-req=php
 
