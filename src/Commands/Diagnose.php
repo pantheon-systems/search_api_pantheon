@@ -114,7 +114,9 @@ class Diagnose extends DrushCommands {
       $connectorPlugin->setLogger($this->logger);
       $this->logger()->notice('Using connector plugin to get server Info...');
       $info = $connectorPlugin->getServerInfo();
-      $this->logger()->notice(print_r($info, TRUE));
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice(print_r($info, TRUE));
+      }
       $this->logger()->notice('Solr Server Version {var}', [
             'var' => $info['lucene']['solr-spec-version'] ?? '❌',
         ]);
@@ -132,18 +134,27 @@ class Diagnose extends DrushCommands {
                 'stats' => 'true',
             ],
         ]);
-      $this->logger()->notice('Solr Index Stats: {stats}', [
-            'stats' => print_r($indexedStats['index'], TRUE),
-        ]);
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice('Solr Index Stats: {stats}', [
+              'stats' => print_r($indexedStats['index'], TRUE),
+          ]);
+      }
+      else {
+        $this->logger()->notice('We got Solr stats ✅');
+      }
       $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
             'query' => [
                 'stats' => 'true',
             ],
         ]);
-
-      $this->logger()->notice('Mbeans Stats: {stats}', [
-            'stats' => print_r($beans['solr-mbeans'], TRUE),
-        ]);
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice('Mbeans Stats: {stats}', [
+              'stats' => print_r($beans['solr-mbeans'], TRUE),
+          ]);
+      }
+      else {
+        $this->logger()->notice('We got Mbeans stats ✅');
+      }
     }
     catch (\Exception $e) {
       \Kint::dump($e);
