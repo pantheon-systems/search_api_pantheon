@@ -22,9 +22,15 @@ class SolariumClient extends Client {
    * Class constructor.
    */
   public function __construct(PantheonGuzzle $guzzle, Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory, ContainerAwareEventDispatcher $event_dispatcher) {
+    $drupal_major_parts = explode('.', \Drupal::VERSION);
+    $drupal_major = reset($drupal_major_parts);
+    if ($drupal_major < 9) {
+      // Use the bridge only if Drupal 8.
+      $event_dispatcher = new Psr14Bridge($event_dispatcher);
+    }
     parent::__construct(
           $guzzle->getPsr18Adapter(),
-          new Psr14Bridge($event_dispatcher),
+          $event_dispatcher,
           ['endpoint' => [$endpoint]]
       );
     $this->logger = $logger_factory->get('PantheonSolariumClient');
