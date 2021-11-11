@@ -77,15 +77,32 @@ class Diagnose extends DrushCommands {
       elseif (file_exists($drupal_root . '/../pantheon.yml')) {
         $pantheon_yml_contents = file_get_contents($drupal_root . '/../pantheon.yml');
       }
-      if (!$pantheon_yml_contents) {
-       throw new \Exception('Unable to find pantheon.yml');
+      $pantheon_upstream_yml_contents = '';
+      if (file_exists($drupal_root . '/pantheon.upstream.yml')) {
+        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/pantheon.upstream.yml');
+      }
+      elseif (file_exists($drupal_root . '/../pantheon.upstream.yml')) {
+        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/../pantheon.upstream.yml');
+      }
+      if (!$pantheon_yml_contents && !$pantheon_upstream_yml_contents) {
+       throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
       }
       $pantheon_yml = Yaml::parse($pantheon_yml_contents);
+      $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
+      $found = FALSE;
       if (empty($pantheon_yml['search']['version'])) {
-        throw new \Exception('Unable to find search.version in pantheon.yml.');
+        // Merge from pantheon_upstream as fallback.
+        if (!empty($pantheon_upstream_yml['search']['version'])) {
+          $pantheon_yml['search']['version'] = $pantheon_upstream_yml['search']['version'];
+        }
       }
+      if (empty($pantheon_yml['search']['version'])) {
+        // If still empty, throw an exception.
+        throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
+      }
+
       if ($pantheon_yml['search']['version'] != '8') {
-        throw new \Exception('Unsupported search.version in pantheon.yml.');
+        throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
       }
       $this->logger()->notice('Pantheon.yml file looks ok ✅');
 
