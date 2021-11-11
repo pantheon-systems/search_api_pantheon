@@ -56,6 +56,12 @@ Pantheon, do the following steps on your Dev environment (or a Multidev):
   * Under "Settings" in your Pantheon site dashboard, enable Solr as an add on.
     This feature is available for sandbox sites as well as paid plans at the
     "Professional" level and above.
+  * In the site's `pantheon.yml` file add the key `search:` if it is not
+    already present, and make sure it specifies `version: 3`, like this:
+
+    search:
+      version: 3
+
 * **Enable the modules**
   * On the Drupal site go to `admin/modules` (the "Extend" option in the
     toolbar) and enable "Search API Pantheon". Doing so will also enable Search

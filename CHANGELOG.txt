@@ -1,3 +1,8 @@
+Search API Patheon 3.0.x-dev, xxxx-xx-xx
+----------------------------------------
+#3247682 by jproctor, DamienMcKenna, codesmith: Specify Solr 3 in pantheon.yml.
+
+
 Search API Patheon 3.0.0, 2021-10-06
 ------------------------------------
 By stovak: Fixing code style issues causing CI failures with new version of
