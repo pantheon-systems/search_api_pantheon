@@ -37,10 +37,8 @@
     "require": {
         "php": ">=7.4",
         "ext-curl": "*",
-        "ext-json": "*",
         "ext-zip": "*",
         "drupal/search_api_solr": "^4.2.1",
-        "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
         "php-http/guzzle6-adapter": "^2.0",
         "psr/event-dispatcher": "^1.0"
