@@ -67,3 +67,20 @@ Troubleshooting your search_api_pantheon search results:
    searching for multiple words that are known to exist in a node. You can usually figure out what's going wrong with the view
    this way.
 
+   Also, you can check if Solr actually has items for your index by running the drush command "search-api-pantheon:select":
+
+   ```bash
+   terminus drush {site_name}.{env} -- search-api-pantheon:select "*:*"
+   ```
+
+   You could send more complex queries and other options to Solr index, just keep in mind that the way that Drupal builds the queries is
+   usually very complex. You could append "?debug=true" to any Drupal url that uses Solr to get debugging information. Part of that
+   debugging information is the Solr query that was sent to Solr; you could copy it from there:
+
+      <img alt="Solr page with debug parameter" src="images/solr_with_debug.png" width="100%" border="2" />
+
+   Then, decode the query parameter (you could use https://www.urldecoder.org/) and send it to Solr like this:
+
+   ```bash
+   terminus drush {site_name}.{env} -- search-api-pantheon:select '(tm_X3b_en_body:("vegan")^1+tm_X3b_und_body:("vegan")^1+tm_X3b_en_field_recipe_instruction:("vegan")^1+tm_X3b_und_field_recipe_instruction:("vegan")^1)'
+   ```
