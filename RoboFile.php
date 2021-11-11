@@ -14,15 +14,19 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- *
+ * RoboFile is the main entry point for Robo commands.
  */
 class RoboFile extends Tasks {
+
   /**
    * @var string
+   *   The terminus executable path.
    */
   public static $TERMINUS_EXE = '/usr/local/bin/terminus';
+
   /**
    * @var \DateTime
+   *   When this run started.
    */
   public DateTime $started;
 
@@ -35,23 +39,54 @@ class RoboFile extends Tasks {
   }
 
   /**
-   *
+   * Delete sites created in this test run.
    */
-  public function testFull(string $site_name = NULL) {
+  public function testDeleteSites() {
+    $home = $_SERVER['HOME'];
+    $file_contents = file_get_contents("$home/.robo-sites-created");
+    $filenames = explode("\n", $file_contents);
+    foreach ($filenames as $site_name) {
+      if ($site_name) {
+        $this->output()->writeln("Deleting site $site_name.");
+        $this->taskExec(static::$TERMINUS_EXE)
+          ->args('site:delete', '-y', $site_name)
+          ->run();
+      }
+    }
+  }
+
+  /**
+   * Run the full test suite for this project.
+   */
+  public function testFull(int $drupal_version = 9, string $site_name = NULL) {
+    // Get the right constraint based on current branch/tag.
     $constraint = $this->getCurrentConstraint();
+    // Ensure terminus 3 is installed.
     $this->testCheckT3();
+
     // This is a GitHub secret.
     $options = isset($_SERVER['TERMINUS_ORG']) ? ['org' => $_SERVER['TERMINUS_ORG']] : [];
+
+    // Prepare the site name if not already set.
     if (empty($site_name)) {
       $site_name = substr(\uniqid('test-'), 0, 12);
       if ($_SERVER['GITHUB_RUN_NUMBER']) {
         // Ensure that 2 almost parallel runs do not collide.
-        $site_name .= '-' . $_SERVER['GITHUB_RUN_NUMBER'];
+        $site_name .= '-' . $drupal_version . '-'. $_SERVER['GITHUB_RUN_NUMBER'];
       }
     }
+
+    // Create site, set connection mode to git and clone it to local.
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
+
+    // If received Drupal 8, downgrade the recently created site to Drupal 8.
+    if ($drupal_version === 8) {
+      $this->testDowngradeToDrupal8($site_name);
+    }
+
+    // Composer require the corresponding modules, push to Pantheon and install the site.
     $this->testRequireSolr($site_name, $constraint);
     $this->testGitPush($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
@@ -65,9 +100,11 @@ class RoboFile extends Tasks {
       \Kint::dump($e);
       exit(1);
     }
+
+    // Enable Solr for this site and set solr version to 8, then try enabling the module again.
     $this->setSiteSearch($site_name, 'enable');
     $this->testEnvSolr($site_name);
-    $this->testGitPush($site_name);
+    $this->testGitPush($site_name, 'Changes to pantheon.yml file.');
     // This should succeed now that Solr has been enabled.
     $this->testModuleEnable($site_name);
 
@@ -88,7 +125,7 @@ class RoboFile extends Tasks {
   }
 
   /**
-   *
+   * Get current composer constraint depending on whether we're on a tag, a branch or a PR.
    */
   protected function getCurrentConstraint(): string {
     $branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
@@ -113,7 +150,7 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * @return int|void
+   * Ensure terminus 3 is installed, otherwise offer installing it using Homebrew.
    */
   public function testCheckT3() {
     if (!file_exists(static::$TERMINUS_EXE) || !is_executable(static::$TERMINUS_EXE)) {
@@ -130,13 +167,17 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Create site in Pantheon if it doesn't exist. Return site info.
+   *
    * @param string $site_name
+   *  The machine name of the site to create.
    *
    * @return \Robo\Result
    */
   public function testCreateSite(string $site_name, array $options = ['org' => NULL]) {
     $site_info = $this->siteInfo($site_name);
     if (empty($site_info)) {
+      $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
         ->args('site:create', $site_name, $site_name, 'drupal9');
       if ( !empty( $options['org'] ) ) {
@@ -145,11 +186,15 @@ class RoboFile extends Tasks {
       $toReturn->run();
       $this->waitForWorkflow($site_name);
       $site_info = $this->siteInfo($site_name);
+      // Write to $HOME/.robo-sites-created to delete them later.
+      exec("echo $site_name >> $home/.robo-sites-created");
     }
     return $site_info;
   }
 
   /**
+   * Wait for the given workflow to finish.
+   *
    * @param string $site_name
    */
   public function waitForWorkflow(string $site_name, string $env = 'dev') {
@@ -210,18 +255,28 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Run "terminus solr:enable" or "terminus solr:disable" on the given site.
+   *
    * @param string $site_name
-   * @param string $env
+   *   The machine name of the site to enable/disable Solr on.
+   * @param string $value
+   *   The value to pass to the command.
    */
-  public function setSiteSearch(string $site_name, $value = 'enabled') {
+  public function setSiteSearch(string $site_name, $value = 'enable') {
     $this->taskExec(static::$TERMINUS_EXE)
       ->args('solr:' . $value, $site_name)
       ->run();
   }
 
   /**
+   * Set environment connection mode to git or sftp.
+   *
    * @param string $site_name
+   *   The machine name of the site to set the connection mode.
    * @param string $env
+   *   The environment to set the connection mode.
+   * @param string $connection
+   *   The connection mode to set (git/sftp).
    */
   public function testConnectionGit(string $site_name, string $env = 'dev', string $connection = 'git') {
     $this->taskExec('terminus')
@@ -230,7 +285,10 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Use terminus local:clone to get a copy of the remote site.
+   *
    * @param string $site_name
+   *   The machine name of the site to clone.
    *
    * @return \Robo\Result
    */
@@ -245,17 +303,51 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * @param string $site_name
+   * Downgrade given site to Drupal 8.
    *
-   * @return int
+   * @param string $site_name
+   *   The machine name of the site to downgrade.
    */
-  public function testRequireSolr(string $site_name, string $solr_branch = '^8') {
+  public function testDowngradeToDrupal8(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    chdir($site_folder);
+
+    // Remove composer lock.
+    $this->taskExec('rm')
+      ->args('composer.lock')
+      ->run();
+
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        'drupal/core-recommended:^8',
+        'pantheon-systems/drupal-integrations:^8'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args('update')
+      ->run();
+    return ResultData::EXITCODE_OK;
+  }
+
+  /**
+   * Composer require the Solr related modules.
+   *
+   * @param string $site_name
+   *   The machine name of the site to require the Solr modules.
+   * @param string $constraint
+   *   The constraint to use for the search_api_pantheon module.
+   */
+  public function testRequireSolr(string $site_name, string $constraint = '^8') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     $this->taskExec('composer')
       ->args(
               'require',
-              'pantheon-systems/search_api_pantheon ' . $solr_branch,
+              'pantheon-systems/search_api_pantheon ' . $constraint,
               'drupal/search_api_autocomplete',
               'drupal/search_api_sorts',
               'drupal/facets',
@@ -268,18 +360,27 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Return folder in local machine for given site name.
+   *
    * @param string $site_name
+   *   The machine name of the site to get the folder for.
    *
    * @return string
+   *   Full path to the site folder.
    */
   protected function getSiteFolder(string $site_name) {
     return $_SERVER['HOME'] . '/pantheon-local-copies/' . $site_name;
   }
 
   /**
+   * Add all changes to the git repository, commit and push.
+   *
    * @param string $site_name
+   *   The machine name of the site to commit and push.
+   * @param string $commit_msg
+   *   The commit message to use.
    */
-  public function testGitPush(string $site_name, string $env = 'dev') {
+  public function testGitPush(string $site_name, string $commit_msg = 'Changes committed from demo script.') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     try {
@@ -287,7 +388,7 @@ class RoboFile extends Tasks {
       $repo = $git->open($site_folder);
       if ($repo->hasChanges()) {
         $repo->addAllChanges();
-        $repo->commit('changes committed from demo script');
+        $repo->commit($commit_msg);
       }
       $result = $this->taskExec('git push origin master')
         ->run();
@@ -309,11 +410,14 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * @param string $site_name
-   * @param string $env
-   * @param string $profile
+   * Install the Drupal site in Pantheon.
    *
-   * @return int
+   * @param string $site_name
+   *   The machine name of the site to install.
+   * @param string $env
+   *   The environment to install the site in.
+   * @param string $profile
+   *   The Drupal profile to use during site installation.
    */
   public function testSiteInstall(string $site_name, string $env = 'dev', string $profile = 'demo_umami') {
     $this->taskExec(static::$TERMINUS_EXE)
@@ -329,11 +433,14 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Enable solr modules in given Pantheon site.
+   *
    * @param string $site_name
+   *   The machine name of the site to enable solr modules.
    * @param string $env
-   * @param string $profile
+   *   The environment to enable the modules in.
    */
-  public function testModuleEnable(string $site_name, string $env = 'dev', string $profile = 'demo_umami') {
+  public function testModuleEnable(string $site_name, string $env = 'dev') {
     $this->taskExec(static::$TERMINUS_EXE)
       ->args(
               'drush',
@@ -374,9 +481,9 @@ class RoboFile extends Tasks {
    * Run through various diagnostics to ensure that Solr8 is enabled and working.
    *
    * @param string $site_name
+   *   The machine name of the site to run the diagnostics on.
    * @param string $env
-   *
-   * @return \Robo\Result
+   *   The environment to run the diagnostics on.
    */
   public function testSolrEnabled( string $site_name, string $env = 'dev' ) {
 
@@ -423,8 +530,12 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Run drush search-api-pantheon:diagnose to complete the Solr8 diagnostic.
+   *
    * @param string $site_name
+   *   The machine name of the site to run the diagnostics on.
    * @param string $env
+   *   The environment to run the diagnostics on.
    */
   public function testSolrDiagnose( string $site_name, string $env = 'dev' ) {
     try {
@@ -452,19 +563,12 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Helper function to demo login in to the Drupal site using a login link.
+   *
    * @param string $site_name
+   *   The machine name of the site to login to.
    * @param string $env
-   */
-  public function testEnableRedis(string $site_name, string $env = 'dev') {
-    $this->taskExec(static::$TERMINUS_EXE)
-      ->args('redis:enable', $site_name)
-      ->run();
-    $this->waitForWorkflow($site_name);
-  }
-
-  /**
-   * @param string $site_name
-   * @param string $env
+   *   The environment to login to.
    */
   public function demoLoginBrowser(string $site_name, string $env = 'dev') {
     exec(
@@ -498,7 +602,10 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Get information about the given site.
+   *
    * @param string $site_name
+   *   The machine name of the site to get information about.
    *
    * @return mixed|null
    */
@@ -518,10 +625,12 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Set correct Solr version for the given site.
+   *
    * @param string $site_name
-   * @param string $env
+   *   The machine name of the site to set the Solr version for.
    */
-  public function testEnvSolr(string $site_name, string $env = 'dev') {
+  public function testEnvSolr(string $site_name) {
     $site_folder = $this->getSiteFolder($site_name);
     $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
     $pantheon_yml_contents['search'] = ['version' => 8];
@@ -531,8 +640,12 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Create a Solr index based on the configuration under .ci/config.
+   *
    * @param string $site_name
+   *   The machine name of the site to create the index in.
    * @param string $env
+   *   The environment to create the index in.
    */
   public function testSolrIndexCreate(string $site_name, string $env = 'dev') {
       $result = $this->taskExec( static::$TERMINUS_EXE )
@@ -543,6 +656,7 @@ class RoboFile extends Tasks {
           'cim',
           '--partial',
           '--source=modules/composer/search_api_pantheon/.ci/config',
+          '-y'
         )
         ->run();
       if (!$result->wasSuccessful()) {
@@ -565,8 +679,12 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Use search-api-pantheon:select command to ensure both Drupal index and the actual Solr index have the same amount of items.
+   *
    * @param string $site_name
+   *   The machine name of the site to run the tests on.
    * @param string $env
+   *   The environment to run the tests on.
    */
   public function testSolrSelect(string $site_name, string $env = 'dev') {
       $sapi_s = new Process([

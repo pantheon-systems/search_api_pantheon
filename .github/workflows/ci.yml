@@ -6,13 +6,12 @@ on:
   schedule:
     - cron: '0 0 * * *'
 jobs:
-  # Checkout in separate job because docker image is alpine based and checkout action doesn't work.
-  build_test:
+  linting:
     runs-on: ubuntu-latest
     container:
       image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
       options: --user root
-    name: Build and test
+    name: Code linting
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -29,17 +28,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login
-        run: |
-          git config --global user.email "$GIT_EMAIL"
-          git config --global user.name "Github Actions"
-          mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
-
       - name: Composer install
         run: composer install --ignore-platform-req=php
 
       - name: Code sniff
         run: composer run-script code:lint
+  build_test:
+    strategy:
+      matrix:
+        drupal-version: [ 9, 8 ]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
+      options: --user root
+    name: Build and test (Drupal ${{ matrix.drupal-version }})
+    env:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
+      TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      COMMIT_SHA: ${{ github.sha }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
+      BASH_ENV: ~/.bashrc
+      DRUPAL_VERSION: ${{ matrix.drupal-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "Github Actions"
+          mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
 
       - name: Log in to Terminus
         run: |
@@ -55,16 +80,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
+      - name: Composer install
+        run: composer install --ignore-platform-req=php
+
       - name: Run tests
         run: |
-          export TERMINUS_ENV=$GITHUB_RUN_NUMBER
-          export SITE_ENV=$TERMINUS_SITE.$TERMINUS_ENV
           export TERMINUS_ORG=$TERMINUS_ORG
-          if [ -n "$( echo $GITHUB_REF | sed -n '/heads/p')" ] ; then
-            BRANCH=`echo $GITHUB_REF | cut -c12-`
-            export GIT_REF="dev-${BRANCH}#${COMMIT_SHA}"
-          else
-            TAG=`echo $GITHUB_REF | cut -c11-`
-            export GIT_REF=${TAG}
-          fi
-          ./vendor/bin/robo test:full $TERMINUS_SITE
+          ./vendor/bin/robo test:full $DRUPAL_VERSION $TERMINUS_SITE
+
+      - name: Cleanup sites
+        if: ${{ always() }}
+        run: |
+          ./vendor/bin/robo test:delete-sites
