@@ -1,5 +1,5 @@
-Search API Patheon 3.0.x-dev, xxxx-xx-xx
-----------------------------------------
+Search API Patheon 3.0.1, 2021-11-11
+------------------------------------
 #3247682 by jproctor, DamienMcKenna, codesmith: Specify Solr 3 in pantheon.yml.
 
 
