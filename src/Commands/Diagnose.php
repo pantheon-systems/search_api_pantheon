@@ -85,7 +85,7 @@ class Diagnose extends DrushCommands {
         $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/../pantheon.upstream.yml');
       }
       if (!$pantheon_yml_contents && !$pantheon_upstream_yml_contents) {
-       throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
+        throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
       }
       $pantheon_yml = Yaml::parse($pantheon_yml_contents);
       $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
