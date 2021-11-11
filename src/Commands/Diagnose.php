@@ -11,6 +11,7 @@ use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * A Drush command file.
@@ -68,6 +69,43 @@ class Diagnose extends DrushCommands {
    */
   public function diagnose() {
     try {
+      $drupal_root = \DRUPAL_ROOT;
+      $pantheon_yml_contents = '';
+      if (file_exists($drupal_root . '/pantheon.yml')) {
+        $pantheon_yml_contents = file_get_contents($drupal_root . '/pantheon.yml');
+      }
+      elseif (file_exists($drupal_root . '/../pantheon.yml')) {
+        $pantheon_yml_contents = file_get_contents($drupal_root . '/../pantheon.yml');
+      }
+      $pantheon_upstream_yml_contents = '';
+      if (file_exists($drupal_root . '/pantheon.upstream.yml')) {
+        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/pantheon.upstream.yml');
+      }
+      elseif (file_exists($drupal_root . '/../pantheon.upstream.yml')) {
+        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/../pantheon.upstream.yml');
+      }
+      if (!$pantheon_yml_contents && !$pantheon_upstream_yml_contents) {
+        throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
+      }
+      $pantheon_yml = Yaml::parse($pantheon_yml_contents);
+      $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
+      $found = FALSE;
+      if (empty($pantheon_yml['search']['version'])) {
+        // Merge from pantheon_upstream as fallback.
+        if (!empty($pantheon_upstream_yml['search']['version'])) {
+          $pantheon_yml['search']['version'] = $pantheon_upstream_yml['search']['version'];
+        }
+      }
+      if (empty($pantheon_yml['search']['version'])) {
+        // If still empty, throw an exception.
+        throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
+      }
+
+      if ($pantheon_yml['search']['version'] != '8') {
+        throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
+      }
+      $this->logger()->notice('Pantheon.yml file looks ok ✅');
+
       $this->logger()->notice('Index SCHEME Value: {var}', [
             'var' => $this->endpoint->getScheme(),
         ]);
@@ -114,7 +152,9 @@ class Diagnose extends DrushCommands {
       $connectorPlugin->setLogger($this->logger);
       $this->logger()->notice('Using connector plugin to get server Info...');
       $info = $connectorPlugin->getServerInfo();
-      $this->logger()->notice(print_r($info, TRUE));
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice(print_r($info, TRUE));
+      }
       $this->logger()->notice('Solr Server Version {var}', [
             'var' => $info['lucene']['solr-spec-version'] ?? '❌',
         ]);
@@ -132,18 +172,27 @@ class Diagnose extends DrushCommands {
                 'stats' => 'true',
             ],
         ]);
-      $this->logger()->notice('Solr Index Stats: {stats}', [
-            'stats' => print_r($indexedStats['index'], TRUE),
-        ]);
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice('Solr Index Stats: {stats}', [
+              'stats' => print_r($indexedStats['index'], TRUE),
+          ]);
+      }
+      else {
+        $this->logger()->notice('We got Solr stats ✅');
+      }
       $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
             'query' => [
                 'stats' => 'true',
             ],
         ]);
-
-      $this->logger()->notice('Mbeans Stats: {stats}', [
-            'stats' => print_r($beans['solr-mbeans'], TRUE),
-        ]);
+      if ($this->output()->isVerbose()) {
+        $this->logger()->notice('Mbeans Stats: {stats}', [
+              'stats' => print_r($beans['solr-mbeans'], TRUE),
+          ]);
+      }
+      else {
+        $this->logger()->notice('We got Mbeans stats ✅');
+      }
     }
     catch (\Exception $e) {
       \Kint::dump($e);

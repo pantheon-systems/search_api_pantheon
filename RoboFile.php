@@ -546,7 +546,8 @@ class RoboFile extends Tasks {
           'drush',
           "$site_name.$env",
           '--',
-          'search-api-pantheon:diagnose'
+          'search-api-pantheon:diagnose',
+          '-v'
         )
         ->run();
 
