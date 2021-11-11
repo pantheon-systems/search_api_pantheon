@@ -11,6 +11,7 @@ use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * A Drush command file.
@@ -68,6 +69,26 @@ class Diagnose extends DrushCommands {
    */
   public function diagnose() {
     try {
+      $drupal_root = \DRUPAL_ROOT;
+      $pantheon_yml_contents = '';
+      if (file_exists($drupal_root . '/pantheon.yml')) {
+        $pantheon_yml_contents = file_get_contents($drupal_root . '/pantheon.yml');
+      }
+      elseif (file_exists($drupal_root . '/../pantheon.yml')) {
+        $pantheon_yml_contents = file_get_contents($drupal_root . '/../pantheon.yml');
+      }
+      if (!$pantheon_yml_contents) {
+       throw new \Exception('Unable to find pantheon.yml');
+      }
+      $pantheon_yml = Yaml::parse($pantheon_yml_contents);
+      if (empty($pantheon_yml['search']['version'])) {
+        throw new \Exception('Unable to find search.version in pantheon.yml.');
+      }
+      if ($pantheon_yml['search']['version'] != '8') {
+        throw new \Exception('Unsupported search.version in pantheon.yml.');
+      }
+      $this->logger()->notice('Pantheon.yml file looks ok ✅');
+
       $this->logger()->notice('Index SCHEME Value: {var}', [
             'var' => $this->endpoint->getScheme(),
         ]);
