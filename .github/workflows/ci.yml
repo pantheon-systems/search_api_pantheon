@@ -56,7 +56,6 @@ jobs:
       SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
-      TERMINUS_DEPENDENCIES_BASE_DIR: "/home/tester/.terminus/terminus-dependencies"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
