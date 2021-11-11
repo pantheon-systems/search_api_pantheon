@@ -42,7 +42,6 @@
         "drupal/search_api_solr": "^4.2.1",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
-        "kint-php/kint": "@stable",
         "php-http/guzzle6-adapter": "^2.0",
         "psr/event-dispatcher": "^1.0"
     },
@@ -57,7 +56,8 @@
     },
     "suggest":{
         "drupal/search_api_page": "^1.0",
-        "drupal/facets": "^1.8"
+        "drupal/facets": "^1.8",
+        "kint-php/kint": "@stable"
     },
     "scripts": {
         "code:test" : [
