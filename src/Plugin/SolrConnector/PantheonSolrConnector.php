@@ -87,6 +87,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $this->dateFormatter = $date_formatter;
     $this->messenger = $messenger;
     $this->setLogger($logger_factory->get('PantheonSearch'));
+    $this->configuration['core'] = getenv('PANTHEON_INDEX_CORE');
+    $this->configuration['schema'] = getenv('PANTHEON_INDEX_SCHEMA');
     $this->connect();
   }
 
@@ -316,14 +318,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function getCoreInfo($reset = FALSE) {
-    $this->useTimeout();
-    return $this->getDataFromHandler(getenv('PANTHEON_INDEX_CORE') . '/admin/system', $reset);
-  }
-
-  /**
    * Override any other endpoints by getting the Pantheon Default endpoint.
    *
    * @param string $key
@@ -368,7 +362,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getServerInfo($reset = FALSE) {
-    return $this->getDataFromHandler(getenv('PANTHEON_INDEX_CORE') . '/admin/system', $reset);
+    return $this->getDataFromHandler($this->configuration['core'] . '/admin/system', $reset);
   }
 
   /**
