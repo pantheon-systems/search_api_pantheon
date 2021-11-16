@@ -44,18 +44,17 @@ class Endpoint extends SolariumEndpoint {
    *   they are used by other functions of the endpoint.
    */
   public function __construct(array $options = []) {
-    if (!$options) {
-      $options = [
-            'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-            'host' => getenv('PANTHEON_INDEX_HOST'),
-            'port' => getenv('PANTHEON_INDEX_PORT'),
-            'path' => getenv('PANTHEON_INDEX_PATH'),
-            'core' => getenv('PANTHEON_INDEX_CORE'),
-            'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-            'collection' => NULL,
-            'leader' => FALSE,
-        ];
-    }
+    // We intentionally want to override this options in case they are set in the parameter.
+    $options = array_merge($options, [
+      'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
+      'host' => getenv('PANTHEON_INDEX_HOST'),
+      'port' => getenv('PANTHEON_INDEX_PORT'),
+      'path' => getenv('PANTHEON_INDEX_PATH'),
+      'core' => getenv('PANTHEON_INDEX_CORE'),
+      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
+      'collection' => NULL,
+      'leader' => FALSE,
+    ]);
     parent::__construct($options);
   }
 
