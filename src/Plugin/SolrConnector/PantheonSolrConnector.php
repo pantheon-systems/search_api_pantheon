@@ -129,6 +129,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           'core' => getenv('PANTHEON_INDEX_CORE'),
           'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
           'solr_version' => '8',
+          'commit_within' => 1000,
       ]);
   }
 
@@ -180,7 +181,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array &$form,
         FormStateInterface $form_state
     ) {
-    $this->setConfiguration($form_state->getValues());
+    $configuration = $form_state->getValues();
+    $configuration = array_merge($this->defaultConfiguration(), $configuration);
+    $this->setConfiguration($configuration);
   }
 
   /**
@@ -313,6 +316,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getCoreInfo($reset = FALSE) {
+    $this->useTimeout();
+    return $this->getDataFromHandler(getenv('PANTHEON_INDEX_CORE') . '/admin/system', $reset);
+  }
+
+  /**
    * Override any other endpoints by getting the Pantheon Default endpoint.
    *
    * @param string $key
@@ -357,7 +368,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function getServerInfo($reset = FALSE) {
-    return $this->getDataFromHandler($this->configuration['core'] . '/admin/system', $reset);
+    return $this->getDataFromHandler(getenv('PANTHEON_INDEX_CORE') . '/admin/system', $reset);
   }
 
   /**
