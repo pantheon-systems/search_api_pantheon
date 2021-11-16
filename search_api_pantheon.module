@@ -1,0 +1,24 @@
+<?php
+
+
+/**
+ * @issue BUGS-4278
+ *
+ * Implements hook_search_api_solr_config_files_alter().
+ *
+ * Remember to post schema after any changes to the XML files here.
+ */
+function search_api_pantheon_search_api_solr_config_files_alter(array &$files, string $lucene_match_version, string $server_id = '') {
+  // Append at the end of the file.
+  $solrcore_properties = explode(PHP_EOL, $files['solrcore.properties']);
+  // Remove the solr.install.dir if it exists
+  foreach ($solrcore_properties as $key => $property) {
+    if (substr($property, 0, 16) == 'solr.install.dir') {
+      unset($solrcore_properties[$key]);
+    }
+  }
+  // Replace it with the correct value
+  $solrcore_properties = implode(PHP_EOL, $solrcore_properties) . PHP_EOL;
+  $solrcore_properties .= 'solr.install.dir=/opt/solr' . PHP_EOL;
+  $files['solrcore.properties'] = $solrcore_properties;
+}
