@@ -87,6 +87,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $this->dateFormatter = $date_formatter;
     $this->messenger = $messenger;
     $this->setLogger($logger_factory->get('PantheonSearch'));
+    $this->configuration['core'] = getenv('PANTHEON_INDEX_CORE');
+    $this->configuration['schema'] = getenv('PANTHEON_INDEX_SCHEMA');
     $this->connect();
   }
 
@@ -129,6 +131,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           'core' => getenv('PANTHEON_INDEX_CORE'),
           'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
           'solr_version' => '8',
+          'commit_within' => 1000,
       ]);
   }
 
@@ -180,7 +183,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array &$form,
         FormStateInterface $form_state
     ) {
-    $this->setConfiguration($form_state->getValues());
+    $configuration = $form_state->getValues();
+    $configuration = array_merge($this->defaultConfiguration(), $configuration);
+    $this->setConfiguration($configuration);
   }
 
   /**
