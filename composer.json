@@ -38,6 +38,7 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zip": "*",
+        "ext-zookeeper": "*",
         "drupal/search_api_solr": "^4.2.1",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
