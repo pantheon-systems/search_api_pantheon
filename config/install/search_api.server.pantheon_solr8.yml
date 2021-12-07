@@ -19,22 +19,6 @@ description: ''
 backend: search_api_solr
 backend_config:
   connector: pantheon
-  connector_config:
-    timeout: 5
-    index_timeout: 5
-    optimize_timeout: 10
-    finalize_timeout: 30
-    commit_within: 1000
-    workarounds:
-      solr_version: ''
-      http_method: AUTO
-      skip_schema_check: 0
-    advanced:
-      jmx: 0
-      solr_install_dir: ''
-    jmx: false
-    skip_schema_check: false
-    endpoint: {  }
   disabled_field_types: {  }
   disabled_caches: {  }
   disabled_request_handlers:
@@ -42,6 +26,19 @@ backend_config:
     - request_handler_replicationmaster_default_7_0_0
   disabled_request_dispatchers:
     - request_dispatcher_httpcachingnever_default_7_0_0
+  connector_config:
+    timeout: 5
+    index_timeout: 5
+    optimize_timeout: 10
+    finalize_timeout: 30
+    solr_version: '8'
+    http_method: AUTO
+    commit_within: 1000
+    jmx: false
+    jts: false
+    solr_install_dir: ''
+    skip_schema_check: false
+    schema: false
   rows: 10
   index_single_documents_fallback_count: 10
   retrieve_data: false
