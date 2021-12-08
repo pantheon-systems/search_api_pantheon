@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
 
 /**
@@ -45,16 +46,15 @@ class Endpoint extends SolariumEndpoint {
    */
   public function __construct(array $options = []) {
     // We intentionally want to override this options in case they are set in the parameter.
-    $options = array_merge($options, [
-      'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-      'host' => getenv('PANTHEON_INDEX_HOST'),
-      'port' => getenv('PANTHEON_INDEX_PORT'),
-      'path' => getenv('PANTHEON_INDEX_PATH'),
-      'core' => getenv('PANTHEON_INDEX_CORE'),
-      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-      'collection' => NULL,
-      'leader' => FALSE,
-    ]);
+    $options = array_merge(
+      $options,
+      PantheonSolrConnector::getPlatformConfig(),
+      [
+        'collection' => NULL,
+        'leader' => FALSE,
+      ]
+    );
+
     parent::__construct($options);
   }
 
