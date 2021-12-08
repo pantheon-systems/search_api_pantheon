@@ -121,7 +121,7 @@ To configure the connection with Pantheon, perform the following steps on your D
   * Navigate to `CONFIGURATION` => `SEARCH AND METADATA` => `SEARCH API`
     => `PANTHEON SEARCH` => `PANTHEON SEARCH ADMIN`
 
-  * Choose the button labeled "POST SOLR SCHEMA".
+  * Choose the button labeled "Post Solr Schema".
 
   * The module will post a schema specific to your site.
 
