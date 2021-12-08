@@ -5,20 +5,23 @@
  * Various hook implementations for installing the module.
  */
 
+use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+
 /**
  * Implements hook_requirements().
  */
 function search_api_pantheon_requirements($phase) {
   $requirements = [];
-  $scheme = getenv('PANTHEON_INDEX_SCHEME');
-  $host = getenv('PANTHEON_INDEX_HOST');
-  $port = getenv('PANTHEON_INDEX_PORT');
-  $path = getenv('PANTHEON_INDEX_PATH');
-  $core = getenv('PANTHEON_INDEX_CORE');
-  $schema = getenv('PANTHEON_INDEX_SCHEMA');
 
-  // The current site is not running on Pantheon.
-  if (empty($scheme) || empty($host) || empty($port) || empty($path) || empty($core) || empty($schema)) {
+  $platformMissingConfig = array_filter(
+    PantheonSolrConnector::getPlatformConfig(),
+    function ($value) {
+      return empty($value);
+    }
+  );
+
+  if (count($platformMissingConfig) > 0) {
+    // The current site is not running on Pantheon.
     $requirements['search_api_pantheon_hosting'] = [
       'title' => t('Search API Pantheon'),
       'description' => t('This module only works when it is on a Pantheon environment or the environment variables are correctly set as described in .envrc.dist'),

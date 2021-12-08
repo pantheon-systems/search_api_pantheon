@@ -87,8 +87,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $this->dateFormatter = $date_formatter;
     $this->messenger = $messenger;
     $this->setLogger($logger_factory->get('PantheonSearch'));
-    $this->configuration['core'] = getenv('PANTHEON_INDEX_CORE');
-    $this->configuration['schema'] = getenv('PANTHEON_INDEX_SCHEMA');
+    $this->configuration['core'] = self::getPlatformConfig()['core'];
+    $this->configuration['schema'] = self::getPlatformConfig()['schema'];
     $this->connect();
   }
 
@@ -120,20 +120,31 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * @return array|array[]|false[]|string[]
+   * Returns platform-specific Solr configuration.
+   *
+   * @return array
+   *   Pantheon platform Solr configuration.
+   */
+  public static function getPlatformConfig() {
+    return [
+      'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
+      'host' => getenv('PANTHEON_INDEX_HOST'),
+      'port' => getenv('PANTHEON_INDEX_PORT'),
+      'path' => getenv('PANTHEON_INDEX_PATH'),
+      'core' => getenv('PANTHEON_INDEX_CORE'),
+      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
+    ];
+  }
+
+  /**
+   * @return array
    */
   public function defaultConfiguration() {
-    return array_merge(parent::defaultConfiguration(), [
-          'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-          'host' => getenv('PANTHEON_INDEX_HOST'),
-          'port' => getenv('PANTHEON_INDEX_PORT'),
-          'path' => getenv('PANTHEON_INDEX_PATH'),
-          'core' => getenv('PANTHEON_INDEX_CORE'),
-          'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-          'solr_version' => '8',
-          'commit_within' => 1000,
-          'skip_schema_check' => TRUE,
-      ]);
+    return array_merge(
+      parent::defaultConfiguration(),
+      self::getPlatformConfig(),
+      ['solr_version' => '8']
+    );
   }
 
   /**
