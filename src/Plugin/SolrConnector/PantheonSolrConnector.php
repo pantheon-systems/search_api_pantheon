@@ -215,15 +215,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     ) {
     $configuration = array_merge($this->defaultConfiguration(), $form_state->getValues());
 
-    // Exclude Platform configs.
-    $configuration = array_filter(
-      $configuration,
-      function ($key) {
-        return !in_array($key, array_keys(self::getPlatformConfig()), ARRAY_FILTER_USE_KEY);
-      }
-    );
-
     $this->setConfiguration($configuration);
+
+    // Exclude Platform configs.
+    foreach (array_keys(self::getPlatformConfig()) as $key) {
+      unset($this->configuration[$key]);
+    }
   }
 
   /**
