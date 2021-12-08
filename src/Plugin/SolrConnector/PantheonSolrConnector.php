@@ -151,10 +151,28 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array $form,
         FormStateInterface $form_state
     ) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    $fields = [
+      'timeout',
+      'index_timeout',
+      'optimize_timeout',
+      'finalize_timeout',
+    ];
+    $form = array_filter(
+      $form,
+      function ($field_name) use ($fields) {
+        return in_array($field_name, $fields, TRUE);
+      },
+      ARRAY_FILTER_USE_KEY
+    );
+
     $form['notice'] = [
-          '#markup' =>
-              "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
-      ];
+      '#type' => 'html_tag',
+      '#tag' => 'h3',
+      '#value' => $this->t("Other options are configured using environment variables on Pantheon.io's custom platform"),
+    ];
+
     return $form;
   }
 
