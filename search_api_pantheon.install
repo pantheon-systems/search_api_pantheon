@@ -26,7 +26,7 @@ function search_api_pantheon_requirements($phase) {
       $requirements['search_api_pantheon_hosting'] = [
         'title' => t('Search API Pantheon'),
         'description' => t('This module only works when it is on a Pantheon environment or the environment variables are correctly set as described in .envrc.dist'),
-        'severity' => REQUIREMENT_INFO,
+        'severity' => REQUIREMENT_WARNING,
       ];
     }
   }
