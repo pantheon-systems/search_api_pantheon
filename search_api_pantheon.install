@@ -13,20 +13,22 @@ use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 function search_api_pantheon_requirements($phase) {
   $requirements = [];
 
-  $platformMissingConfig = array_filter(
-    PantheonSolrConnector::getPlatformConfig(),
-    function ($value) {
-      return empty($value);
-    }
-  );
+  if ($phase === 'runtime') {
+    $platformMissingConfig = array_filter(
+      PantheonSolrConnector::getPlatformConfig(),
+      function ($value) {
+        return empty($value);
+      }
+    );
 
-  if (count($platformMissingConfig) > 0) {
-    // The current site is not running on Pantheon.
-    $requirements['search_api_pantheon_hosting'] = [
-      'title' => t('Search API Pantheon'),
-      'description' => t('This module only works when it is on a Pantheon environment or the environment variables are correctly set as described in .envrc.dist'),
-      'severity' => REQUIREMENT_INFO,
-    ];
+    if (count($platformMissingConfig) > 0) {
+      // The current site is not running on Pantheon.
+      $requirements['search_api_pantheon_hosting'] = [
+        'title' => t('Search API Pantheon'),
+        'description' => t('This module only works when it is on a Pantheon environment or the environment variables are correctly set as described in .envrc.dist'),
+        'severity' => REQUIREMENT_INFO,
+      ];
+    }
   }
 
   return $requirements;
