@@ -181,6 +181,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
       'index_timeout',
       'optimize_timeout',
       'finalize_timeout',
+      'commit_within',
     ];
     $form = array_filter(
       $form,
