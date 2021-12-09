@@ -14,14 +14,7 @@ function search_api_pantheon_requirements($phase) {
   $requirements = [];
 
   if ($phase === 'runtime') {
-    $platformMissingConfig = array_filter(
-      PantheonSolrConnector::getPlatformConfig(),
-      function ($value) {
-        return empty($value);
-      }
-    );
-
-    if (count($platformMissingConfig) > 0) {
+    if (!PantheonSolrConnector::isPlatformConfigPresent()) {
       // The current site is not running on Pantheon.
       $requirements['search_api_pantheon_hosting'] = [
         'title' => t('Search API Pantheon'),

@@ -137,6 +137,18 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
+   * Returns TRUE if all platform-related configuration values are present.
+   *
+   * @return bool
+   *   TRUE if all platform-related configuration values are present.
+   */
+  public static function isPlatformConfigPresent() {
+    $config = self::getPlatformConfig();
+
+    return count($config) === count(array_filter($config));
+  }
+
+  /**
    * @return array
    */
   public function defaultConfiguration() {
