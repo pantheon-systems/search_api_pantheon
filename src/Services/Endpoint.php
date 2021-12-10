@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
 
 /**
@@ -21,7 +22,6 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
-
   public static $DEFAULT_NAME = 'pantheon_solr8';
 
   /**
@@ -30,6 +30,7 @@ class Endpoint extends SolariumEndpoint {
    * @var string
    */
   protected $schema;
+
   /**
    * Options for putting together the endpoint urls.
    *
@@ -43,16 +44,29 @@ class Endpoint extends SolariumEndpoint {
    * @param array $options
    *   Array of options for the endpoint. Currently,
    *   they are used by other functions of the endpoint.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(array $options = []) {
-    // We intentionally want to override this options in case they are set in the parameter.
+    $storage = \Drupal::entityTypeManager()->getStorage('search_api_server');
+    /** @var \Drupal\search_api\ServerInterface $server */
+    $server = $storage->load(self::$DEFAULT_NAME);
+    $connector_config = $server->getBackendConfig()['connector_config'];
+
     $options = array_merge(
-      $options,
+      [
+        SolrConnectorInterface::QUERY_TIMEOUT => $connector_config['timeout'],
+        SolrConnectorInterface::INDEX_TIMEOUT => $connector_config[SolrConnectorInterface::INDEX_TIMEOUT],
+        SolrConnectorInterface::OPTIMIZE_TIMEOUT => $connector_config[SolrConnectorInterface::OPTIMIZE_TIMEOUT],
+        SolrConnectorInterface::FINALIZE_TIMEOUT => $connector_config[SolrConnectorInterface::FINALIZE_TIMEOUT],
+      ],
       PantheonSolrConnector::getPlatformConfig(),
       [
         'collection' => NULL,
         'leader' => FALSE,
-      ]
+      ],
+      $options
     );
 
     parent::__construct($options);
@@ -68,13 +82,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getCoreBaseUri(): string {
     return vsprintf(
-          '%s%s%s/',
-          [
-              $this->getBaseUri(),
-              $this->getPath(),
-              $this->getCore(),
-          ]
-      );
+      '%s%s%s/',
+      [
+        $this->getBaseUri(),
+        $this->getPath(),
+        $this->getCore(),
+      ]
+    );
   }
 
   /**
@@ -85,13 +99,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getBaseUri(): string {
     return vsprintf(
-          '%s://%s:%d/',
-          [
-              $this->getScheme(),
-              $this->getHost(),
-              $this->getPort(),
-          ]
-      );
+      '%s://%s:%d/',
+      [
+        $this->getScheme(),
+        $this->getHost(),
+        $this->getPort(),
+      ]
+    );
   }
 
   /**
@@ -167,15 +181,15 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getSchemaUploadUri(): string {
     return vsprintf(
-          '%s://%s:%d/%s%s',
-          [
-              $this->getScheme(),
-              $this->getHost(),
-              $this->getPort(),
-              $this->getPath(),
-              $this->getSchema(),
-          ]
-      );
+      '%s://%s:%d/%s%s',
+      [
+        $this->getScheme(),
+        $this->getHost(),
+        $this->getPort(),
+        $this->getPath(),
+        $this->getSchema(),
+      ]
+    );
   }
 
   /**
