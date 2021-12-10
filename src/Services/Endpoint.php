@@ -22,7 +22,7 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
-  public static $DEFAULT_NAME = 'pantheon_solr8';
+  const DEFAULT_NAME = 'pantheon_solr8';
 
   /**
    * Default name for Endpoint.
@@ -51,7 +51,7 @@ class Endpoint extends SolariumEndpoint {
   public function __construct(array $options = []) {
     $storage = \Drupal::entityTypeManager()->getStorage('search_api_server');
     /** @var \Drupal\search_api\ServerInterface $server */
-    $server = $storage->load(self::$DEFAULT_NAME);
+    $server = $storage->load(self::DEFAULT_NAME);
     $connector_config = $server->getBackendConfig()['connector_config'];
 
     $options = array_merge(
@@ -219,7 +219,7 @@ class Endpoint extends SolariumEndpoint {
    *   Always use the default name.
    */
   public function getKey(): ?string {
-    return static::$DEFAULT_NAME;
+    return self::DEFAULT_NAME;
   }
 
 }
