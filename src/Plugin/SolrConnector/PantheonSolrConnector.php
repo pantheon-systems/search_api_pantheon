@@ -178,9 +178,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
 
     $fields = [
       'timeout',
-      'index_timeout',
-      'optimize_timeout',
-      'finalize_timeout',
+      SolrConnectorInterface::INDEX_TIMEOUT,
+      SolrConnectorInterface::OPTIMIZE_TIMEOUT,
+      SolrConnectorInterface::FINALIZE_TIMEOUT,
       'commit_within',
     ];
     $form = array_filter(
@@ -234,6 +234,27 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     foreach (array_keys(self::getPlatformConfig()) as $key) {
       unset($this->configuration[$key]);
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function adjustTimeout(int $seconds, string $timeout = self::QUERY_TIMEOUT, ?Endpoint &$endpoint = NULL): int {
+    $this->connect();
+
+    if (!$endpoint) {
+      $endpoint = $this->solr->getEndpoint();
+    }
+
+    $previous_timeout = $endpoint->getOption($timeout);
+    $options = $endpoint->getOptions();
+    $options[$timeout] = $seconds;
+    $endpoint = new PantheonEndpoint($options);
+
+    return $previous_timeout;
   }
 
   /**
