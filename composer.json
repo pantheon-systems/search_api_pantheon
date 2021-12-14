@@ -41,7 +41,7 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zip": "*",
-        "drupal/search_api_solr": "^4.2.2",
+        "drupal/search_api_solr": "^4.2",
         "guzzlehttp/guzzle": "^6.5.2",
         "http-interop/http-factory-guzzle": "^1.0",
         "php-http/guzzle6-adapter": "^2.0",
