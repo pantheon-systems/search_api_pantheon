@@ -322,6 +322,7 @@ class RoboFile extends Tasks {
       ->args(
         'require',
         '--no-update',
+        '-W',
         'drupal/core-recommended:^8',
         'pantheon-systems/drupal-integrations:^8'
       )
