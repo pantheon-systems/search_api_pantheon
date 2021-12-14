@@ -252,7 +252,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $previous_timeout = $endpoint->getOption($timeout);
     $options = $endpoint->getOptions();
     $options[$timeout] = $seconds;
-    $endpoint = new PantheonEndpoint($options);
+    $endpoint = new PantheonEndpoint($options, \Drupal::entityTypeManager());
 
     return $previous_timeout;
   }

@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
@@ -44,14 +45,15 @@ class Endpoint extends SolariumEndpoint {
    * @param array $options
    *   Array of options for the endpoint. Currently,
    *   they are used by other functions of the endpoint.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity Type Manager service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function __construct(array $options = []) {
-    $storage = \Drupal::entityTypeManager()->getStorage('search_api_server');
+  public function __construct(array $options, EntityTypeManagerInterface $entityTypeManager) {
     /** @var \Drupal\search_api\ServerInterface $server */
-    $server = $storage->load(self::DEFAULT_NAME);
+    $server = $entityTypeManager->getStorage('search_api_server')->load(self::DEFAULT_NAME);
     $connector_config = $server->getBackendConfig()['connector_config'];
 
     $options = array_merge(
