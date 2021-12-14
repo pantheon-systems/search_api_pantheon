@@ -20,8 +20,7 @@ function search_api_pantheon_search_api_solr_config_files_alter(array &$files, s
       unset($solrcore_properties[$key]);
     }
   }
-  // Replace it with the correct value
-  $solrcore_properties = implode(PHP_EOL, $solrcore_properties) . PHP_EOL;
-  $solrcore_properties .= 'solr.install.dir=/opt/solr' . PHP_EOL;
-  $files['solrcore.properties'] = $solrcore_properties;
+  // Remove the solrcore.properties file from the upload
+  // This file is causing undue issues with core restarts
+  unset($files['solrcore.properties']);
 }

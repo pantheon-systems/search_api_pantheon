@@ -38,8 +38,8 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zip": "*",
-        "drupal/search_api_solr": "^4.2.1",
-        "guzzlehttp/guzzle": "^6",
+        "drupal/search_api_solr": "^4.2",
+        "guzzlehttp/guzzle": "^6.5.2",
         "http-interop/http-factory-guzzle": "^1.0",
         "php-http/guzzle6-adapter": "^2.0",
         "psr/event-dispatcher": "^1.0"
@@ -54,6 +54,8 @@
         "symfony/yaml": "^4"
     },
     "suggest":{
+        "drupal/search_api_autocomplete": "^1",
+        "drupal/search_api_spellcheck": "^3",
         "drupal/search_api_page": "^1.0",
         "drupal/facets": "^1.8",
         "kint-php/kint": "@stable"

@@ -132,6 +132,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
           'solr_version' => '8',
           'commit_within' => 1000,
+          'skip_schema_check' => TRUE,
       ]);
   }
 

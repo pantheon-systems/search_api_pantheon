@@ -322,6 +322,7 @@ class RoboFile extends Tasks {
       ->args(
         'require',
         '--no-update',
+        '-W',
         'drupal/core-recommended:^8',
         'pantheon-systems/drupal-integrations:^8'
       )
@@ -348,12 +349,6 @@ class RoboFile extends Tasks {
       ->args(
               'require',
               'pantheon-systems/search_api_pantheon ' . $constraint,
-              'drupal/search_api_autocomplete',
-              'drupal/search_api_sorts',
-              'drupal/facets',
-              'drupal/redis',
-              'drupal/devel',
-              'drupal/devel_generate'
           )
       ->run();
     return ResultData::EXITCODE_OK;
