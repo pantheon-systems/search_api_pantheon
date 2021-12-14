@@ -405,7 +405,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
                               'accept' => 'application/json',
                               'contenttype' => 'application/json',
                               'json.nl' => 'flat',
-                              'commit' => 'true',
                           ],
                       'headers' =>
                           [
