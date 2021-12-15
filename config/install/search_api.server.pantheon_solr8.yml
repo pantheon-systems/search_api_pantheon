@@ -30,7 +30,7 @@ backend_config:
     jmx: false
     jts: false
     solr_install_dir: ''
-    skip_schema_check: false
+    skip_schema_check: true
   disabled_field_types: {  }
   disabled_caches: {  }
   disabled_request_handlers:
