@@ -54,15 +54,19 @@ class Endpoint extends SolariumEndpoint {
   public function __construct(array $options, EntityTypeManagerInterface $entityTypeManager) {
     /** @var \Drupal\search_api\ServerInterface $server */
     $server = $entityTypeManager->getStorage('search_api_server')->load(self::DEFAULT_NAME);
-    $connector_config = $server->getBackendConfig()['connector_config'];
-
-    $options = array_merge(
-      [
+    $timeout_config = [];
+    if ($server) {
+      $connector_config = $server->getBackendConfig()['connector_config'];
+      $timeout_config = [
         SolrConnectorInterface::QUERY_TIMEOUT => $connector_config['timeout'],
         SolrConnectorInterface::INDEX_TIMEOUT => $connector_config[SolrConnectorInterface::INDEX_TIMEOUT],
         SolrConnectorInterface::OPTIMIZE_TIMEOUT => $connector_config[SolrConnectorInterface::OPTIMIZE_TIMEOUT],
         SolrConnectorInterface::FINALIZE_TIMEOUT => $connector_config[SolrConnectorInterface::FINALIZE_TIMEOUT],
-      ],
+      ];
+    }
+
+    $options = array_merge(
+      $timeout_config,
       PantheonSolrConnector::getPlatformConfig(),
       [
         'collection' => NULL,
