@@ -155,7 +155,10 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     return array_merge(
       parent::defaultConfiguration(),
       self::getPlatformConfig(),
-      ['solr_version' => '8']
+      [
+        'solr_version' => '8',
+        'skip_schema_check' => TRUE,
+      ]
     );
   }
 
