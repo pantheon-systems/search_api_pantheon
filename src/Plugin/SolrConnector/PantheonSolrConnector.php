@@ -87,8 +87,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $this->dateFormatter = $date_formatter;
     $this->messenger = $messenger;
     $this->setLogger($logger_factory->get('PantheonSearch'));
-    $this->configuration['core'] = getenv('PANTHEON_INDEX_CORE');
-    $this->configuration['schema'] = getenv('PANTHEON_INDEX_SCHEMA');
+    $this->configuration['core'] = self::getPlatformConfig()['core'];
+    $this->configuration['schema'] = self::getPlatformConfig()['schema'];
     $this->connect();
   }
 
@@ -120,20 +120,46 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * @return array|array[]|false[]|string[]
+   * Returns platform-specific Solr configuration.
+   *
+   * @return array
+   *   Pantheon platform Solr configuration.
+   */
+  public static function getPlatformConfig() {
+    return [
+      'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
+      'host' => getenv('PANTHEON_INDEX_HOST'),
+      'port' => getenv('PANTHEON_INDEX_PORT'),
+      'path' => getenv('PANTHEON_INDEX_PATH'),
+      'core' => getenv('PANTHEON_INDEX_CORE'),
+      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
+    ];
+  }
+
+  /**
+   * Returns TRUE if all platform-related configuration values are present.
+   *
+   * @return bool
+   *   TRUE if all platform-related configuration values are present.
+   */
+  public static function isPlatformConfigPresent() {
+    $config = self::getPlatformConfig();
+
+    return count($config) === count(array_filter($config));
+  }
+
+  /**
+   * @return array
    */
   public function defaultConfiguration() {
-    return array_merge(parent::defaultConfiguration(), [
-          'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-          'host' => getenv('PANTHEON_INDEX_HOST'),
-          'port' => getenv('PANTHEON_INDEX_PORT'),
-          'path' => getenv('PANTHEON_INDEX_PATH'),
-          'core' => getenv('PANTHEON_INDEX_CORE'),
-          'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-          'solr_version' => '8',
-          'commit_within' => 1000,
-          'skip_schema_check' => TRUE,
-      ]);
+    return array_merge(
+      parent::defaultConfiguration(),
+      self::getPlatformConfig(),
+      [
+        'solr_version' => '8',
+        'skip_schema_check' => TRUE,
+      ]
+    );
   }
 
   /**
@@ -151,10 +177,29 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array $form,
         FormStateInterface $form_state
     ) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    $fields = [
+      'timeout',
+      SolrConnectorInterface::INDEX_TIMEOUT,
+      SolrConnectorInterface::OPTIMIZE_TIMEOUT,
+      SolrConnectorInterface::FINALIZE_TIMEOUT,
+      'commit_within',
+    ];
+    $form = array_filter(
+      $form,
+      function ($field_name) use ($fields) {
+        return in_array($field_name, $fields, TRUE);
+      },
+      ARRAY_FILTER_USE_KEY
+    );
+
     $form['notice'] = [
-          '#markup' =>
-              "<h3>All options are configured using environment variables on Pantheon.io's custom platform</h3>",
-      ];
+      '#type' => 'html_tag',
+      '#tag' => 'h3',
+      '#value' => $this->t("Other options are configured using environment variables on Pantheon.io's custom platform"),
+    ];
+
     return $form;
   }
 
@@ -184,9 +229,35 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array &$form,
         FormStateInterface $form_state
     ) {
-    $configuration = $form_state->getValues();
-    $configuration = array_merge($this->defaultConfiguration(), $configuration);
+    $configuration = array_merge($this->defaultConfiguration(), $form_state->getValues());
+
     $this->setConfiguration($configuration);
+
+    // Exclude Platform configs.
+    foreach (array_keys(self::getPlatformConfig()) as $key) {
+      unset($this->configuration[$key]);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function adjustTimeout(int $seconds, string $timeout = self::QUERY_TIMEOUT, ?Endpoint &$endpoint = NULL): int {
+    $this->connect();
+
+    if (!$endpoint) {
+      $endpoint = $this->solr->getEndpoint();
+    }
+
+    $previous_timeout = $endpoint->getOption($timeout);
+    $options = $endpoint->getOptions();
+    $options[$timeout] = $seconds;
+    $endpoint = new PantheonEndpoint($options, \Drupal::entityTypeManager());
+
+    return $previous_timeout;
   }
 
   /**
@@ -195,8 +266,8 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return string
    *   The endpoint name.
    */
-  public function getDefaultEndpoint() {
-    return PantheonEndpoint::$DEFAULT_NAME;
+  public static function getDefaultEndpoint() {
+    return PantheonEndpoint::DEFAULT_NAME;
   }
 
   /**

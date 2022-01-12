@@ -24,17 +24,13 @@ backend_config:
     index_timeout: 5
     optimize_timeout: 10
     finalize_timeout: 30
+    solr_version: '8'
+    http_method: AUTO
     commit_within: 1000
-    workarounds:
-      solr_version: ''
-      http_method: AUTO
-      skip_schema_check: 0
-    advanced:
-      jmx: 0
-      solr_install_dir: ''
     jmx: false
-    skip_schema_check: false
-    endpoint: {  }
+    jts: false
+    solr_install_dir: ''
+    skip_schema_check: true
   disabled_field_types: {  }
   disabled_caches: {  }
   disabled_request_handlers:

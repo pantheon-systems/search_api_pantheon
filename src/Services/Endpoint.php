@@ -2,6 +2,9 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
 
 /**
@@ -20,8 +23,7 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
-
-  public static $DEFAULT_NAME = 'pantheon_solr8';
+  const DEFAULT_NAME = 'pantheon_solr8';
 
   /**
    * Default name for Endpoint.
@@ -29,6 +31,7 @@ class Endpoint extends SolariumEndpoint {
    * @var string
    */
   protected $schema;
+
   /**
    * Options for putting together the endpoint urls.
    *
@@ -42,19 +45,36 @@ class Endpoint extends SolariumEndpoint {
    * @param array $options
    *   Array of options for the endpoint. Currently,
    *   they are used by other functions of the endpoint.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity Type Manager service.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function __construct(array $options = []) {
-    // We intentionally want to override this options in case they are set in the parameter.
-    $options = array_merge($options, [
-      'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
-      'host' => getenv('PANTHEON_INDEX_HOST'),
-      'port' => getenv('PANTHEON_INDEX_PORT'),
-      'path' => getenv('PANTHEON_INDEX_PATH'),
-      'core' => getenv('PANTHEON_INDEX_CORE'),
-      'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
-      'collection' => NULL,
-      'leader' => FALSE,
-    ]);
+  public function __construct(array $options, EntityTypeManagerInterface $entityTypeManager) {
+    /** @var \Drupal\search_api\ServerInterface $server */
+    $server = $entityTypeManager->getStorage('search_api_server')->load(self::DEFAULT_NAME);
+    $timeout_config = [];
+    if ($server) {
+      $connector_config = $server->getBackendConfig()['connector_config'];
+      $timeout_config = [
+        SolrConnectorInterface::QUERY_TIMEOUT => $connector_config['timeout'],
+        SolrConnectorInterface::INDEX_TIMEOUT => $connector_config[SolrConnectorInterface::INDEX_TIMEOUT],
+        SolrConnectorInterface::OPTIMIZE_TIMEOUT => $connector_config[SolrConnectorInterface::OPTIMIZE_TIMEOUT],
+        SolrConnectorInterface::FINALIZE_TIMEOUT => $connector_config[SolrConnectorInterface::FINALIZE_TIMEOUT],
+      ];
+    }
+
+    $options = array_merge(
+      $timeout_config,
+      PantheonSolrConnector::getPlatformConfig(),
+      [
+        'collection' => NULL,
+        'leader' => FALSE,
+      ],
+      $options
+    );
+
     parent::__construct($options);
   }
 
@@ -68,13 +88,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getCoreBaseUri(): string {
     return vsprintf(
-          '%s%s%s/',
-          [
-              $this->getBaseUri(),
-              $this->getPath(),
-              $this->getCore(),
-          ]
-      );
+      '%s%s%s/',
+      [
+        $this->getBaseUri(),
+        $this->getPath(),
+        $this->getCore(),
+      ]
+    );
   }
 
   /**
@@ -85,13 +105,13 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getBaseUri(): string {
     return vsprintf(
-          '%s://%s:%d/',
-          [
-              $this->getScheme(),
-              $this->getHost(),
-              $this->getPort(),
-          ]
-      );
+      '%s://%s:%d/',
+      [
+        $this->getScheme(),
+        $this->getHost(),
+        $this->getPort(),
+      ]
+    );
   }
 
   /**
@@ -167,15 +187,15 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getSchemaUploadUri(): string {
     return vsprintf(
-          '%s://%s:%d/%s%s',
-          [
-              $this->getScheme(),
-              $this->getHost(),
-              $this->getPort(),
-              $this->getPath(),
-              $this->getSchema(),
-          ]
-      );
+      '%s://%s:%d/%s%s',
+      [
+        $this->getScheme(),
+        $this->getHost(),
+        $this->getPort(),
+        $this->getPath(),
+        $this->getSchema(),
+      ]
+    );
   }
 
   /**
@@ -205,7 +225,7 @@ class Endpoint extends SolariumEndpoint {
    *   Always use the default name.
    */
   public function getKey(): ?string {
-    return static::$DEFAULT_NAME;
+    return self::DEFAULT_NAME;
   }
 
 }
