@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
-use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
@@ -10,7 +9,6 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
-use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface as PSR18Interface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -18,7 +16,6 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Symfony\Component\Lock\Store\ZookeeperStore;
 
 /**
  * Posting schema for Pantheon-specific solr driver.
@@ -78,18 +75,37 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function postSchema(string $server_id): bool {
-    // PANTHEON Environment.
-    $updated = false;
-    if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
-      if (extension_loaded('zookeeper')) {
-       $updated = $this->updateZookeeperConfigs($server_id);
-      }
-      if (!$updated) {
-        $updated = $this->uploadOneAtATime($server_id);
-      }
+  public function postSchema(string $server_id): array {
+    // LOCAL DOCKER.
+    if (extension_loaded('zookeeper') && isset($_SERVER['PANTHEON_CONFIGSERVER_HOST']) && isset($_SERVER['PANTHEON_CONFIGSERVER_PORT'])) {
+      $message = $this->updateZookeeperConfigs($server_id);
     }
-    return $updated;
+    // PANTHEON Environment.
+    if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
+      $response = $this->uploadSchemaFiles($this->getSolrFiles($server_id));
+      if (!$response instanceof Response) {
+        throw new \Exception('Cannot post schema to environment url.');
+      }
+      $log_function = in_array($response->getStatusCode(), [
+          200,
+          201,
+          202,
+          203,
+          204,
+      ])
+            ? 'info'
+            : 'error';
+      $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
+            'status_code' => $response->getStatusCode(),
+            'reason' => $response->getReasonPhrase(),
+        ]);
+      $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
+            $log_function == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
+            $response->getStatusCode(),
+            $response->getReasonPhrase(),
+        ]);
+    }
+    return [$message];
   }
 
   /**
@@ -101,12 +117,25 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   protected function updateZookeeperConfigs(string $server_id) {
+    $message = '';
     $schemaFiles = $this->getSolrFiles($server_id);
+    $projectName = getenv('PROJECT_NAME');
     $zk = new \Zookeeper(getenv('PANTHEON_CONFIGSERVER_HOST') . ":" . getenv('PANTHEON_CONFIGSERVER_PORT'));
-    $response = $zk->get(".");
-    \Kint::dump($response);
-    exit();
-
+    try {
+      foreach ($schemaFiles as $fileName => $fileContents) {
+        $zk->set('/configs/' . $projectName . '/' . $fileName, $fileContents);
+        $file_message = vsprintf($this->t('File uploaded: %s'), [
+          $fileName,
+        ]);
+        $this->getLogger()->info($file_message);
+        $message .= $file_message . PHP_EOL;
+      }
+    }
+    catch (\ZookeeperException $e) {
+      $this->getLogger()->error($e->getMessage());
+      return 'Files not uploaded';
+    }
+    return $message;
   }
 
   /**
@@ -182,22 +211,6 @@ class SchemaPoster implements LoggerAwareInterface {
   }
 
   /**
-   * Upload one at a time to docker-compose's Solr instance.
-   *
-   * @param string $server_id
-   *   Server ID to upload to.
-   *
-   * @return array
-   *   Status messages from each of the calls.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\search_api\SearchApiException
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   */
-    // @codingStandardsIgnoreLine
-
-  /**
    * Get the schema and config files for posting on the solr server.
    *
    * @param string $server_id
@@ -228,47 +241,6 @@ class SchemaPoster implements LoggerAwareInterface {
     $solr_configset_controller->setServer($server);
 
     return $solr_configset_controller->getConfigFiles();
-  }
-
-  /**
-   * Upload the schema files as zipped archive.
-   */
-  public function uploadSchemaAsZip(string $server_id): Response {
-    $path_to_zip = $this->getSolrFilesAsZip($server_id);
-    return $this->client->put(
-          $this->client->getEndpoint()->getBaseUri() . 'api/core/configs/_default',
-          [
-              'query' => [
-                  'action' => 'UPLOAD',
-                  'name' => '_default',
-                  'overwrite' => 'TRUE',
-                  'configSet' => '_default',
-                  'create' => 'TRUE',
-              ],
-              'body' => Utils::tryFopen($path_to_zip, 'r'),
-              'headers' => [
-                  'Content-Type' => 'application/octet-stream',
-              ],
-          ]
-      );
-  }
-
-  /**
-   * Get the solr schema files as a zip archive.
-   */
-  public function getSolrFilesAsZip(string $server_id) {
-    $files = $this->getSolrFiles($server_id);
-    $temp_dir =
-            FileSystem::getOsTemporaryDirectory() .
-            DIRECTORY_SEPARATOR .
-            uniqid('search_api_pantheon-');
-    $zip_archive = new \ZipArchive();
-    $zip_archive->open($temp_dir . '.zip', \ZipArchive::CREATE);
-    foreach ($files as $filename => $file_contents) {
-      $zip_archive->addFromString($filename, $file_contents);
-    }
-    $zip_archive->close();
-    return $temp_dir . '.zip';
   }
 
   /**
@@ -316,71 +288,44 @@ class SchemaPoster implements LoggerAwareInterface {
     return NULL;
   }
 
-  /*
-   *
-   */
-  /**
-   * @param string $server_id
-   *
-   * @return bool
-   *    Returns true on success, false on failure.
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\search_api\SearchApiException
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   */
-  public function uploadOneAtATime(string $server_id): bool {
-    try {
-      $schemaFiles = $this->getSolrFiles($server_id);
-      $messages = [];
-      foreach ($schemaFiles as $filename => $contents) {
-        $contentType =
-          substr($filename, 0, -3) == '.xml' ? 'application/xml' : 'text/plain';
-        $response = $this->getClient()->post(
-          $this->getClient()
-            ->getEndpoint()
-            ->getSchemaUploadUri(),
-          [
-            'query' => [
-              'action' => 'UPLOAD',
-              'name' => '_default',
-              'filePath' => $filename,
-              'contentType' => $contentType,
-              'overwrite' => 'true',
-            ],
-            'headers' => [
-              'Content-Type' => 'application/octet-stream',
-            ],
-            'body' => $contents,
-          ]
+  public function uploadOneAtATime(string $server_id) {
+    $schemaFiles = $this->getSolrFiles($server_id);
+    $toReturn = [];
+    foreach ($schemaFiles as $filename => $contents) {
+      $contentType =
+                substr($filename, 0, -3) == '.xml' ? 'application/xml' : 'text/plain';
+      $response = $this->getClient()->post(
+            $this->getClient()
+              ->getEndpoint()
+              ->getSchemaUploadUri(),
+            [
+                'query' => [
+                    'action' => 'UPLOAD',
+                    'name' => '_default',
+                    'filePath' => $filename,
+                    'contentType' => $contentType,
+                    'overwrite' => 'true',
+                ],
+                'headers' => [
+                    'Content-Type' => 'application/octet-stream',
+                ],
+                'body' => $contents,
+            ]
         );
-        // Parse the response.
-        $log_function = in_array($response->getStatusCode(), [
-          200,
-          201,
-          202,
-          203
-        ])
-          ? 'info'
-          : 'error';
-        $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
-          'filename' => $filename,
-          'status_code' => $response->getStatusCode(),
-          'reason' => $response->getReasonPhrase(),
+      // Parse the response.
+      $log_function = in_array($response->getStatusCode(), [200, 201, 202, 203])
+                ? 'info'
+                : 'error';
+      $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
+            'filename' => $filename,
+            'status_code' => $response->getStatusCode(),
+            'reason' => $response->getReasonPhrase(),
         ]);
-        $this->logger->{$log_function}($message);
-        if ($log_function == 'error') {
-          $messages[] = $message;
-        }
-      }
-    } catch(\Exception $e){
-      $this->logger->error($e->getMessage());
-      return false;
-    } catch (\Throwable $t){
-      $this->logger->error($t->getMessage());
-      return false;
+      $this->logger->{$log_function}($message);
+
+      $toReturn[] = $message;
     }
-    return empty($messages);
+    return $toReturn;
   }
 
   /**
