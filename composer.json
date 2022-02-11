@@ -57,6 +57,7 @@
         "symfony/yaml": "^4"
     },
     "suggest":{
+        "ext-zookeeper": "*",
         "drupal/search_api_autocomplete": "^1",
         "drupal/search_api_spellcheck": "^3",
         "drupal/search_api_page": "^1.0",
