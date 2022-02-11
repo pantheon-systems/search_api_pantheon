@@ -16,6 +16,9 @@
         "sort-packages": true,
         "platform": {
             "php": "8.0"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "autoload-dev": {
@@ -38,7 +41,6 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zip": "*",
-        "ext-zookeeper": "*",
         "drupal/search_api_solr": "^4.2.1",
         "guzzlehttp/guzzle": "^6",
         "http-interop/http-factory-guzzle": "^1.0",
@@ -55,6 +57,7 @@
         "symfony/yaml": "^4"
     },
     "suggest":{
+        "ext-zookeeper": "*",
         "drupal/search_api_page": "^1.0",
         "drupal/facets": "^1.8",
         "kint-php/kint": "@stable"
