@@ -1,6 +1,8 @@
 # Search API Pantheon version 8.0 (for solr 8 & Drupal 8/9)
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
+[![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
+
 
 ![Solr at pantheon diagram](docs/diagram.svg "Solr at pantheon")
 
