@@ -225,8 +225,8 @@ with the concept usage in a Solr context:
 
 # TROUBLESHOOTING
 
-* `drush search_api_pantheon:diagnose` (`sapd`) The DIAGNOSE command will check the various pieces of the Search API install
+* `drush search-api-pantheon:diagnose` (`sapd`) The DIAGNOSE command will check the various pieces of the Search API install
   and throw errors on the pieces that are not working. This command will develop further as the module nears general availability.
 
-* `drush search_api_pantheon:select` (`saps`) This command will run the given query against Solr server. It's recommended to use
+* `drush search-api-pantheon:select` (`saps`) This command will run the given query against Solr server. It's recommended to use
   `?debug=true` in any Solr page to get a good query to pass to this command to debug results.
