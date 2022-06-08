@@ -146,7 +146,7 @@ class Query extends DrushCommands {
       $index_id = $query_helper->escapeTerm($backend->getTargetedIndexId($index));
       //$site_hash = $query_helper->escapeTerm($backend->getTargetedSiteHash($index));
 
-      $query = '';
+      $query = '*:*';
       //$query = '+index_id:' . $index_id;
       //$query .= ' +hash:' . $site_hash;
 
