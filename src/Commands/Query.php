@@ -139,7 +139,7 @@ class Query extends DrushCommands {
 
     $properties['status'] = TRUE;
     $properties['read_only'] = FALSE;
-    foreach ($this->getIndexes($properties) as $index) {
+    foreach ($server->getIndexes($properties) as $index) {
       // Since the index ID we use for indexing can contain arbitrary
       // prefixes, we have to escape it for use in the query.
       $index_id = $backend->queryHelper->escapeTerm($this->getTargetedIndexId($index));
