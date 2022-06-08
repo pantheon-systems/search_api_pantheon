@@ -143,7 +143,12 @@ class Query extends DrushCommands {
       // Since the index ID we use for indexing can contain arbitrary
       // prefixes, we have to escape it for use in the query.
       $index_id = $backend->queryHelper->escapeTerm($this->getTargetedIndexId($index));
+      $site_hash = $backend->queryHelper->escapeTerm($this->getTargetedSiteHash($index));
+
       $query = '+index_id:' . $index_id;
+      $query .= ' +hash:' . $site_hash;
+
+      var_dump($query);
 
       $update_query = $connector->getUpdateQuery();
       $update_query->addDeleteQuery($query);
