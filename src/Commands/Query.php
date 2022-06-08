@@ -136,17 +136,18 @@ class Query extends DrushCommands {
 
     $backend = $server->getBackend();
     $connector = $backend->getSolrConnector();
+    $query_helper = \Drupal::service('solarium.query_helper');
 
     $properties['status'] = TRUE;
     $properties['read_only'] = FALSE;
     foreach ($server->getIndexes($properties) as $index) {
       // Since the index ID we use for indexing can contain arbitrary
       // prefixes, we have to escape it for use in the query.
-      $index_id = $backend->queryHelper->escapeTerm($this->getTargetedIndexId($index));
-      $site_hash = $backend->queryHelper->escapeTerm($this->getTargetedSiteHash($index));
+      $index_id = $query_helper->escapeTerm($this->getTargetedIndexId($index));
+      //$site_hash = $query_helper->escapeTerm($this->getTargetedSiteHash($index));
 
       $query = '+index_id:' . $index_id;
-      $query .= ' +hash:' . $site_hash;
+      //$query .= ' +hash:' . $site_hash;
 
       var_dump($query);
 
