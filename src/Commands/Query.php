@@ -143,8 +143,8 @@ class Query extends DrushCommands {
     foreach ($server->getIndexes($properties) as $index) {
       // Since the index ID we use for indexing can contain arbitrary
       // prefixes, we have to escape it for use in the query.
-      $index_id = $query_helper->escapeTerm($this->getTargetedIndexId($index));
-      //$site_hash = $query_helper->escapeTerm($this->getTargetedSiteHash($index));
+      $index_id = $query_helper->escapeTerm($backend->getTargetedIndexId($index));
+      //$site_hash = $query_helper->escapeTerm($backend->getTargetedSiteHash($index));
 
       $query = '+index_id:' . $index_id;
       //$query .= ' +hash:' . $site_hash;
@@ -153,7 +153,7 @@ class Query extends DrushCommands {
 
       $update_query = $connector->getUpdateQuery();
       $update_query->addDeleteQuery($query);
-      $connector->update($update_query, $this->getCollectionEndpoint($index));
+      $connector->update($update_query, $backend->getCollectionEndpoint($index));
       \Drupal::state()->set('search_api_solr.' . $index->id() . '.last_update', \Drupal::time()->getCurrentTime());
     }
 
