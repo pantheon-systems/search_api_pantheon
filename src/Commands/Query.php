@@ -122,7 +122,6 @@ class Query extends DrushCommands {
    *
    * @command search-api-pantheon:force-cleanup
    *
-   *
    * @aliases sapfc
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
