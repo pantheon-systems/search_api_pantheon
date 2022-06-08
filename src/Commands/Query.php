@@ -126,7 +126,6 @@ class Query extends DrushCommands {
    * @aliases sapfc
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
    * @throws \Exception
    */
   public function forceServerClean($server_id = 'pantheon_solr8') {
