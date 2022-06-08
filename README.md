@@ -230,3 +230,7 @@ with the concept usage in a Solr context:
 
 * `drush search-api-pantheon:select` (`saps`) This command will run the given query against Solr server. It's recommended to use
   `?debug=true` in any Solr page to get a good query to pass to this command to debug results.
+
+
+* `drush search-api-pantheon:force-cleanup` (`sapfc`) This command will delete all of the contents for the given
+  Solr server (no matter if hash or index_id have changed).
