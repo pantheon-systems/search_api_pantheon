@@ -8,6 +8,7 @@ use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
+use Drupal\search_api\Entity\Server;
 
 /**
  * A Drush command file.
@@ -111,6 +112,40 @@ class Query extends DrushCommands {
       $this->logger->error('Query result:');
       return json_encode($result->getData(), JSON_PRETTY_PRINT);
     }
+  }
+
+  /**
+   * Force Solr server cleanup if hash has changed.
+   *
+   * @usage search-api-pantheon:force-cleanup <server_id>
+   *   Force server cleanup by updating hash and running a delete query on given server.
+   *
+   * @command search-api-pantheon:force-cleanup
+   *
+   * @aliases sapfc
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   * @throws \Exception
+   */
+  public function forceServerClean($server_id = 'pantheon_solr8') {
+
+    $server = Server::load($server_id);
+    $backend = $server->getBackend();
+    $connector = $backend->getSolrConnector();
+
+    $properties['status'] = TRUE;
+    $properties['read_only'] = FALSE;
+    foreach ($server->getIndexes($properties) as $index) {
+      // We are sure this server is only available to this env so it is safe
+      // to delete all of the server contents.
+      $query = '*:*';
+
+      $update_query = $connector->getUpdateQuery();
+      $update_query->addDeleteQuery($query);
+      $connector->update($update_query, $backend->getCollectionEndpoint($index));
+      \Drupal::state()->set('search_api_solr.' . $index->id() . '.last_update', \Drupal::time()->getCurrentTime());
+    }
+
   }
 
 }
