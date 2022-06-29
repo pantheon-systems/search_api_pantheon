@@ -96,7 +96,6 @@ class PostSolrSchema extends FormBase {
     }
   }
 
-
   /**
    * {@inheritdoc}
    */
