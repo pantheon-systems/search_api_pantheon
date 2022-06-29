@@ -86,7 +86,7 @@ class PostSolrSchema extends FormBase {
         $form_state->setErrorByName('path', $this->t('The path %path is not a directory.', ['%path' => $path]));
         return;
       }
-      $finder = new finder();
+      $finder = new Finder();
       // Only work with direct children.
       $finder->depth('== 0');
       $finder->files()->in($path);
@@ -103,7 +103,7 @@ class PostSolrSchema extends FormBase {
     $path = $form_state->getValue('path');
     $files = [];
     if ($path) {
-      $finder = new finder();
+      $finder = new Finder();
       // Only work with direct children.
       $finder->depth('== 0');
       $finder->files()->in($path);
