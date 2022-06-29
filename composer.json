@@ -46,7 +46,8 @@
         "http-interop/http-factory-guzzle": "^1.0",
         "kint-php/kint": "^4.1",
         "php-http/guzzle6-adapter": "^2.0",
-        "psr/event-dispatcher": "^1.0"
+        "psr/event-dispatcher": "^1.0",
+        "symfony/finder": "^4|^5"
     },
     "require-dev": {
         "consolidation/robo": "^3.0",

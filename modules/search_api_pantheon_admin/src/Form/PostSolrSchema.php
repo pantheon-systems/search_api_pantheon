@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\ServerInterface;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Finder\Finder;
 
 /**
  * The Solr admin form.
@@ -78,11 +79,38 @@ class PostSolrSchema extends FormBase {
   /**
    * {@inheritdoc}
    */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $path = $form_state->getValue('path');
+    if ($path) {
+      if (!is_dir($path)) {
+        $form_state->setErrorByName('path', $this->t('The path %path is not a directory.', ['%path' => $path]));
+        return;
+      }
+      $finder = new finder();
+      // Only work with direct children.
+      $finder->depth('== 0');
+      $finder->files()->in($path);
+      if (!$finder->hasResults()) {
+        $form_state->setErrorByName('path', $this->t('The path %path does not contain any files.', ['%path' => $path]));
+      }
+    }
+  }
+
+
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $path = $form_state->getValue('path');
     $files = [];
     if ($path) {
-
+      $finder = new finder();
+      // Only work with direct children.
+      $finder->depth('== 0');
+      $finder->files()->in($path);
+      foreach ($finder as $file) {
+        $files[$file->getfilename()] = $file->getContents();
+      }
     }
     $message = $this->schemaPoster->postSchema($this->server->id(), $files);
     $method = $this->getMessageFunction($message[0]);
