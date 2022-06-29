@@ -60,6 +60,7 @@ class Schema extends DrushCommands {
    * @aliases sapps
    */
   public function postSchema(?string $server_id = NULL) {
+    // @todo: Update to support arbitrary path.
     if (!$server_id) {
       $server_id = PantheonSolrConnector::getDefaultEndpoint();
     }

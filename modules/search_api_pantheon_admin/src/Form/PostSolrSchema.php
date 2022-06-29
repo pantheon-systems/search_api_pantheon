@@ -23,6 +23,13 @@ class PostSolrSchema extends FormBase {
   protected SchemaPoster $schemaPoster;
 
   /**
+   * Search api server.
+   *
+   * @var \Drupal\search_api\ServerInterface
+   */
+  protected ServerInterface $server;
+
+  /**
    * Constructs a new EntityController.
    */
   public function __construct(SchemaPoster $schemaPoster) {
@@ -49,10 +56,21 @@ class PostSolrSchema extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL) {
-    $messages = $this->schemaPoster->postSchema($search_api_server->id());
-    $form['results'] = [
-          '#markup' => implode('<br>', $messages),
-      ];
+    $this->server = $search_api_server;
+
+    $form['path'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Path to config files to post'),
+      '#description' => $this->t('Path to the config files to post. This should be a directory containing the configuration files to post. Leave empty to use search_api_solr defaults.'),
+      '#default_value' => '',
+      '#required' => FALSE,
+    ];
+
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Post Schema'),
+    ];
 
     return $form;
   }
@@ -61,6 +79,31 @@ class PostSolrSchema extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $path = $form_state->getValue('path');
+    $files = [];
+    if ($path) {
+
+    }
+    $message = $this->schemaPoster->postSchema($this->server->id(), $files);
+    $method = $this->getMessageFunction($message[0]);
+    $this->messenger()->{$method}($message[1]);
+  }
+
+  /**
+   * Get the right function to call based on the message type.
+   */
+  protected function getMessageFunction(string $type) {
+    $functions = [
+      'info' => 'addStatus',
+      'error' => 'addError',
+    ];
+    if (isset($functions[$type])) {
+      return $functions[$type];
+    }
+    else {
+      $this->messenger()->addWarning(t('Unknown message type: @type', ['@type' => $message[0]]));
+      return 'addStatus';
+    }
   }
 
 }

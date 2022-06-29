@@ -68,19 +68,24 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @param string $server_id
    *   Search Api Server ID.
+   * @param array $files
+   *   Array of files to post.
    *
    * @return array
-   *   Array of response messages.
+   *   Message to be displayed to user (type, message).
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function postSchema(string $server_id): array {
+  public function postSchema(string $server_id, $files = []): array {
     // PANTHEON Environment.
     if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
-      $response = $this->uploadSchemaFiles($this->getSolrFiles($server_id));
+      if (!$files) {
+        $files = $this->getSolrFiles($server_id);
+      }
+      $response = $this->uploadSchemaFiles($files);
     }
     // LOCAL DOCKER.
     if (isset($_SERVER['ENV']) && $_SERVER['ENV'] === 'local') {
@@ -89,25 +94,37 @@ class SchemaPoster implements LoggerAwareInterface {
     if (!$response instanceof Response) {
       throw new \Exception('Cannot post schema to environment url.');
     }
+
+    return $this->processResponse($response);
+  }
+
+  /**
+   * Process response and return message to be shown to user.
+   *
+   * @param \GuzzleHttp\Psr7\Response $response
+   *   Response from Guzzle.
+   *
+   * @return array
+   *   Message to be displayed to user (type, message).
+   */
+  public function processResponse(Response $response): array {
     $log_function = in_array($response->getStatusCode(), [
-          200,
-          201,
-          202,
-          203,
-          204,
-      ])
-            ? 'info'
-            : 'error';
+      200,
+      201,
+      202,
+      203,
+      204,
+    ]) ? 'info' : 'error';
     $this->logger->{$log_function}('Files uploaded: {status_code} {reason}', [
-          'status_code' => $response->getStatusCode(),
-          'reason' => $response->getReasonPhrase(),
-      ]);
+      'status_code' => $response->getStatusCode(),
+      'reason' => $response->getReasonPhrase(),
+    ]);
     $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
-          $log_function == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
-          $response->getStatusCode(),
-          $response->getReasonPhrase(),
-      ]);
-    return [$message];
+      $log_function == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
+      $response->getStatusCode(),
+      $response->getReasonPhrase(),
+    ]);
+    return [$log_function, $message];
   }
 
   /**
