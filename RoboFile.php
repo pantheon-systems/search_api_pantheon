@@ -80,6 +80,7 @@ class RoboFile extends Tasks {
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
+    $this->testAllowPlugins($site_name);
 
     // If received Drupal 8, downgrade the recently created site to Drupal 8.
     if ($drupal_version === 8) {
@@ -300,6 +301,34 @@ class RoboFile extends Tasks {
       return $toReturn;
     }
     return ResultData::EXITCODE_OK;
+  }
+
+  /**
+   * Add allow plugins section to composer.
+   *
+   * @param string $site_name
+   *   The machine name of the site to add the allow plugins section to.
+   */
+  public function testAllowPlugins(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    chdir($site_folder);
+    $plugins = [
+      'composer/installers',
+      'zaporylie/composer-drupal-optimizations',
+      'drupal/core-composer-scaffold',
+      'cweagans/composer-patches',
+    ];
+
+    foreach ($plugins as $plugin_name) {
+      $this->taskExec('composer')
+        ->args(
+          'config',
+          '--no-interaction',
+          'allow-plugins.' . $plugin_name,
+          'true'
+        )
+        ->run();
+    }
   }
 
   /**

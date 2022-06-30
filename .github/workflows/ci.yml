@@ -85,9 +85,9 @@ jobs:
       - name: Composer install
         run: composer install --ignore-platform-req=php
 
-      - name: Setup tmate session
+      #- name: Setup tmate session
         #if: ${{ github.event.inputs.tmate_enabled == 1 }}
-        uses: mxschmitt/action-tmate@v3
+      #  uses: mxschmitt/action-tmate@v3
 
       - name: Run tests
         run: |
