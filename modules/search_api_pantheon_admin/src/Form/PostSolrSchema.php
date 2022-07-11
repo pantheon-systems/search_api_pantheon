@@ -130,10 +130,9 @@ class PostSolrSchema extends FormBase {
     if (isset($functions[$type])) {
       return $functions[$type];
     }
-    else {
-      $this->messenger()->addWarning(t('Unknown message type: @type', ['@type' => $message[0]]));
-      return 'addStatus';
-    }
+
+    $this->messenger()->addWarning(t('Unknown message type: @type', ['@type' => $message[0]]));
+    return 'addStatus';
   }
 
 }

@@ -180,7 +180,7 @@ class RoboFile extends Tasks {
     if (empty($site_info)) {
       $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
-        ->args('site:create', $site_name, $site_name, 'drupal9');
+        ->args('site:create', $site_name, $site_name, 'drupal-composer-managed');
       if ( !empty( $options['org'] ) ) {
         $toReturn->option('org', $options['org']);
       }
@@ -314,7 +314,6 @@ class RoboFile extends Tasks {
     chdir($site_folder);
     $plugins = [
       'composer/installers',
-      'zaporylie/composer-drupal-optimizations',
       'drupal/core-composer-scaffold',
       'cweagans/composer-patches',
     ];
