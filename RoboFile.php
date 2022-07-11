@@ -180,7 +180,7 @@ class RoboFile extends Tasks {
     if (empty($site_info)) {
       $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
-        ->args('site:create', $site_name, $site_name, 'drupal-composer-managed');
+        ->args('site:create', $site_name, $site_name, 'drupal9');
       if ( !empty( $options['org'] ) ) {
         $toReturn->option('org', $options['org']);
       }
