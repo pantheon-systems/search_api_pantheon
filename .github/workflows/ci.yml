@@ -94,7 +94,7 @@ jobs:
           export TERMINUS_ORG=$TERMINUS_ORG
           ./vendor/bin/robo test:full $DRUPAL_VERSION $TERMINUS_SITE
 
-      #- name: Cleanup sites
-      #  if: ${{ always() }}
-      #  run: |
-      #    ./vendor/bin/robo test:delete-sites
+      - name: Cleanup sites
+        if: ${{ always() }}
+        run: |
+          ./vendor/bin/robo test:delete-sites
