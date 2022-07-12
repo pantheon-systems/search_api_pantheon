@@ -5,6 +5,12 @@ on:
   repository_dispatch:
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      tmate_enabled:
+        description: Enable tmate debugging
+        required: true
+        default: 0
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -78,6 +84,10 @@ jobs:
 
       - name: Composer install
         run: composer install --ignore-platform-req=php
+
+      - name: Setup tmate session
+        if: ${{ github.event.inputs.tmate_enabled == 1 }}
+        uses: mxschmitt/action-tmate@v3
 
       - name: Run tests
         run: |

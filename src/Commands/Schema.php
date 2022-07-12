@@ -8,6 +8,7 @@ use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drush\Commands\DrushCommands;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Drush Search Api Pantheon Schema Commands.
@@ -52,19 +53,43 @@ class Schema extends DrushCommands {
   /**
    * Search_api_pantheon:postSchema.
    *
-   * @usage search_api_pantheon:postSchema {$server_id}
+   * @usage search-api-pantheon:postSchema [server_id] [path]
    *   Post the latest schema to the given Server.
    *   Default server ID = pantheon_solr8.
+   *   Default path = empty (build files using search_api_solr mechanism).
    *
-   * @command search-api-pantheon:postSchema ${$server_id}
+   * @command search-api-pantheon:postSchema
+   *
+   * @param $server_id
+   *   Server id to post schema for.
+   * @param $path
+   *   Path to schema files (Leave empty to use default schema).
+   *
    * @aliases sapps
    */
-  public function postSchema(?string $server_id = NULL) {
+  public function postSchema(?string $server_id = NULL, ?string $path = NULL) {
     if (!$server_id) {
       $server_id = PantheonSolrConnector::getDefaultEndpoint();
     }
     try {
-      $this->schemaPoster->postSchema($server_id);
+      $files = [];
+      if ($path) {
+        if (!is_dir($path)) {
+          throw new \Exception("Path '$path' is not a directory.");
+        }
+        $finder = new Finder();
+        // Only work with direct children.
+        $finder->depth('== 0');
+        $finder->files()->in($path);
+        if (!$finder->hasResults()) {
+          throw new \Exception("Path '$path' does not contain any files.");
+        }
+        foreach ($finder as $file) {
+          $files[$file->getfilename()] = $file->getContents();
+        }
+      }
+
+      $this->schemaPoster->postSchema($server_id, $files);
     }
     catch (\Exception $e) {
       $this->logger()->error((string) $e);
