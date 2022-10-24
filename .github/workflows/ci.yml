@@ -70,6 +70,7 @@ jobs:
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
+          git config --global --add safe.directory '*'
           mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
 
       - name: Log in to Terminus
