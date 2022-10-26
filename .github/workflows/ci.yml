@@ -1,7 +1,6 @@
 name: Search API Pantheon
 on:
   push:
-  pull_request:
   repository_dispatch:
   schedule:
     - cron: '0 0 * * *'
@@ -10,7 +9,7 @@ on:
       tmate_enabled:
         description: Enable tmate debugging
         required: true
-        default: 0
+        default: "0"
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -70,6 +69,7 @@ jobs:
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
+          git config --global --add safe.directory '*'
           mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
 
       - name: Log in to Terminus
@@ -98,3 +98,28 @@ jobs:
         if: ${{ always() }}
         run: |
           ./vendor/bin/robo test:delete-sites
+  mirror_do:
+    runs-on: ubuntu-latest
+    name: Checkout & push to remote
+    if: ${{ github.repository == 'pantheon-systems/search_api_pantheon' }}
+    needs: [ build_test ]
+    env:
+      BRANCH: ${{ github.ref_name }}
+      WORKSPACE: ${{ github.workspace }}
+      DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: ignore
+      - name: Pushes to drupal.org repository
+        run: |
+          cd $WORKSPACE
+          git remote add drupalorg $DRUPAL_ORG_REMOTE
+          git push drupalorg $BRANCH
