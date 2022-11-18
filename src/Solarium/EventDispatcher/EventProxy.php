@@ -2,7 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Solarium\EventDispatcher;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * A proxy for events defined by symfony contracts to be used with older Drupal.
