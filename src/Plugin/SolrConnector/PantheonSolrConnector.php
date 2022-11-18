@@ -8,8 +8,6 @@ use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drupal\search_api_pantheon\Services\Endpoint as PantheonEndpoint;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Solarium\Client as SolariumClient;
 use Solarium\Core\Client\Endpoint;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -31,9 +29,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
     SolrConnectorInterface,
     PluginFormInterface,
-    ContainerFactoryPluginInterface,
-    LoggerAwareInterface {
-  use LoggerAwareTrait;
+    ContainerFactoryPluginInterface {
 
   /**
    * @var object|null
