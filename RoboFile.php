@@ -82,9 +82,10 @@ class RoboFile extends Tasks {
     $this->testCloneSite($site_name);
     $this->testAllowPlugins($site_name, $drupal_version);
 
-    // If received Drupal 8, downgrade the recently created site to Drupal 8.
-    if ($drupal_version === 8) {
-      $this->testDowngradeToDrupal8($site_name);
+    // If received Drupal 10, upgrade the recently created site to Drupal 10.
+    if ($drupal_version === 10) {
+      // @todo Make it downgrade to Drupal 9 when Drupal 10 becomes the default version.
+      $this->testUpgradeToDrupal10($site_name);
     }
 
     // Composer require the corresponding modules, push to Pantheon and install the site.
@@ -333,6 +334,63 @@ class RoboFile extends Tasks {
           ->run();
       }
     }
+  }
+
+  /**
+   * Upgrade given site to Drupal 10.
+   *
+   * @param string $site_name
+   *   The machine name of the site to downgrade.
+   */
+  public function testUpgradeToDrupal10(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    chdir($site_folder);
+
+    // Remove composer lock.
+    $this->taskExec('rm')
+      ->args('composer.lock')
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'config',
+        'minimum-stability',
+        'dev'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'config',
+        'platform.php',
+        '8.1'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        'drupal/core-recommended:^10',
+        'drupal/core-project-message:^10',
+        'drupal/core-composer-scaffold:^10',
+        'pantheon-systems/drupal-integrations:^10'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        '--dev',
+        'drupal/core-dev:^10'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args('update')
+      ->run();
+    return ResultData::EXITCODE_OK;
   }
 
   /**
