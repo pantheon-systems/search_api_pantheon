@@ -1,4 +1,4 @@
-# Search API Pantheon version 8.0 (for solr 8 & Drupal 8/9)
+# Search API Pantheon version 8.0 (for solr 8 & Drupal 9/10)
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
@@ -10,7 +10,7 @@
 
 This module is for you if you meet the following requirements:
 
-* Using Drupal 8.8/9.2+
+* Using Drupal 9.4/10
 
 * Hosting the Drupal site on Pantheon's platform
 
@@ -49,7 +49,7 @@ Composer is the way you should be managing your drupal module requirements. This
 
 - [Search API Solr](https://www.drupal.org/project/search_api_solr). Search API Solr makes search API work with Apache Solr. Composer will manage which version.
 
-- [Guzzle](https://docs.guzzlephp.org/en/stable/). Guzzle version 6 is standard with Drupal Core `8.x | 9.x` (read 8.x OR 9.x).
+- [Guzzle](https://docs.guzzlephp.org/en/stable/). Guzzle version 6 is standard with Drupal Core `9.x | 10.x` (read 9.x OR 10.x).
 
 ## Install
 
