@@ -81,6 +81,7 @@ class RoboFile extends Tasks {
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
     $this->testAllowPlugins($site_name, $drupal_version);
+    $this->testPhpVersion($site_name);
 
     // If received Drupal 10, upgrade the recently created site to Drupal 10.
     if ($drupal_version === 10) {
@@ -725,6 +726,21 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Set correct PHP version for the given site.
+   *
+   * @param string $site_name
+   *   The machine name of the site to set the Solr version for.
+   */
+  public function testPhpVersion(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
+    $pantheon_yml_contents['php_version'] = 8.1;
+    $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
+    file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
+    $this->output->writeln($pantheon_yml_contents);
+  }
+
+  /**
    * Set correct Solr version for the given site.
    *
    * @param string $site_name
@@ -734,7 +750,6 @@ class RoboFile extends Tasks {
     $site_folder = $this->getSiteFolder($site_name);
     $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
     $pantheon_yml_contents['search'] = ['version' => 8];
-    $pantheon_yml_contents['php_version'] = 8.1;
     $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
     file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
     $this->output->writeln($pantheon_yml_contents);
