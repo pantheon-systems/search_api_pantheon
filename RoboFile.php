@@ -80,7 +80,7 @@ class RoboFile extends Tasks {
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
-    $this->testAllowPlugins($site_name);
+    $this->testAllowPlugins($site_name, $drupal_version);
 
     // If received Drupal 8, downgrade the recently created site to Drupal 8.
     if ($drupal_version === 8) {
@@ -308,25 +308,30 @@ class RoboFile extends Tasks {
    *
    * @param string $site_name
    *   The machine name of the site to add the allow plugins section to.
+   * @param int $drupal_version
+   *   The major version of Drupal to use.
    */
-  public function testAllowPlugins(string $site_name) {
-    $site_folder = $this->getSiteFolder($site_name);
-    chdir($site_folder);
-    $plugins = [
-      'composer/installers',
-      'drupal/core-composer-scaffold',
-      'cweagans/composer-patches',
-    ];
+  public function testAllowPlugins(string $site_name, int $drupal_version) {
+    $plugins = [];
+    if ($drupal_version === 10) {
+      $plugins = [
+        'phpstan/extension-installer',
+      ];
+    }
+    if (count($plugins)) {
+      $site_folder = $this->getSiteFolder($site_name);
+      chdir($site_folder);
 
-    foreach ($plugins as $plugin_name) {
-      $this->taskExec('composer')
-        ->args(
-          'config',
-          '--no-interaction',
-          'allow-plugins.' . $plugin_name,
-          'true'
-        )
-        ->run();
+      foreach ($plugins as $plugin_name) {
+        $this->taskExec('composer')
+          ->args(
+            'config',
+            '--no-interaction',
+            'allow-plugins.' . $plugin_name,
+            'true'
+          )
+          ->run();
+      }
     }
   }
 
@@ -679,7 +684,7 @@ class RoboFile extends Tasks {
           '--',
           'cim',
           '--partial',
-          '--source=modules/composer/search_api_pantheon/.ci/config',
+          '--source=modules/contrib/search_api_pantheon/.ci/config',
           '-y'
         )
         ->run();
