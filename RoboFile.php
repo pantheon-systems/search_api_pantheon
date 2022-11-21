@@ -90,7 +90,7 @@ class RoboFile extends Tasks {
     }
 
     // Composer require the corresponding modules, push to Pantheon and install the site.
-    $this->testRequireSolr($site_name, $constraint, $drupal_version);
+    $this->testRequireSolr($site_name, $constraint);
     $this->testGitPush($site_name);
     $this->testConnectionGit($site_name, 'dev', 'sftp');
     $this->testSiteInstall($site_name);
@@ -446,20 +446,17 @@ class RoboFile extends Tasks {
    *   The machine name of the site to require the Solr modules.
    * @param string $constraint
    *   The constraint to use for the search_api_pantheon module.
-   * @param int $drupal_version
-   *   The Drupal major version.
    */
-  public function testRequireSolr(string $site_name, string $constraint = '^8', int $drupal_version = 9) {
+  public function testRequireSolr(string $site_name, string $constraint = '^8') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
-    if ($drupal_version === 10) {
-      $this->taskExec('composer')
-        ->args(
-                'require',
-                'drupal/search_api_solr:dev-4.x',
-            )
-        ->run();
-    }
+    // Always test again latest version of search_api_solr.
+    $this->taskExec('composer')
+      ->args(
+              'require',
+              'drupal/search_api_solr:dev-4.x',
+          )
+      ->run();
     $this->taskExec('composer')
       ->args(
               'require',
