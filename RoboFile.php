@@ -318,6 +318,8 @@ class RoboFile extends Tasks {
     ];
     if ($drupal_version === 10) {
       $plugins[] = 'phpstan/extension-installer';
+      // @todo Remove once all of the modules have been correctly upgraded.
+      $plugins[] = 'mglaman/composer-drupal-lenient';
     }
     if (count($plugins)) {
       $site_folder = $this->getSiteFolder($site_name);
