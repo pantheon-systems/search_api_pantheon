@@ -1,4 +1,4 @@
-# Search API Pantheon version 8.0 (for solr 8 & Drupal 8/9/10)
+# Search API Pantheon version 8.0 (for solr 8 & Drupal 8/9)
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
@@ -10,7 +10,7 @@
 
 This module is for you if you meet the following requirements:
 
-* Using Drupal 8.8/9.2/10
+* Using Drupal 8.8/9.2+
 
 * Hosting the Drupal site on Pantheon's platform
 
