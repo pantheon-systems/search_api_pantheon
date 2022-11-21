@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
     name: Build and test (Drupal ${{ matrix.drupal-version }})
     env:
