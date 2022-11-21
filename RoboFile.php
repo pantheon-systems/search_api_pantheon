@@ -734,6 +734,7 @@ class RoboFile extends Tasks {
     $site_folder = $this->getSiteFolder($site_name);
     $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
     $pantheon_yml_contents['search'] = ['version' => 8];
+    $pantheon_yml_contents['php_version'] = 8.1;
     $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
     file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
     $this->output->writeln($pantheon_yml_contents);
