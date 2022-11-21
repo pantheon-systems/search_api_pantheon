@@ -313,11 +313,11 @@ class RoboFile extends Tasks {
    *   The major version of Drupal to use.
    */
   public function testAllowPlugins(string $site_name, int $drupal_version) {
-    $plugins = [];
+    $plugins = [
+      'drupal/core-project-message',
+    ];
     if ($drupal_version === 10) {
-      $plugins = [
-        'phpstan/extension-installer',
-      ];
+      $plugins[] = 'phpstan/extension-installer';
     }
     if (count($plugins)) {
       $site_folder = $this->getSiteFolder($site_name);
@@ -374,7 +374,8 @@ class RoboFile extends Tasks {
         'drupal/core-recommended:^10',
         'drupal/core-project-message:^10',
         'drupal/core-composer-scaffold:^10',
-        'pantheon-systems/drupal-integrations:^10'
+        'pantheon-systems/drupal-integrations:^10',
+        'mglaman/composer-drupal-lenient'
       )
       ->run();
 
@@ -390,6 +391,16 @@ class RoboFile extends Tasks {
     $this->taskExec('composer')
       ->args('update')
       ->run();
+
+    $this->taskExec('composer')
+        ->args(
+          'config',
+          '--merge',
+          '--json',
+          'extra.drupal-lenient.allowed-list',
+          '["drupal/search_api_pantheon"]'
+        )
+        ->run();
     return ResultData::EXITCODE_OK;
   }
 
