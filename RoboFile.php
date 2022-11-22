@@ -453,15 +453,15 @@ class RoboFile extends Tasks {
     // Always test again latest version of search_api_solr.
     $this->taskExec('composer')
       ->args(
-              'require',
-              'drupal/search_api_solr:dev-4.x',
-          )
+        'require',
+        'drupal/search_api_solr:dev-4.x',
+      )
       ->run();
     $this->taskExec('composer')
       ->args(
-              'require',
-              'pantheon-systems/search_api_pantheon ' . $constraint,
-          )
+        'require',
+        'pantheon-systems/search_api_pantheon ' . $constraint,
+      )
       ->run();
     return ResultData::EXITCODE_OK;
   }
