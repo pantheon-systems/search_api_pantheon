@@ -1,7 +1,7 @@
 name: Search API Pantheon
 type: module
 description: Search API + Solr + Pantheon integration
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9.4 || ^10
 package: Search
 dependencies:
   - search_api_solr:search_api_solr

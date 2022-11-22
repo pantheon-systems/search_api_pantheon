@@ -4,7 +4,7 @@ namespace Drupal\search_api_pantheon\Solarium\EventDispatcher;
 
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * A helper to decorate the legacy EventDispatcherInterface::dispatch().

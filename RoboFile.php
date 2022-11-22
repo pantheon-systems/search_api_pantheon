@@ -80,11 +80,13 @@ class RoboFile extends Tasks {
     $this->testCreateSite($site_name, $options);
     $this->testConnectionGit($site_name, 'dev', 'git');
     $this->testCloneSite($site_name);
-    $this->testAllowPlugins($site_name);
+    $this->testAllowPlugins($site_name, $drupal_version);
+    $this->testPhpVersion($site_name);
 
-    // If received Drupal 8, downgrade the recently created site to Drupal 8.
-    if ($drupal_version === 8) {
-      $this->testDowngradeToDrupal8($site_name);
+    // If received Drupal 10, upgrade the recently created site to Drupal 10.
+    if ($drupal_version === 10) {
+      // @todo Make it downgrade to Drupal 9 when Drupal 10 becomes the default version.
+      $this->testUpgradeToDrupal10($site_name);
     }
 
     // Composer require the corresponding modules, push to Pantheon and install the site.
@@ -180,7 +182,7 @@ class RoboFile extends Tasks {
     if (empty($site_info)) {
       $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
-        ->args('site:create', $site_name, $site_name, 'drupal9');
+        ->args('site:create', $site_name, $site_name, 'drupal-composer-managed');
       if ( !empty( $options['org'] ) ) {
         $toReturn->option('org', $options['org']);
       }
@@ -308,26 +310,101 @@ class RoboFile extends Tasks {
    *
    * @param string $site_name
    *   The machine name of the site to add the allow plugins section to.
+   * @param int $drupal_version
+   *   The major version of Drupal to use.
    */
-  public function testAllowPlugins(string $site_name) {
+  public function testAllowPlugins(string $site_name, int $drupal_version) {
+    $plugins = [
+      'drupal/core-project-message',
+    ];
+    if ($drupal_version === 10) {
+      $plugins[] = 'phpstan/extension-installer';
+      // @todo Remove once all of the modules have been correctly upgraded.
+      $plugins[] = 'mglaman/composer-drupal-lenient';
+    }
+    if (count($plugins)) {
+      $site_folder = $this->getSiteFolder($site_name);
+      chdir($site_folder);
+
+      foreach ($plugins as $plugin_name) {
+        $this->taskExec('composer')
+          ->args(
+            'config',
+            '--no-interaction',
+            'allow-plugins.' . $plugin_name,
+            'true'
+          )
+          ->run();
+      }
+    }
+  }
+
+  /**
+   * Upgrade given site to Drupal 10.
+   *
+   * @param string $site_name
+   *   The machine name of the site to downgrade.
+   */
+  public function testUpgradeToDrupal10(string $site_name) {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
-    $plugins = [
-      'composer/installers',
-      'drupal/core-composer-scaffold',
-      'cweagans/composer-patches',
-    ];
 
-    foreach ($plugins as $plugin_name) {
-      $this->taskExec('composer')
+    // Remove composer lock.
+    $this->taskExec('rm')
+      ->args('composer.lock')
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'config',
+        'minimum-stability',
+        'dev'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'config',
+        'platform.php',
+        '8.1'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        'drupal/core-recommended:^10',
+        'drupal/core-project-message:^10',
+        'drupal/core-composer-scaffold:^10',
+        'pantheon-systems/drupal-integrations:^10',
+        'mglaman/composer-drupal-lenient'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        '--no-update',
+        '--dev',
+        'drupal/core-dev:^10'
+      )
+      ->run();
+
+    $this->taskExec('composer')
+      ->args('update')
+      ->run();
+
+    $this->taskExec('composer')
         ->args(
           'config',
-          '--no-interaction',
-          'allow-plugins.' . $plugin_name,
-          'true'
+          '--merge',
+          '--json',
+          'extra.drupal-lenient.allowed-list',
+          '["drupal/search_api_pantheon"]'
         )
         ->run();
-    }
+    return ResultData::EXITCODE_OK;
   }
 
   /**
@@ -373,11 +450,18 @@ class RoboFile extends Tasks {
   public function testRequireSolr(string $site_name, string $constraint = '^8') {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
+    // Always test again latest version of search_api_solr.
     $this->taskExec('composer')
       ->args(
-              'require',
-              'pantheon-systems/search_api_pantheon ' . $constraint,
-          )
+        'require',
+        'drupal/search_api_solr:dev-4.x',
+      )
+      ->run();
+    $this->taskExec('composer')
+      ->args(
+        'require',
+        'pantheon-systems/search_api_pantheon ' . $constraint,
+      )
       ->run();
     return ResultData::EXITCODE_OK;
   }
@@ -649,6 +733,21 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Set correct PHP version for the given site.
+   *
+   * @param string $site_name
+   *   The machine name of the site to set the Solr version for.
+   */
+  public function testPhpVersion(string $site_name) {
+    $site_folder = $this->getSiteFolder($site_name);
+    $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
+    $pantheon_yml_contents['php_version'] = 8.1;
+    $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
+    file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
+    $this->output->writeln($pantheon_yml_contents);
+  }
+
+  /**
    * Set correct Solr version for the given site.
    *
    * @param string $site_name
@@ -679,7 +778,7 @@ class RoboFile extends Tasks {
           '--',
           'cim',
           '--partial',
-          '--source=modules/composer/search_api_pantheon/.ci/config',
+          '--source=modules/contrib/search_api_pantheon/.ci/config',
           '-y'
         )
         ->run();

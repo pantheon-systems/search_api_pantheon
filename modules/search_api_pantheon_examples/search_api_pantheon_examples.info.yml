@@ -1,7 +1,7 @@
 name: Search API Pantheon Examples
 type: module
 description: Contains some examples of things you could do with Search API Pantheon module. This module should not be enabled in prod.
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9.4 || ^10
 package: Search
 dependencies:
   - search_api_pantheon:search_api_pantheon
