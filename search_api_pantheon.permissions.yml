@@ -1,0 +1,4 @@
+access search_api_pantheon debug information:
+  title: 'Access Search API Pantheon debug information'
+  description: 'Provides access to debug information.'
+  restrict access: true

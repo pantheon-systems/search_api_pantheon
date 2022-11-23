@@ -17,6 +17,7 @@ use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -39,7 +40,7 @@ class PantheonGuzzle extends Client implements
   /**
    * Class Constructor.
    */
-  public function __construct(Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct(Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory, AccountProxyInterface $current_user) {
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
@@ -59,13 +60,15 @@ class PantheonGuzzle extends Client implements
     $config = [
           'base_uri' => $endpoint->getBaseUri(),
           'http_errors' => FALSE,
-          // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
-          // @codingStandardsIgnoreLine
-          'debug' => (php_sapi_name() === 'cli' || isset($_GET['debug'])),
+          'debug' => FALSE,
           'verify' => FALSE,
           'handler' => $stack,
           'allow_redirects' => FALSE,
       ];
+    // Putting `?debug=true` at the end of any Solr url will show you the low-level debugging from guzzle.
+    if ((php_sapi_name() === 'cli' || isset($_GET['debug'])) && $current_user->hasPermission('access search_api_pantheon debug information')) {
+      $config['debug'] = TRUE;
+    }
     if (is_file($cert)) {
       $config['cert'] = $cert;
     }
