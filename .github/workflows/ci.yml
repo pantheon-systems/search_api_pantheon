@@ -38,6 +38,14 @@ jobs:
 
       - name: Code sniff
         run: composer run-script code:lint
+  phpcompatibility:
+    runs-on: ubuntu-latest
+    name: PHP Compatibility
+    steps:
+      - name: PHPCompatibility
+        uses: pantheon-systems/phpcompatibility-action@v1
+        with:
+          test-versions: 7.4-
   build_test:
     strategy:
       matrix:
