@@ -1,7 +1,7 @@
 services:
   search_api_pantheon.schema_poster:
     class: Drupal\search_api_pantheon\Services\SchemaPoster
-    arguments: ['@logger.factory', '@search_api_pantheon.pantheon_guzzle', '@entity_type.manager']
+    arguments: ['@logger.factory', '@search_api_pantheon.pantheon_guzzle', '@entity_type.manager', '@extension.list.module']
   search_api_pantheon.endpoint:
     class: Drupal\search_api_pantheon\Services\Endpoint
     arguments: [[], '@entity_type.manager']
