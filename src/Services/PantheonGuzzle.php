@@ -166,7 +166,7 @@ class PantheonGuzzle extends Client implements
     $path_parts = array_filter($path_parts, function ($item) {
         return !empty($item);
     });
-    $uri = $uri->withPath(implode('/', $path_parts));
+    $uri = $uri->withPath('/' . ltrim(implode('/', $path_parts), '/'));
     return $request->withUri($uri);
   }
 
