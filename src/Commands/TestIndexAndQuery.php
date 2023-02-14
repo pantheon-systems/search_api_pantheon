@@ -46,11 +46,11 @@ class TestIndexAndQuery extends DrushCommands {
    *   Injected by container.
    */
   public function __construct(
-        LoggerChannelFactoryInterface $loggerChannelFactory,
-        PantheonGuzzle $pantheonGuzzle,
-        Endpoint $endpoint,
-        SolariumClient $solariumClient
-    ) {
+    LoggerChannelFactoryInterface $loggerChannelFactory,
+    PantheonGuzzle $pantheonGuzzle,
+    Endpoint $endpoint,
+    SolariumClient $solariumClient
+  ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
@@ -71,24 +71,38 @@ class TestIndexAndQuery extends DrushCommands {
    * @throws \Exception
    */
   public function testIndexAndQuery() {
-    $index_id = NULL;
+    $index = NULL;
     try {
       $drupal_root = \DRUPAL_ROOT;
 
       $response = $this->pingSolrHost();
       $this->logger()->notice('Ping Received Response? {var}', [
-            'var' => $response instanceof ResultInterface ? '✅' : '❌',
-        ]);
+        'var' => $response instanceof ResultInterface ? '✅' : '❌',
+      ]);
       $this->logger()->notice('Response http status == 200? {var}', [
-            'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
-        ]);
+        'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
+      ]);
       if ($response->getResponse()->getStatusCode() !== 200) {
         throw new \Exception('Cannot contact solr server.');
       }
 
       // Create a new random index.
+      $this->logger()->notice("Creating temporary index...");
       $module_root = \Drupal::service('extension.list.module')->getPath('search_api_pantheon');
       $value = Yaml::parseFile($module_root . '/.ci/config/search_api.index.solr_index.yml');
+
+      // Update index from config.
+      if (isset($value['datasource_settings']["entity:node"])) {
+        unset($value['datasource_settings']["entity:node"]);
+      }
+      $value['datasource_settings']['solr_document'] = [
+        'id_field' => 'id',
+        'request_handler' => '',
+        'default_query' => '*:*',
+        'label_field' => '',
+        'language_field' => '',
+        'url_field' => '',
+      ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] =  $index_id;
       $filesystem = \Drupal::service('file_system');
@@ -98,36 +112,35 @@ class TestIndexAndQuery extends DrushCommands {
       file_put_contents($directory . '/search_api.index.' . $index_id . '.yml', $yaml);
       $config_source = new FileStorage($directory);
       \Drupal::service('config.installer')->installOptionalConfig($config_source);
+      $index = Index::load($index_id);
+      $index->save();
+      $this->logger()->notice("Temporary index created.");
 
-
-
-      $indexSingleItemQuery = $this->indexSingleItem();
+      $indexSingleItemQuery = $this->indexSingleItem($index->id());
       $this->logger()->notice('Solr Update index with one document Response: {code} {reason}', [
-            'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
-            'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
-        ]);
+        'code' => $indexSingleItemQuery->getResponse()->getStatusCode(),
+        'reason' => $indexSingleItemQuery->getResponse()->getStatusMessage(),
+      ]);
+
       if ($indexSingleItemQuery->getResponse()->getStatusCode() !== 200) {
         throw new \Exception('Cannot unable to index simple item. Have you created an index for the server?');
       }
 
-      $indexedStats = $this->pantheonGuzzle->getQueryResult('admin/luke', [
-            'query' => [
-                'stats' => 'true',
-            ],
-        ]);
-      if ($this->output()->isVerbose()) {
-        $this->logger()->notice('Solr Index Stats: {stats}', [
-              'stats' => print_r($indexedStats['index'], TRUE),
-          ]);
+      $this->logger()->notice("Querying Solr for the indexed item...");
+      $result = $this->pantheonGuzzle->getQueryResult('select', [
+        'query' => [
+          'q' => 'index_id:' . $index->id(),
+          'fields' => ['id', 'index_id', 'name']
+        ],
+      ]);
+      if ($result['response']['numFound'] === 1) {
+        $this->logger()->notice('We got exactly 1 result ✅');
       }
       else {
-        $this->logger()->notice('We got Solr stats ✅');
-      }
-      $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
-            'query' => [
-                'stats' => 'true',
-            ],
+        $this->logger()->notice('We did not get exactly 1 result ❌ (numFound = {numFound})', [
+          'numFound' => $result['response']['numFound'],
         ]);
+      }
     }
     catch (\Exception $e) {
       \Kint::dump($e);
@@ -140,17 +153,18 @@ class TestIndexAndQuery extends DrushCommands {
       exit(1);
     }
     finally {
-      if ($index_id) {
-        $this->logger()->notice('Removing index {index_id}', [
-          'index_id' => $index_id,
+      if ($index) {
+        $this->logger()->notice('Removing content and index {index_id}', [
+          'index_id' => $index->id(),
         ]);
-        $index = Index::load($index_id);
+
+        $this->deleteSingleItem('1-' . $index->id());
         $index->delete();
       }
     }
     $this->logger()->notice(
-          "If there's an issue with the connection, it would have shown up here. You should be good to go!"
-      );
+      "If there's an issue with Solr, it would have shown up here. You should be good to go!"
+    );
   }
 
   /**
@@ -181,15 +195,20 @@ class TestIndexAndQuery extends DrushCommands {
   /**
    * Indexes a single item.
    *
+   * @param string $index_id
+   *   ID of index to add this item to.
+   *
    * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Update\Result
    *   The result.
    */
-  protected function indexSingleItem() {
+  protected function indexSingleItem(string $index_id) {
     // Create a new document.
     $document = new UpdateDocument();
 
     // Set a field value as property.
-    $document->id = 15;
+    $document->id = "1-" . $index_id;
+
+    $document->index_id = $index_id;
 
     // Set a field value as array entry.
     $document['population'] = 120000;
@@ -220,6 +239,26 @@ class TestIndexAndQuery extends DrushCommands {
     // Add it to the update query and also add a commit.
     $query = new UpdateQuery();
     $query->addDocument($document);
+    // Make a hard commit.
+    $query->addCommit();
+    // Run it, the result should be a new document in the Solr index.
+    return $this->solr->update($query);
+  }
+
+  /**
+   * Indexes a single item.
+   * 
+   * @param string $item_id
+   *   ID of the item to delete.
+   *
+   * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Update\Result
+   *   The result.
+   */
+  protected function deleteSingleItem(string $item_id) {
+    // Add it to the update query and also add a commit.
+    $query = new UpdateQuery();
+    $query->addDeleteQuery('id:' . $item_id);
+    // Make a hard commit.
     $query->addCommit();
     // Run it, the result should be a new document in the Solr index.
     return $this->solr->update($query);
