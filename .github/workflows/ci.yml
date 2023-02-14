@@ -14,7 +14,7 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php7.4
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
     name: Code linting
     env:
@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Composer install
-        run: composer install --ignore-platform-req=php
+        run: composer install
 
       - name: Code sniff
         run: composer run-script code:lint
