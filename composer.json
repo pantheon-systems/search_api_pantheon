@@ -46,7 +46,8 @@
         "http-interop/http-factory-guzzle": "^1.0",
         "kint-php/kint": "^4.1",
         "psr/event-dispatcher": "^1.0",
-        "symfony/finder": "^4.4|^5|^6"
+        "symfony/finder": "^4.4|^5|^6",
+        "symfony/yaml": "^4.4|^5|^6"
     },
     "require-dev": {
         "consolidation/robo": "^3.0",
@@ -54,8 +55,7 @@
         "drupal/coder": "@stable",
         "phpunit/phpunit": "@stable",
         "psy/psysh": "@stable",
-        "squizlabs/php_codesniffer": "@stable",
-        "symfony/yaml": "^4"
+        "squizlabs/php_codesniffer": "@stable"
     },
     "suggest":{
         "drupal/search_api_autocomplete": "^1",
@@ -70,11 +70,11 @@
         ],
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcbf . --ignore=RoboFile.php"
+            "vendor/bin/phpcbf . --ignore=RoboFile.php,vendor src modules"
         ],
         "code:lint": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcs --ignore=RoboFile.php . "
+            "vendor/bin/phpcs --ignore=RoboFile.php,vendor . "
         ],
         "pre-commit": [
             "composer validate --strict",
