@@ -6,7 +6,6 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
-use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
@@ -104,7 +103,7 @@ class TestIndexAndQuery extends DrushCommands {
         'url_field' => '',
       ];
       $index_id = $value['id'] . '_' . uniqid();
-      $value['id'] =  $index_id;
+      $value['id'] = $index_id;
       $filesystem = \Drupal::service('file_system');
       $directory = 'temporary://' . $index_id;
       $filesystem = $filesystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
@@ -130,7 +129,7 @@ class TestIndexAndQuery extends DrushCommands {
       $result = $this->pantheonGuzzle->getQueryResult('select', [
         'query' => [
           'q' => 'index_id:' . $index->id(),
-          'fields' => ['id', 'index_id', 'name']
+          'fields' => ['id', 'index_id', 'name'],
         ],
       ]);
       if ($result['response']['numFound'] === 1) {
@@ -247,7 +246,7 @@ class TestIndexAndQuery extends DrushCommands {
 
   /**
    * Indexes a single item.
-   * 
+   *
    * @param string $item_id
    *   ID of the item to delete.
    *

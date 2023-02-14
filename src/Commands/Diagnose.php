@@ -9,8 +9,6 @@ use Drupal\search_api_pantheon\Services\SolariumClient;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
-use Solarium\QueryType\Update\Query\Document as UpdateDocument;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 use Symfony\Component\Yaml\Yaml;
 
 /**
