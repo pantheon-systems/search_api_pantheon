@@ -2,6 +2,8 @@ Search API Patheon 3.0.x, 2023-xx-xx
 ------------------------------------
 #3289519 by heddn, Project Update Bot, DamienMcKenna, daniel_j: Automated Drupal
   10 compatibility fixes.
+#3270544 by w.drupal, DamienMcKenna, GuyPaddock: 3.x - 'PANTHEON_ENVIRONMENT' Is
+  Not Detected from the Environment.
 
 
 Search API Patheon 3.0.1, 2021-11-11

@@ -15,7 +15,7 @@ class PantheonCurl extends Curl {
    */
   public function createHandle($request, $endpoint) {
     $handler = parent::createHandle($request, $endpoint);
-    if (defined('PANTHEON_ENVIRONMENT')) {
+    if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
       $uri = AdapterHelper::buildUri($request, $endpoint);
 
       // Adjust the url from the default calculation. Remove the new url type
