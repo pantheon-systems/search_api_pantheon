@@ -1,4 +1,4 @@
-Search API Patheon 3.0.x, 2023-xx-xx
+Search API Patheon 3.0.2, 2023-03-11
 ------------------------------------
 #3289519 by heddn, Project Update Bot, DamienMcKenna, daniel_j: Automated Drupal
   10 compatibility fixes.
