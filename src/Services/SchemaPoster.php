@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\ClientInterface;
@@ -51,16 +52,25 @@ class SchemaPoster implements LoggerAwareInterface {
   protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
+   * The module extension list.
+   *
+   * @var \Drupal\Core\Extension\ModuleExtensionList
+   */
+  protected $moduleExtensionList;
+
+  /**
    * Class Constructor.
    */
   public function __construct(
         LoggerChannelFactoryInterface $logger_factory,
         PantheonGuzzle $client,
-        EntityTypeManagerInterface $entity_type_manager
+        EntityTypeManagerInterface $entity_type_manager,
+        ModuleExtensionList $module_extension_list
     ) {
     $this->logger = $logger_factory->get('PantheonSearch');
     $this->client = $client;
     $this->entityTypeManager = $entity_type_manager;
+    $this->moduleExtensionList = $module_extension_list;
   }
 
   /**
@@ -242,7 +252,7 @@ class SchemaPoster implements LoggerAwareInterface {
             'cannot retrieve the solr server connection settings from the database'
         );
     }
-    $solr_configset_controller = new SolrConfigSetController();
+    $solr_configset_controller = new SolrConfigSetController($this->moduleExtensionList);
     $solr_configset_controller->setServer($server);
 
     return $solr_configset_controller->getConfigFiles();
