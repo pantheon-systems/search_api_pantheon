@@ -25,8 +25,8 @@ use Drupal\Core\Session\AccountProxyInterface;
  * @package \Drupal\search_api_pantheon
  */
 class PantheonGuzzle extends Client implements
-    ClientInterface,
-    LoggerAwareInterface {
+  ClientInterface,
+  LoggerAwareInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
