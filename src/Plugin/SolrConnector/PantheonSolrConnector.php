@@ -27,9 +27,9 @@ use Drupal\Core\Messenger\MessengerInterface;
  * )
  */
 class PantheonSolrConnector extends SolrConnectorPluginBase implements
-    SolrConnectorInterface,
-    PluginFormInterface,
-    ContainerFactoryPluginInterface {
+  SolrConnectorInterface,
+  PluginFormInterface,
+  ContainerFactoryPluginInterface {
 
   /**
    * @var object|null
