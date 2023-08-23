@@ -162,18 +162,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
   public function pingServer() {
     // The path used in the parent class, admin/info/system, fails.
     // I don't know why.
-    $ping = $this->doPing(['handler' => 'admin/system'], 'server');
-    // If the ping fails, there is a good chance it is because the code
-    // is being run on a new multidev environment in which the schema has not
-    // yet been posted.
-    if ($ping === FALSE) {
-      $this->postSchema();
-      // Try again after posting the schema.
-      return $this->doPing(['handler' => 'admin/system'], 'server');
-    }
-    else {
-      return $ping;
-    }
+    return $this->doPing(['handler' => 'admin/system'], 'server');
   }
 
   /**
