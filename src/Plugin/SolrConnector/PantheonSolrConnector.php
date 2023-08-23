@@ -169,13 +169,6 @@ class PantheonSolrConnector extends Solr36Connector {
   /**
    * {@inheritdoc}
    */
-  public function pingServer() {
-    return parent::pingServer();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   protected function getDataFromHandler($handler, $reset = FALSE) {
     // Ensure server is up and post schema if necessary, ex new Multi-dev.
     $this->pingServer();
