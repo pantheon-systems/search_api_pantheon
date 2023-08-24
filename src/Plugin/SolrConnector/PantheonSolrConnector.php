@@ -169,24 +169,6 @@ class PantheonSolrConnector extends Solr36Connector {
   /**
    * {@inheritdoc}
    */
-  public function pingServer() {
-    $ping = parent::pingServer();
-    // If the ping fails, there is a good chance it is because the code
-    // is being run on a new multidev environment in which the schema has not
-    // yet been posted.
-    if ($ping === FALSE) {
-      $this->postSchema();
-      // Try again after posting the schema.
-      return parent::pingServer();
-    }
-    else {
-      return $ping;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   protected function getDataFromHandler($handler, $reset = FALSE) {
     // Ensure server is up and post schema if necessary, ex new Multi-dev.
     $this->pingServer();
