@@ -24,13 +24,14 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: ignore
-
       - name: Extract tag name
         id: tag_name
         run: |
           FULL_TAG=${GITHUB_REF#refs/tags/}
           MAJOR_MINOR="$(echo $FULL_TAG | cut -d '.' -f 1,2).x"
-          echo "::set-output name=BRANCH_NAME::$MAJOR_MINOR"
+          MAJOR_ONLY="$(echo $FULL_TAG | cut -d '.' -f 1).x"
+          echo "BRANCH_NAME=$MAJOR_MINOR" >> $GITHUB_OUTPUT
+          echo "MAJOR_BRANCH_NAME=$MAJOR_ONLY" >> $GITHUB_OUTPUT
       - name: Check if branch exists
         id: check_branch
         run: |
@@ -38,7 +39,6 @@ jobs:
           branch_existence=$(git ls-remote --heads origin ${{ steps.tag_name.outputs.BRANCH_NAME }})
           if [[ -z ${branch_existence} ]]; then
             echo "Branch for tag does not exist."
-            echo "::set-output name=exists::false"
             echo "exists=false" >> $GITHUB_OUTPUT
           else
             echo "Branch for tag already exists."
@@ -47,15 +47,14 @@ jobs:
       - name: Create branch
         if: steps.check_branch.outputs.exists == 'false'
         run: |
-          git checkout -b ${{ steps.tag_name.outputs.BRANCH_NAME }} origin/${{ github.event.repository.default_branch }}
+          git checkout -b ${{ steps.tag_name.outputs.BRANCH_NAME }} origin/${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
           git push origin ${{ steps.tag_name.outputs.BRANCH_NAME }}
-
       - name: Merge changes from current default branch
         if: steps.check_branch.outputs.exists == 'true'
         run: |
           git fetch
           git checkout -b ${{ steps.tag_name.outputs.BRANCH_NAME }} origin/${{ steps.tag_name.outputs.BRANCH_NAME }}
-          git merge origin/${{ github.event.repository.default_branch }}
+          git merge origin/${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
           git push origin HEAD:${{ steps.tag_name.outputs.BRANCH_NAME }}
       - name: Pushes to drupal.org repository
         run: |
