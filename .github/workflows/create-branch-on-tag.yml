@@ -29,7 +29,7 @@ jobs:
         id: tag_name
         run: |
           FULL_TAG=${GITHUB_REF#refs/tags/}
-          MAJOR_MINOR=$(echo $FULL_TAG | cut -d '.' -f 1,2)
+          MAJOR_MINOR="$(echo $FULL_TAG | cut -d '.' -f 1,2).x"
           echo "::set-output name=BRANCH_NAME::$MAJOR_MINOR"
       - name: Check if branch exists
         id: check_branch
