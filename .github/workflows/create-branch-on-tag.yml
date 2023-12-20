@@ -1,0 +1,42 @@
+name: Create Branch on Tag Push
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'pantheon-systems/search_api_pantheon' }}
+    env:
+      BRANCH: ${{ github.ref_name }}
+      WORKSPACE: ${{ github.workspace }}
+      DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: ignore
+
+      - name: Extract tag name
+        id: tag_name
+        run: |
+          FULL_TAG=${GITHUB_REF#refs/tags/}
+          MAJOR_MINOR=$(echo $FULL_TAG | cut -d '.' -f 1,2)
+          echo "::set-output name=BRANCH_NAME::$MAJOR_MINOR"
+      - name: Create branch from tag
+        run: git branch ${{ steps.tag_name.outputs.BRANCH_NAME }} ${{ github.ref }} && git push origin ${{ steps.tag_name.outputs.BRANCH_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pushes to drupal.org repository
+        run: |
+          cd $WORKSPACE
+          git remote add drupalorg $DRUPAL_ORG_REMOTE
+          git push drupalorg $BRANCH_NAME
