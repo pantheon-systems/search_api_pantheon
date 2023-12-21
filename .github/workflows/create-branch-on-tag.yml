@@ -60,4 +60,4 @@ jobs:
         run: |
           cd $WORKSPACE
           git remote add drupalorg $DRUPAL_ORG_REMOTE
-          git push drupalorg $BRANCH_NAME
+          git push drupalorg HEAD:${{ steps.tag_name.outputs.BRANCH_NAME }}
