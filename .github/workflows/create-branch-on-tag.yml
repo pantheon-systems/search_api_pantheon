@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - '*'
+permissions:
+  pull-requests: read
+  contents: write
 
 jobs:
   create-branch:
