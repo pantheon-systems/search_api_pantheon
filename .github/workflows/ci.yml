@@ -10,6 +10,16 @@ on:
         description: Enable tmate debugging
         required: true
         default: "0"
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  id-token: read
+  packages: write
+  pull-requests: write
+  security-events: write
+  statuses: write
 jobs:
   linting:
     runs-on: ubuntu-latest
