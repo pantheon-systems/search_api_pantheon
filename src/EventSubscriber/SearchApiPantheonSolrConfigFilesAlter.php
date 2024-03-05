@@ -37,7 +37,7 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
     // This file is causing undue issues with core restarts
     unset($files['solrcore.properties']);
 
-    $install_dir = $_ENV['PANTHEON_SOLR_INSTALL_DIR'] ? $_ENV['PANTHEON_SOLR_INSTALL_DIR'] : "/opt/solr/";
+    $install_dir = isset($_ENV['PANTHEON_SOLR_INSTALL_DIR']) ? $_ENV['PANTHEON_SOLR_INSTALL_DIR'] : "/opt/solr/";
 
     $files['solrconfig.xml'] = str_replace("solr.install.dir:../../../..",
       "solr.install.dir:" . $install_dir, $files['solrconfig.xml']);
