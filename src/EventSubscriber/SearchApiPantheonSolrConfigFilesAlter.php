@@ -24,6 +24,7 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
    */
   public function onPostConfigFilesGenerationEvent(PostConfigFilesGenerationEvent $event): void {
     $files = $event->getConfigFiles();
+
     // Append at the end of the file.
     $solrcore_properties = explode(PHP_EOL, $files['solrcore.properties']);
     // Remove the solr.install.dir if it exists
@@ -35,6 +36,11 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
     // Remove the solrcore.properties file from the upload
     // This file is causing undue issues with core restarts
     unset($files['solrcore.properties']);
+
+    $install_dir = isset($_ENV['PANTHEON_SOLR_INSTALL_DIR']) ? $_ENV['PANTHEON_SOLR_INSTALL_DIR'] : "/opt/solr/";
+
+    $files['solrconfig.xml'] = str_replace("solr.install.dir:../../../..",
+      "solr.install.dir:" . $install_dir, $files['solrconfig.xml']);
 
     $event->setConfigFiles($files);
   }
