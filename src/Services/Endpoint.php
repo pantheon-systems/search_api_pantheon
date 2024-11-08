@@ -199,6 +199,22 @@ class Endpoint extends SolariumEndpoint {
   }
 
   /**
+   * Get URL in pantheon environment to upload schema files.
+   *
+   * @return string
+   *   URL of envrionment.
+   */
+  public function getReloadUri(): string {
+    return vsprintf(
+      '%s/%s',
+      [
+        $this->getCoreBaseUri(),
+        'reload',
+      ]
+    );
+  }
+
+  /**
    * Get the path for Schema Uploads.
    *
    * @return string

@@ -19,6 +19,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
 
 /**
  * Posting schema for Pantheon-specific solr driver.
@@ -105,7 +106,53 @@ class SchemaPoster implements LoggerAwareInterface {
       throw new \Exception('Cannot post schema to environment url.');
     }
 
+    $status_code = $response->getStatusCode();
+    $this->logger->info('Status code: ' . $status_code);
+    if ($status_code >= 200 && $status_code < 300) {
+      // @TODO Maybe we need to capture exception here??
+      // Call reload on the server.
+      $this->reloadServer();
+    }
+    $this->logger->info('After server reload?');
+
     return $this->processResponse($response);
+  }
+
+  protected function reloadServer(): void {
+    // Schema upload URL.
+    $uri = new Uri(
+      $this->getClient()
+        ->getEndpoint()
+        ->getReloadUri()
+    );
+
+    $this->logger->debug('Reload url: ' . (string) $uri);
+
+    // Send the request.
+    $request = new Request(
+      'POST',
+      $uri,
+      [
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+      ]
+    );
+    $response = $this->getClient()->sendRequest($request);
+
+    $status_code = $response->getStatusCode();
+    if ($status_code >= 200 && $status_code < 300) {
+      $this->logger->info('Server reloaded: {status_code} {reason}', [
+        'status_code' => $response->getStatusCode(),
+        'reason' => $response->getReasonPhrase(),
+      ]);
+    }
+    else {
+      $this->logger->error('Server not reloaded: {status_code} {reason}', [
+        'status_code' => $response->getStatusCode(),
+        'reason' => $response->getReasonPhrase(),
+      ]);
+      throw new PantheonSearchApiException('Server not reloaded.');
+    }
   }
 
   /**
