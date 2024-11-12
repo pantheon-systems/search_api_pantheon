@@ -206,9 +206,12 @@ class Endpoint extends SolariumEndpoint {
    */
   public function getReloadUri(): string {
     return vsprintf(
-      '%s/%s',
+      '%s://%s:%d/%s%s',
       [
-        $this->getCoreBaseUri(),
+        $this->getScheme(),
+        $this->getHost(),
+        $this->getPort(),
+        $this->getPath(),
         $this->getReloadPath(),
       ]
     );
