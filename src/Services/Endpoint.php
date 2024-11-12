@@ -215,8 +215,8 @@ class Endpoint extends SolariumEndpoint {
   }
 
   /**
-   * Get the path for Schema Reloads
-   * 
+   * Get the path for Schema Reloads.
+   *
    * @return string
    *   The path for schema reloads
    **/

@@ -140,19 +140,16 @@ class SchemaPoster implements LoggerAwareInterface {
     $response = $this->getClient()->sendRequest($request);
 
     $status_code = $response->getStatusCode();
+    $status_logger_content = [
+      'status_code' => $response->getStatusCode(),
+      'reason' => $response->getReasonPhrase(),
+    ];
     if ($status_code >= 200 && $status_code < 300) {
-      $this->logger->info('Server reloaded: {status_code} {reason}', [
-        'status_code' => $response->getStatusCode(),
-        'reason' => $response->getReasonPhrase(),
-      ]);
+      $this->logger->info('Server reloaded: {status_code} {reason}', $status_logger_content);
+      return;
     }
-    else {
-      $this->logger->error('Server not reloaded: {status_code} {reason}', [
-        'status_code' => $response->getStatusCode(),
-        'reason' => $response->getReasonPhrase(),
-      ]);
-      throw new PantheonSearchApiException('Server not reloaded.');
-    }
+    $this->logger->error('Server not reloaded: {status_code} {reason}', $status_logger_content);
+    throw new PantheonSearchApiException('Server not reloaded.');
   }
 
   /**

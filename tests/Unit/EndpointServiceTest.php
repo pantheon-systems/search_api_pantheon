@@ -55,7 +55,8 @@ class EndpointServiceTest extends TestCase {
   }
 
   public function testReloadPath() {
-    $ep = new Endpoint(["reload_path"=>"/reload"]);
-    $this->assertEquals("/reload", $ep->getReloadPath());    
+    $ep = new Endpoint(["reload_path" => "/reload"]);
+    $this->assertEquals("/reload", $ep->getReloadPath());
   }
+
 }
