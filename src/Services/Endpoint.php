@@ -199,7 +199,7 @@ class Endpoint extends SolariumEndpoint {
   }
 
   /**
-   * Get URL in pantheon environment to upload schema files.
+   * Get URL in pantheon environment to POST reload requests.
    *
    * @return string
    *   URL of envrionment.
@@ -209,9 +209,19 @@ class Endpoint extends SolariumEndpoint {
       '%s/%s',
       [
         $this->getCoreBaseUri(),
-        'reload',
+        $this->getReloadPath(),
       ]
     );
+  }
+
+  /**
+   * Get the path for Schema Reloads
+   * 
+   * @return string
+   *   The path for schema reloads
+   **/
+  public function getReloadPath(): string {
+    return $this->options['reload_path'];
   }
 
   /**

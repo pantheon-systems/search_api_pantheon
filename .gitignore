@@ -8,3 +8,5 @@
 .idea
 .DS_Store
 docs/Badge.confluence
+
+.envrc

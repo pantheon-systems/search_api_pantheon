@@ -18,7 +18,9 @@ use Psr\Log\LoggerInterface;
  * @package \Drupal\search_api_pantheon
  */
 class GuzzleClassTest extends TestCase {
-
+  
+  protected $loggerFactory;
+  
   /**
    * {@inheritdoc}
    */
