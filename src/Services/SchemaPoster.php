@@ -118,7 +118,7 @@ class SchemaPoster implements LoggerAwareInterface {
     return $this->processResponse($response);
   }
 
-  protected function reloadServer(): void {
+  public function reloadServer(): void {
     // Schema upload URL.
     $uri = new Uri(
       $this->getClient()
