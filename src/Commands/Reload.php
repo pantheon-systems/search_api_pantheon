@@ -67,3 +67,4 @@ class Schema extends DrushCommands {
       $this->logger->error((string) $e);
     }
   }
+}
