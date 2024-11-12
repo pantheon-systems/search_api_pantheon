@@ -45,10 +45,6 @@ class EndpointServiceTest extends TestCase {
       $ep->getSchemaUploadUri()
     );
     $this->assertEquals(
-      'one://two:1234/server-path/schema-path',
-      $ep->getSchemaUploadUri()
-    );
-    $this->assertEquals(
       'one://two:1234/server-path/reload-path',
       $ep->getReloadUri()
     );
