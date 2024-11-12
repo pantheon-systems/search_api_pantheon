@@ -3,7 +3,6 @@
 namespace Drupal\search_api_pantheon\tests\Unit;
 
 use Drupal\search_api_pantheon\Services\Endpoint;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**

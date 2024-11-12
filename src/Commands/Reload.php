@@ -4,16 +4,14 @@ namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
-use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drush\Commands\DrushCommands;
-use Symfony\Component\Finder\Finder;
 
 /**
  * Drush Search Api Pantheon Schema Commands.
  */
-class Schema extends DrushCommands {
+class Reload extends DrushCommands {
   use LoggerChannelTrait;
 
   /**
@@ -51,13 +49,12 @@ class Schema extends DrushCommands {
   }
 
   /**
-   * Search_api_pantheon:reloadSchema
+   * Search_api_pantheon:reloadSchema.
    *
    * @usage search-api-pantheon:reloadSchema
    *  Reload the latest schema
    *
    * @command search-api-pantheon:reloadSchema
-   *
    */
   public function reloadSchema() {
     try {
@@ -67,4 +64,5 @@ class Schema extends DrushCommands {
       $this->logger->error((string) $e);
     }
   }
+
 }
