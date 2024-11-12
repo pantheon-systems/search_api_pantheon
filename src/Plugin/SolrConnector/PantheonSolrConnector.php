@@ -65,6 +65,13 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected $messenger;
 
   /**
+   * The container.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
+   */
+  protected ContainerInterface $container;
+
+  /**
    * Class constructor.
    */
   public function __construct(
@@ -72,19 +79,17 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         $plugin_id,
         array $plugin_definition,
         LoggerChannelFactoryInterface $logger_factory,
-        PantheonGuzzle $pantheon_guzzle,
-        PantheonSolariumClient $solarium_client,
-        DateFormatterInterface $date_formatter,
-        MessengerInterface $messenger
+        ContainerInterface $container,
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->pantheonGuzzle = $pantheon_guzzle;
-    $this->solariumClient = $solarium_client;
-    $this->dateFormatter = $date_formatter;
-    $this->messenger = $messenger;
-    $this->setLogger($logger_factory->get('PantheonSearch'));
+    $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->solariumClient = $container->get('search_api_pantheon.solarium_client');
+    $this->dateFormatter = $container->get('date.formatter');
+    $this->messenger = $container->get('messenger');
+    $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
     $this->configuration['core'] = self::getPlatformConfig()['core'];
     $this->configuration['schema'] = self::getPlatformConfig()['schema'];
+    $this->container = $container;
     $this->connect();
   }
 
@@ -107,11 +112,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
           $configuration,
           $plugin_id,
           $plugin_definition,
-          $container->get('logger.factory'),
-          $container->get('search_api_pantheon.pantheon_guzzle'),
-          $container->get('search_api_pantheon.solarium_client'),
-          $container->get('date.formatter'),
-          $container->get('messenger')
+          $container,
       );
   }
 
@@ -406,9 +407,14 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Success or Failure.
    */
   public function reloadCore() {
-    $this->logger->notice(
-          $this->t('Reload Core action for Pantheon Solr is automatic when Schema is updated.')
-      );
+    $sp = $this->container->get('search_api_pantheon.schema_poster');
+    if (!$sp instanceof SchemaPoster) {
+      throw new \RuntimeException('Unable to instantiate Schema Poster.');
+    }
+    // Get the server id
+    $server_id = $this->getServerInfo()['server_id'];
+    $sp->postSchema($server_id);
+    $sp->reloadCore();
     return TRUE;
   }
 
