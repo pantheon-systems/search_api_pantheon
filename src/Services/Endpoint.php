@@ -219,7 +219,7 @@ class Endpoint extends SolariumEndpoint {
    *
    * @return string
    *   The path for schema reloads
-   **/
+   */
   public function getReloadPath(): string {
     return $this->options['reload_path'];
   }
