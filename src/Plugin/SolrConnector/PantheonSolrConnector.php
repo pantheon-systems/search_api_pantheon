@@ -408,7 +408,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     if (!$sp instanceof SchemaPoster) {
       throw new \RuntimeException('Unable to instantiate Schema Poster.');
     }
-    $sp->reloadCore();
+    $sp->reloadServer();
     $this->logger->info('Core reloaded.');
     return TRUE;
   }
