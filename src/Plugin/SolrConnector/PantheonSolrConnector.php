@@ -16,6 +16,8 @@ use Drupal\search_api_pantheon\Services\SolariumClient as PantheonSolariumClient
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\search_api_solr\SearchApiSolrException;
+use Drupal\search_api_pantheon\Validation\SchemaValidator;
 
 /**
  * Pantheon Solr connector.
@@ -225,14 +227,20 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
         array &$form,
         FormStateInterface $form_state
     ) {
-    $configuration = array_merge($this->defaultConfiguration(), $form_state->getValues());
+    $values = $form_state->getValues();
+    
+    // Store complete configuration including platform config
+    $this->configuration = array_merge(
+      $this->defaultConfiguration(),
+      $values,
+      self::getPlatformConfig()
+    );
 
-    $this->setConfiguration($configuration);
-
-    // Exclude Platform configs.
-    foreach (array_keys(self::getPlatformConfig()) as $key) {
-      unset($this->configuration[$key]);
-    }
+    // Track schema version
+    $this->configuration['schema_version'] = $this->getSchemaVersion(TRUE);
+    
+    // Store last update timestamp
+    $this->configuration['last_update'] = \Drupal::time()->getRequestTime();
   }
 
   /**
@@ -244,7 +252,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   public function adjustTimeout(int $seconds, string $timeout = self::QUERY_TIMEOUT, ?Endpoint &$endpoint = NULL): int {
     $this->connect();
 
-    if (!$endpoint) {
+    if (!$endpoint) {loa
       $endpoint = $this->solr->getEndpoint();
     }
 
@@ -399,17 +407,124 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   }
 
   /**
-   * Reaload the Solr Core.
-   *
-   * @return bool
-   *   Success or Failure.
-   */
-  public function reloadCore() {
-    $this->logger->notice(
-          $this->t('Reload Core action for Pantheon Solr is automatic when Schema is updated.')
-      );
-    return TRUE;
+ * Reloads the Solr Core with updated configuration.
+ *
+ * @return bool
+ *   TRUE if reload succeeded, FALSE otherwise.
+ */
+public function reloadCore() {
+  $maxRetries = 3;
+  $retryDelay = 2;
+  $attempt = 0;
+
+  do {
+    try {
+      $attempt++;
+      
+      // Log reload attempt
+      $this->logger->info('Attempting Solr core reload (attempt @attempt of @max) for core: @core', [
+        '@attempt' => $attempt,
+        '@max' => $maxRetries,
+        '@core' => $this->configuration['core']
+      ]);
+
+      // Make reload request
+      $response = $this->pantheonGuzzle->get('admin/cores', [
+        'query' => [
+          'action' => 'RELOAD',
+          'core' => $this->configuration['core'],
+          'wt' => 'json'
+        ],
+        'headers' => [
+          'Accept' => 'application/json'
+        ]
+      ]);
+
+      $result = json_decode($response->getBody(), TRUE);
+
+      if ($response->getStatusCode() !== 200) {
+        throw new SearchApiSolrException(sprintf(
+          'Solr core reload failed with status code %d: %s',
+          $response->getStatusCode(),
+          $result['error']['msg'] ?? 'Unknown error'
+        ));
+      }
+
+      // Verify core status after reload
+      $coreStatus = $this->verifyCoreStatus();
+      
+      if ($coreStatus) {
+        $this->logger->info('Successfully reloaded Solr core @core', [
+          '@core' => $this->configuration['core']
+        ]);
+        
+        $this->messenger->addMessage($this->t('Solr core configuration has been reloaded successfully.'));
+        return TRUE;
+      }
+
+      throw new SearchApiSolrException('Core reload completed but core status verification failed');
+
+    } catch (\Exception $e) {
+      $this->logger->error('Core reload attempt @attempt failed: @message', [
+        '@attempt' => $attempt,
+        '@message' => $e->getMessage()
+      ]);
+
+      if ($attempt < $maxRetries) {
+        sleep($retryDelay * $attempt); // Exponential backoff
+        continue;
+      }
+
+      $this->messenger->addError($this->t('Failed to reload Solr core after @max attempts. Please check logs for details.', [
+        '@max' => $maxRetries
+      ]));
+      return FALSE;
+    }
+  } while ($attempt < $maxRetries);
+
+  return FALSE;
+}
+
+/**
+ * Verifies core status after reload.
+ *
+ * @return bool
+ *   TRUE if core is active, FALSE otherwise.
+ */
+protected function verifyCoreStatus() {
+  $maxAttempts = 5;
+  $attempt = 0;
+  
+  while ($attempt < $maxAttempts) {
+    try {
+      $response = $this->pantheonGuzzle->get('admin/cores', [
+        'query' => [
+          'action' => 'STATUS',
+          'core' => $this->configuration['core'],
+          'wt' => 'json'
+        ]
+      ]);
+
+      $result = json_decode($response->getBody(), TRUE);
+      $status = $result['status'][$this->configuration['core']] ?? [];
+
+      if (!empty($status['name']) && $status['name'] === $this->configuration['core']) {
+        return TRUE;
+      }
+
+    } catch (\Exception $e) {
+      $this->logger->warning('Core status check failed (attempt @attempt): @message', [
+        '@attempt' => $attempt + 1,
+        '@message' => $e->getMessage()
+      ]);
+    }
+
+    $attempt++;
+    sleep(1);
   }
+
+  return FALSE;
+}
 
   /**
    * {@inheritdoc}

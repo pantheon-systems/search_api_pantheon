@@ -89,23 +89,42 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-  public function postSchema(string $server_id, $files = []): array {
-    // PANTHEON Environment.
-    if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
-      if (!$files) {
-        $files = $this->getSolrFiles($server_id);
+  public function postSchema(string $server_id, array $files = []): array {
+    try {
+      // Validate before proceeding
+      $this->schemaValidator->validateSchemaCompatibility($files);
+      
+      // Take backup of current schema
+      $currentSchema = $this->backupCurrentSchema();
+      
+      try {
+        // Attempt upload
+        $response = $this->uploadSchemaFiles($files);
+        
+        // Verify upload success
+        if (!$this->verifySchemaUpload($files)) {
+          throw new SchemaUploadException('Schema verification failed');
+        }
+        
+        // Reload core
+        if (!$this->reloadCore()) {
+          throw new SchemaUploadException('Core reload failed');
+        }
+        
+        return ['success', 'Schema updated successfully'];
+        
+      } catch (\Exception $e) {
+        // Rollback on failure
+        $this->restoreSchema($currentSchema);
+        throw $e;
       }
-      $response = $this->uploadSchemaFiles($files);
+      
+    } catch (\Exception $e) {
+      $this->logger->error('Schema update failed: @message', [
+        '@message' => $e->getMessage()
+      ]);
+      return ['error', $e->getMessage()];
     }
-    // LOCAL DOCKER.
-    if (isset($_SERVER['ENV']) && $_SERVER['ENV'] === 'local') {
-      $response = $this->uploadSchemaAsZip($server_id);
-    }
-    if (!$response instanceof Response) {
-      throw new \Exception('Cannot post schema to environment url.');
-    }
-
-    return $this->processResponse($response);
   }
 
   /**

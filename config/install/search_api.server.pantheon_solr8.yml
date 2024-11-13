@@ -31,6 +31,16 @@ backend_config:
     jmx: false
     jts: false
     solr_install_dir: ''
+    # Add new monitoring configuration
+    monitoring:
+      enabled: true
+      check_interval: 3600
+      schema_tracking: true
+      core_status_monitoring: true
+      alert_on_mismatch: true
+      alert_thresholds:
+        uptime_min: 60
+        schema_version: '1.6'
   disabled_field_types: {  }
   disabled_caches: {  }
   disabled_request_handlers:
