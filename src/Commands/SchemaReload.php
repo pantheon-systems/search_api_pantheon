@@ -62,7 +62,9 @@ class SchemaReload extends DrushCommands {
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);
+      return;
     }
+    $this->logger->notice("Schema Reloaded.");
   }
 
 }
