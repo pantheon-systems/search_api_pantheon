@@ -15,7 +15,6 @@ use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient as PantheonSolariumClient;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Pantheon Solr connector.
