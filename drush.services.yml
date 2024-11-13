@@ -20,7 +20,7 @@ services:
     tags:
       - { name: drush.command }
   search_api_pantheon.drush_reload:
-    class: \Drupal\search_api_pantheon\Commands\SchemaReload
+    class: \Drupal\search_api_pantheon\Commands\Reload
     arguments: [ "@logger.factory", "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.schema_poster" ]
     tags:
       - { name: drush.command }

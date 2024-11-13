@@ -5,13 +5,13 @@ namespace Drupal\search_api_pantheon\Commands;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\Reload;
+use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drush\Commands\DrushCommands;
 
 /**
  * Drush Search Api Pantheon Schema Commands.
  */
-class SchemaReload extends DrushCommands {
+class Reload extends DrushCommands {
   use LoggerChannelTrait;
 
   /**
@@ -24,9 +24,9 @@ class SchemaReload extends DrushCommands {
   /**
    * Configured pantheon-solr-specific schema poster class.
    *
-   * @var \Drupal\search_api_pantheon\Services\Reload
+   * @var \Drupal\search_api_pantheon\Services\SchemaPoster
    */
-  private Reload $reload;
+  private SchemaPoster $schemaPoster;
 
   /**
    * Class constructor.
@@ -35,17 +35,17 @@ class SchemaReload extends DrushCommands {
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\Reload $reload
+   * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
    *   Injected by Container.
    */
   public function __construct(
         LoggerChannelFactoryInterface $loggerChannelFactory,
         PantheonGuzzle $pantheonGuzzle,
-        Reload $reload
+        SchemaPoster $schemaPoster
     ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
-    $this->reload = $reload;
+    $this->schemaPoster = $schemaPoster;
   }
 
   /**
@@ -58,13 +58,11 @@ class SchemaReload extends DrushCommands {
    */
   public function reloadSchema() {
     try {
-      $this->reload->reloadServer();
+      $this->schemaPoster->reloadServer();
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);
-      return;
     }
-    $this->logger->notice("Schema Reloaded.");
   }
 
 }
