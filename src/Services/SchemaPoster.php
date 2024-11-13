@@ -19,7 +19,6 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
 
 /**
  * Posting schema for Pantheon-specific solr driver.
