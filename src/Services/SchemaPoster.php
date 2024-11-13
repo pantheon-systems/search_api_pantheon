@@ -118,6 +118,11 @@ class SchemaPoster implements LoggerAwareInterface {
     return $this->processResponse($response);
   }
 
+  /**
+   * Reload the server after schema upload.
+   *
+   * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
+   */
   public function reloadServer(): void {
     // Schema upload URL.
     $uri = new Uri(
