@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient as PantheonSolariumClient;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\search_api_pantheon\Services\Reload;
 
 /**
  * Pantheon Solr connector.
@@ -78,8 +79,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     array $plugin_definition,
     ContainerInterface $container,
     ) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->configuration = array_merge($configuration, self::getPlatformConfig());
+    parent::__construct(array_merge($configuration, self::getPlatformConfig()), $plugin_id, $plugin_definition);
     $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
     $this->solariumClient = $container->get('search_api_pantheon.solarium_client');
     $this->dateFormatter = $container->get('date.formatter');
@@ -402,14 +402,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return bool
    *   Success or Failure.
    */
-  public function reloadCore() {
-    $sp = $this->container->get('search_api_pantheon.schema_poster');
-    if (!$sp instanceof SchemaPoster) {
-      $sp = \Drupal::getContainer()->get('search_api_pantheon.schema_poster');
-    }
-    $sp->reloadCore();
-    $this->logger->info('Core reloaded.');
-    return TRUE;
+  public function reloadCore(): bool {
+    $rl = new Reload($this->container->get("logger.factory"), $this->pantheonGuzzle);
+    return $rl->reloadServer();
   }
 
   /**

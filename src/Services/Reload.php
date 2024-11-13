@@ -33,7 +33,7 @@ class Reload implements LoggerAwareInterface {
         LoggerChannelFactoryInterface $logger_factory,
         PantheonGuzzle $client,
     ) {
-    $this->logger_factory = $logger_factory;
+    $this->setLogger($logger_factory->get('reload_service'));
     $this->client = $client;
   }
 
@@ -42,7 +42,7 @@ class Reload implements LoggerAwareInterface {
    *
    * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
    */
-  public function reloadServer(): void {
+  public function reloadServer(): bool {
     // Schema upload URL.
     $uri = new Uri(
           $this->getClient()
@@ -70,10 +70,14 @@ class Reload implements LoggerAwareInterface {
       ];
     if ($status_code >= 200 && $status_code < 300) {
       $this->logger->info('Server reloaded: {status_code} {reason}', $reload_logger_content);
-      return;
+      return true;
     }
     $this->logger->error('Server not reloaded: {status_code} {reason}', $reload_logger_content);
-    throw new PantheonSearchApiException('Server not reloaded.');
+    return false;
+  }
+
+  public function getClient(): PantheonGuzzle {
+    return $this->client;
   }
 
 }

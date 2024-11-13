@@ -124,10 +124,11 @@ class SchemaPoster implements LoggerAwareInterface {
    * Reload the server after schema upload.
    *
    * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
+   * @return bool
    */
-  public function reloadServer(): void {
+  public function reloadServer(): bool {
     $reload = new Reload($this->loggerFactory, $this->client);
-    $reload->reloadServer();
+    return $reload->reloadServer();
   }
 
   /**
