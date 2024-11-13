@@ -13,9 +13,7 @@ use Solarium\Core\Client\Endpoint;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient as PantheonSolariumClient;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Pantheon Solr connector.
@@ -65,26 +63,30 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected $messenger;
 
   /**
+   * The container.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
+   */
+  protected ContainerInterface $container;
+
+  /**
    * Class constructor.
    */
   public function __construct(
-        array $configuration,
-        $plugin_id,
-        array $plugin_definition,
-        LoggerChannelFactoryInterface $logger_factory,
-        PantheonGuzzle $pantheon_guzzle,
-        PantheonSolariumClient $solarium_client,
-        DateFormatterInterface $date_formatter,
-        MessengerInterface $messenger
+    array $configuration,
+    $plugin_id,
+    array $plugin_definition,
+    ContainerInterface $container,
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->pantheonGuzzle = $pantheon_guzzle;
-    $this->solariumClient = $solarium_client;
-    $this->dateFormatter = $date_formatter;
-    $this->messenger = $messenger;
-    $this->setLogger($logger_factory->get('PantheonSearch'));
+    $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
+    $this->solariumClient = $container->get('search_api_pantheon.solarium_client');
+    $this->dateFormatter = $container->get('date.formatter');
+    $this->messenger = $container->get('messenger');
+    $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
     $this->configuration['core'] = self::getPlatformConfig()['core'];
     $this->configuration['schema'] = self::getPlatformConfig()['schema'];
+    $this->container = $container;
     $this->connect();
   }
 
@@ -98,21 +100,17 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @throws \Exception
    */
   public static function create(
-        ContainerInterface $container,
-        array $configuration,
-        $plugin_id,
-        $plugin_definition
-    ) {
+    ContainerInterface $container,
+    array $configuration,
+    $plugin_id,
+    $plugin_definition
+  ) {
     return new static(
-          $configuration,
-          $plugin_id,
-          $plugin_definition,
-          $container->get('logger.factory'),
-          $container->get('search_api_pantheon.pantheon_guzzle'),
-          $container->get('search_api_pantheon.solarium_client'),
-          $container->get('date.formatter'),
-          $container->get('messenger')
-      );
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container,
+    );
   }
 
   /**
@@ -171,9 +169,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Form render array.
    */
   public function buildConfigurationForm(
-        array $form,
-        FormStateInterface $form_state
-    ) {
+    array $form,
+    FormStateInterface $form_state
+  ) {
     $form = parent::buildConfigurationForm($form, $form_state);
 
     $fields = [
@@ -209,9 +207,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Form state object.
    */
   public function validateConfigurationForm(
-        array &$form,
-        FormStateInterface $form_state
-    ) {
+    array &$form,
+    FormStateInterface $form_state
+  ) {
   }
 
   /**
@@ -223,9 +221,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Form state object.
    */
   public function submitConfigurationForm(
-        array &$form,
-        FormStateInterface $form_state
-    ) {
+    array &$form,
+    FormStateInterface $form_state
+  ) {
     $configuration = array_merge($this->defaultConfiguration(), $form_state->getValues());
 
     $this->setConfiguration($configuration);
@@ -294,16 +292,16 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     }
 
     $summary = [
-          '@pending_docs' => '',
-          '@autocommit_time_seconds' => '',
-          '@autocommit_time' => '',
-          '@deletes_by_id' => '',
-          '@deletes_by_query' => '',
-          '@deletes_total' => '',
-          '@schema_version' => '',
-          '@core_name' => '',
-          '@index_size' => '',
-      ];
+      '@pending_docs' => '',
+      '@autocommit_time_seconds' => '',
+      '@autocommit_time' => '',
+      '@deletes_by_id' => '',
+      '@deletes_by_query' => '',
+      '@deletes_total' => '',
+      '@schema_version' => '',
+      '@core_name' => '',
+      '@index_size' => '',
+    ];
 
     if (empty($stats) || empty($indexStats)) {
       return $summary;
@@ -312,33 +310,33 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $max_time = -1;
     $update_handler_stats = $stats['UPDATE']['updateHandler']['stats'] ?? -1;
     $summary['@pending_docs'] =
-            (int) $update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
+      (int) $update_handler_stats['UPDATE.updateHandler.docsPending'] ?? -1;
     if (
-          isset(
-              $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
-          )
-      ) {
+      isset(
+        $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime']
+      )
+    ) {
       $max_time =
-                (int) $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
+        (int) $update_handler_stats['UPDATE.updateHandler.softAutoCommitMaxTime'];
     }
     $summary['@deletes_by_id'] =
-            (int) $update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
+      (int) $update_handler_stats['UPDATE.updateHandler.deletesById'] ?? -1;
     $summary['@deletes_by_query'] =
-            (int) $update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
+      (int) $update_handler_stats['UPDATE.updateHandler.deletesByQuery'] ?? -1;
     $summary['@core_name'] =
-            $stats['CORE']['core']['class'] ??
-            $this->t('No information available.');
+      $stats['CORE']['core']['class'] ??
+      $this->t('No information available.');
     $summary['@index_size'] =
-            $indexStats['numDocs'] ?? $this->t('No information available.');
+      $indexStats['numDocs'] ?? $this->t('No information available.');
 
     $summary['@autocommit_time_seconds'] = $max_time / 1000;
     $summary['@autocommit_time'] = $this->dateFormatter
       ->formatInterval($max_time / 1000);
     $summary['@deletes_total'] =
-            (
-              intval($summary['@deletes_by_id'] ?? 0)
-              + intval($summary['@deletes_by_query'] ?? 0)
-          ) ?? -1;
+      (
+        intval($summary['@deletes_by_id'] ?? 0)
+        + intval($summary['@deletes_by_query'] ?? 0)
+      ) ?? -1;
     $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
     return $summary;
   }
@@ -347,9 +345,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * {@inheritdoc}
    */
   public function useTimeout(
-        string $timeout = self::QUERY_TIMEOUT,
-        ?Endpoint $endpoint = NULL
-    ) {
+    string $timeout = self::QUERY_TIMEOUT,
+    ?Endpoint $endpoint = NULL
+  ) {
   }
 
   /**
@@ -361,25 +359,25 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $view_settings = [];
 
     $view_settings[] = [
-          'label' => $this->t('Pantheon Sitename'),
-          'info' => $this->getEndpoint()->getCore(),
-      ];
+      'label' => $this->t('Pantheon Sitename'),
+      'info' => $this->getEndpoint()->getCore(),
+    ];
     $view_settings[] = [
-          'label' => $this->t('Pantheon Environment'),
-          'info' => getenv('PANTHEON_ENVIRONMENT'),
-      ];
+      'label' => $this->t('Pantheon Environment'),
+      'info' => getenv('PANTHEON_ENVIRONMENT'),
+    ];
     $view_settings[] = [
-          'label' => $this->t('Schema Version'),
-          'info' => $this->getSchemaVersion(TRUE),
-      ];
+      'label' => $this->t('Schema Version'),
+      'info' => $this->getSchemaVersion(TRUE),
+    ];
 
     $core_info = $this->getCoreInfo(TRUE);
     foreach ($core_info['core'] as $key => $value) {
       if (is_string($value)) {
         $view_settings[] = [
-              'label' => ucwords($key),
-              'info' => $value,
-          ];
+          'label' => ucwords($key),
+          'info' => $value,
+        ];
       }
     }
 
@@ -406,9 +404,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *   Success or Failure.
    */
   public function reloadCore() {
-    $this->logger->notice(
-          $this->t('Reload Core action for Pantheon Solr is automatic when Schema is updated.')
-      );
+    $sp = $this->container->get('search_api_pantheon.schema_poster');
+    if (!$sp instanceof SchemaPoster) {
+      throw new \RuntimeException('Unable to instantiate Schema Poster.');
+    }
+    $sp->reloadServer();
+    $this->logger->info('Core reloaded.');
     return TRUE;
   }
 
@@ -463,29 +464,29 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    */
   protected function getStatsQuery(string $handler) {
     return json_decode(
-          $this->pantheonGuzzle
-            ->get(
-                  $handler,
-                  [
-                      'query' =>
-                          [
-                              'stats' => 'true',
-                              'wt' => 'json',
-                              'accept' => 'application/json',
-                              'contenttype' => 'application/json',
-                              'json.nl' => 'flat',
-                          ],
-                      'headers' =>
-                          [
-                              'Content-Type' => 'application/json',
-                              'Accept' => 'application/json',
-                          ],
-                  ]
-              )
-            ->getBody(),
-          TRUE,
-          JSON_THROW_ON_ERROR
-      );
+      $this->pantheonGuzzle
+        ->get(
+          $handler,
+          [
+            'query' =>
+              [
+                'stats' => 'true',
+                'wt' => 'json',
+                'accept' => 'application/json',
+                'contenttype' => 'application/json',
+                'json.nl' => 'flat',
+              ],
+            'headers' =>
+              [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+              ],
+          ]
+        )
+        ->getBody(),
+      TRUE,
+      JSON_THROW_ON_ERROR
+    );
   }
 
 }
