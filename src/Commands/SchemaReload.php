@@ -5,13 +5,13 @@ namespace Drupal\search_api_pantheon\Commands;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\SchemaPoster;
+use Drupal\search_api_pantheon\Services\Reload;
 use Drush\Commands\DrushCommands;
 
 /**
  * Drush Search Api Pantheon Schema Commands.
  */
-class Reload extends DrushCommands {
+class SchemaReload extends DrushCommands {
   use LoggerChannelTrait;
 
   /**
@@ -24,9 +24,9 @@ class Reload extends DrushCommands {
   /**
    * Configured pantheon-solr-specific schema poster class.
    *
-   * @var \Drupal\search_api_pantheon\Services\SchemaPoster
+   * @var \Drupal\search_api_pantheon\Services\Reload
    */
-  private SchemaPoster $schemaPoster;
+  private Reload $reload;
 
   /**
    * Class constructor.
@@ -35,17 +35,17 @@ class Reload extends DrushCommands {
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
+   * @param \Drupal\search_api_pantheon\Services\Reload $reload
    *   Injected by Container.
    */
   public function __construct(
         LoggerChannelFactoryInterface $loggerChannelFactory,
         PantheonGuzzle $pantheonGuzzle,
-        SchemaPoster $schemaPoster
+        Reload $reload
     ) {
     $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
-    $this->schemaPoster = $schemaPoster;
+    $this->reload = $reload;
   }
 
   /**
@@ -58,7 +58,7 @@ class Reload extends DrushCommands {
    */
   public function reloadSchema() {
     try {
-      $this->schemaPoster->reloadServer();
+      $this->reload->reloadServer();
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);
