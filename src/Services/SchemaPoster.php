@@ -124,37 +124,8 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
    */
   public function reloadServer(): void {
-    // Schema upload URL.
-    $uri = new Uri(
-      $this->getClient()
-        ->getEndpoint()
-        ->getReloadUri()
-    );
-
-    $this->logger->debug('Reload url: ' . (string) $uri);
-
-    // Send the request.
-    $request = new Request(
-      'POST',
-      $uri,
-      [
-          'Accept' => 'application/json',
-          'Content-Type' => 'application/json',
-      ]
-    );
-    $response = $this->getClient()->sendRequest($request);
-
-    $status_code = $response->getStatusCode();
-    $reload_logger_content = [
-      'status_code' => $status_code,
-      'reason' => $response->getReasonPhrase(),
-    ];
-    if ($status_code >= 200 && $status_code < 300) {
-      $this->logger->info('Server reloaded: {status_code} {reason}', $reload_logger_content);
-      return;
-    }
-    $this->logger->error('Server not reloaded: {status_code} {reason}', $reload_logger_content);
-    throw new PantheonSearchApiException('Server not reloaded.');
+    $reload = new Reload($this->logger, $this->client);
+    $reload->reloadServer();
   }
 
   /**

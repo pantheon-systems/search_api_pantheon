@@ -15,3 +15,6 @@ services:
     class: Drupal\search_api_pantheon\EventSubscriber\SearchApiPantheonSolrConfigFilesAlter
     tags:
       - { name: event_subscriber }
+  search_api_pantheon.reload:
+    class: Drupal\search_api_pantheon\Services\Reload
+    arguments: ['@logger.factory', '@search_api_pantheon.pantheon_guzzle']

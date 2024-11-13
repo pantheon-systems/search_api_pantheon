@@ -79,13 +79,12 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     ContainerInterface $container,
     ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->configuration = array_merge($configuration, self::getPlatformConfig());
     $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
     $this->solariumClient = $container->get('search_api_pantheon.solarium_client');
     $this->dateFormatter = $container->get('date.formatter');
     $this->messenger = $container->get('messenger');
     $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
-    $this->configuration['core'] = self::getPlatformConfig()['core'];
-    $this->configuration['schema'] = self::getPlatformConfig()['schema'];
     $this->container = $container;
     $this->connect();
   }
@@ -406,9 +405,9 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   public function reloadCore() {
     $sp = $this->container->get('search_api_pantheon.schema_poster');
     if (!$sp instanceof SchemaPoster) {
-      throw new \RuntimeException('Unable to instantiate Schema Poster.');
+      $sp = \Drupal::getContainer()->get('search_api_pantheon.schema_poster');
     }
-    $sp->reloadServer();
+    $sp->reloadCore();
     $this->logger->info('Core reloaded.');
     return TRUE;
   }
