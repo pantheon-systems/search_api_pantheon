@@ -577,6 +577,7 @@ class RoboFile extends Tasks {
               '--yes',
               'search_api_pantheon',
               'search_api_pantheon_admin',
+              'search_api_solr_admin'
           )
       ->run();
     $this->taskExec(static::$TERMINUS_EXE)
