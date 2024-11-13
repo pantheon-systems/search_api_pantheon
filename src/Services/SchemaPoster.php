@@ -58,6 +58,8 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   protected $moduleExtensionList;
 
+  protected LoggerChannelFactoryInterface $loggerFactory;
+
   /**
    * Class Constructor.
    */
@@ -68,6 +70,7 @@ class SchemaPoster implements LoggerAwareInterface {
         ModuleExtensionList $module_extension_list
     ) {
     $this->logger = $logger_factory->get('PantheonSearch');
+    $this->loggerFactory = $logger_factory;
     $this->client = $client;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleExtensionList = $module_extension_list;
@@ -123,7 +126,7 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
    */
   public function reloadServer(): void {
-    $reload = new Reload($this->logger, $this->client);
+    $reload = new Reload($this->loggerFactory, $this->client);
     $reload->reloadServer();
   }
 
