@@ -124,6 +124,7 @@ class SchemaPoster implements LoggerAwareInterface {
    * Reload the server after schema upload.
    *
    * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
+   *
    * @return bool
    */
   public function reloadServer(): bool {

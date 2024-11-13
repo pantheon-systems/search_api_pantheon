@@ -3,7 +3,6 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
@@ -70,10 +69,10 @@ class Reload implements LoggerAwareInterface {
       ];
     if ($status_code >= 200 && $status_code < 300) {
       $this->logger->info('Server reloaded: {status_code} {reason}', $reload_logger_content);
-      return true;
+      return TRUE;
     }
     $this->logger->error('Server not reloaded: {status_code} {reason}', $reload_logger_content);
-    return false;
+    return FALSE;
   }
 
   public function getClient(): PantheonGuzzle {
