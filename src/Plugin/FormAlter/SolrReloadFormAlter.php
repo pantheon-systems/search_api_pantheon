@@ -1,8 +1,8 @@
 <?php
 
 namespace Drupal\search_api_pantheon\Plugin\FormAlter;
-
-use Drupal\pluginformalter\Plugin\FormAlter\FormAlterBase;
+use \Drupal\Core\StringTranslation\StringTranslationTrait;
+use \Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
 /**
  * Class SolrReloadFormAlter.
@@ -17,8 +17,9 @@ use Drupal\pluginformalter\Plugin\FormAlter\FormAlterBase;
  *
  * @package Drupal\search_api_pantheon\Plugin\FormAlter
  */
-class SolrReloadFormAlter extends FormAlterBase {
-
+class SolrReloadFormAlter  {
+  use StringTranslationTrait;
+  use DependencySerializationTrait;
   /**
    * {@inheritdoc}
    */
