@@ -111,12 +111,9 @@ class SchemaPoster implements LoggerAwareInterface {
     $status_code = $response->getStatusCode();
     $this->logger->info('Status code: ' . $status_code);
     if ($status_code >= 200 && $status_code < 300) {
-      // @TODO Maybe we need to capture exception here??
       // Call reload on the server.
       $this->reloadServer();
     }
-    $this->logger->info('After server reload?');
-
     return $this->processResponse($response);
   }
 
