@@ -5,7 +5,7 @@
 
 ## Important Notice - Schema Reversion Prevention
 
-Starting with version 8.1.x, this module includes critical fixes to prevent Solr schema reversions that could cause:
+Starting with version 8.2, this module includes critical fixes to prevent Solr schema reversions that could cause:
 
 - Search functionality outages
 - Loss of indexed content
@@ -19,13 +19,10 @@ Users experiencing these issues should upgrade immediately to version 8.1.x-dev.
 This module is for you if you meet the following requirements:
 
 - Using Drupal 9.4/10
-
 - Hosting the Drupal site on Pantheon's platform
-
 - Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
 
   - Pantheon's integrated composer (`build step: true` in your pantheon.yml)
-
   - A Continuous Integration service like Circle CI or Travis
 
 - Have Dashboard access to the platform (necessary to deploy code changes)
@@ -76,16 +73,14 @@ composer require 'drupal/search_api_pantheon:8.1.x-dev@dev'
 See [Drupal.org for complete documentation on Search API](https://www.drupal.org/node/1250878).
 To configure the connection with Pantheon, perform the following steps on your Dev environment (or a Multidev):
 
-- **Enable Solr on your Pantheon site**
-
+#### Enable Solr on your Pantheon site
   - Under "Settings" in your Pantheon site dashboard, enable Solr as an add on.
     This feature is available for sandbox sites as well as paid plans at the
     Professional level and above.
 
-- **Enable Solr 8 in your pantheon.yml file**
+#### Enable Solr 8 in your pantheon.yml file
 
-  - Add the bolded portion to your `pantheon.yml` file (** SYNTAX NOT FINAL; Use pantheon internal YGG
-    instructions until yml support is final and available in prod **):
+  - Add the bolded portion to your `pantheon.yml` file:
 
     ```yaml
     php_version: 8.1
