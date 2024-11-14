@@ -117,6 +117,10 @@ class RoboFile extends Tasks {
     // Test creating Solr index.
     $this->testSolrIndexCreate($site_name, 'dev');
 
+    // Test running the reload
+    $this->testPantheonSolrReload($site_name, 'dev');
+    $this->testSolrReload($site_name, 'dev');
+
     // Test select query.
     $this->testSolrSelect($site_name, 'dev');
 
@@ -573,6 +577,7 @@ class RoboFile extends Tasks {
               '--yes',
               'search_api_pantheon',
               'search_api_pantheon_admin',
+              'search_api_solr_admin'
           )
       ->run();
     $this->taskExec(static::$TERMINUS_EXE)
@@ -802,8 +807,40 @@ class RoboFile extends Tasks {
       if (!$result->wasSuccessful()) {
         exit(1);
       }
-
   }
+
+  public function testPantheonSolrReload(string $site_name, string $env = 'dev') {
+    $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'search-api-pantheon:reloadSchema',
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+  }
+
+  public function testSolrReload(string $site_name, string $env = 'dev') {
+    $result = $this->taskExec( static::$TERMINUS_EXE )
+        ->args(
+          'drush',
+          "$site_name.$env",
+          '--',
+          'search-api-solr:reload',
+          'pantheon_solr8'
+        )
+        ->run();
+      if (!$result->wasSuccessful()) {
+        exit(1);
+      }
+  }
+
+  
+
+
 
   /**
    * Use search-api-pantheon:select command to ensure both Drupal index and the actual Solr index have the same amount of items.

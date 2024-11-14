@@ -73,8 +73,14 @@ class PantheonGuzzle extends Client implements
       $config['cert'] = $cert;
     }
     parent::__construct($config);
-    $this->endpoint = $endpoint;
-    $this->logger = $logger_factory->get('PantheonGuzzle');
+    if (!$endpoint instanceof Endpoint) {
+      throw new \InvalidArgumentException('Endpoint must be an instance of Endpoint');
+    }
+    $this->setEndpoint($endpoint);
+    if ($logger_factory instanceof LoggerChannelFactoryInterface) {
+      $this->setLogger($logger_factory->get('PantheonGuzzle'));
+    }
+    $this->setLogger($logger_factory->get('PantheonGuzzle'));
   }
 
   /**
