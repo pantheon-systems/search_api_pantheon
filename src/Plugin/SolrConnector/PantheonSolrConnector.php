@@ -227,10 +227,6 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
 
     $this->setConfiguration($configuration);
 
-    // Exclude Platform configs.
-    foreach (array_keys(self::getPlatformConfig()) as $key) {
-      unset($this->configuration[$key]);
-    }
   }
 
   /**
