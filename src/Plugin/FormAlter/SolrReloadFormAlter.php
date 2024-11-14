@@ -2,6 +2,8 @@
 
 namespace Drupal\search_api_pantheon\Plugin\FormAlter;
 
+use Drupal\pluginformalter\Plugin\FormAlter\FormAlterBase;
+
 /**
  * Class SolrReloadFormAlter.
  *
