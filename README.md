@@ -124,93 +124,75 @@ drush search-api-pantheon:reload
 
 ### Usage
 
-- **Enable the modules**
+#### Enable the modules
 
   - Go to `admin/modules` and enable "Search API Pantheon."
-
   - Doing so will also enable Search API and Search API Solr if they are not already enabled.
 
-- **OPTIONAL: Disable Drupal Core's search module**
+#### OPTIONAL: Disable Drupal Core's search module
 
   - If you are using Search API, then you probably will not be using Drupal Core's Search module.
-
   - Uninstall it to save some confusion in the further configuration steps: `admin/modules/uninstall`.
 
-- **The module should install a SEARCH API server for you**
+#### The module should install a SEARCH API server for you
 
   - Navigate in the Drupal interface to `CONFIG` => `SEARCH & METADATA` => `SEARCH API`
-
   - Validate that the `PANTHEON SEARCH` server exists and is "enabled".
 
-- **Solr versions and schemas**
+#### Solr versions and schemas
 
   - The version of Solr on Pantheon is Apache Solr 8.8. When you first create
     your index or alter it significantly, you will need to update the SCHEMA
     on the server. Do that either with a drush command or in the administration
     for the Solr Server.
-
   - Navigate to `CONFIGURATION` => `SEARCH AND METADATA` => `SEARCH API`
     => `PANTHEON SEARCH` => `PANTHEON SEARCH ADMIN`
-
   - Choose the button labeled "Post Solr Schema".
-
   - The module will post a schema specific to your site.
 
-- **Use the server with an index**
+#### Use the server with an index
 
   The following steps are not Pantheon-specific. This module only alters the the configuration of Search API servers. To use a server, you next need to create an index.
 
   - Go to `admin/config/search/search-api/add-index`.
-
   - Name your index and choose a data source. If this is your
     first time using Search API, start by selecting "Content"
     as a data source. That option will index the articles,
     basic pages, and other node types you have configured.
-
   - Select "Pantheon" as the server.
-
   - Save the index.
-
   - For this index to be usable, you will also need to configure fields to be searched.
     Select the "fields" tab and `CHOOSE FIELDS TO BE INCLUDED IN THE INDEX`. You may want
     to index many fields. "Title" is a good field to start with.
-
   - After adding fields to the configuration, make sure the index is full by clicking
     "Index now" or by running cron.
 
-- **Search the Index**
+#### Search the Index
 
   - Create a new view returning `INDEX PANTHEON SOLR8` of type 'ALL'. Don't worry right now how it's sorted, we're
     going to change that to 'relevance' once we have some data being returned during the search.
-
   - In the view, `CHOOSE FIELDS TO BE INCLUDED IN THE RESULTS` from the fields you added to your index
     when you created it. In addition to the fields you added to the index, choose 'relevance' to add
     to the results.
-
   - Expose any keywords to the user to change and the view will put a KEYWORDS
-
   - Once your search is returning results, you can now sort by the "relevance" field and Solr will give the documents
     a relevance rating. A higher rating means Solr thinks the item is "more relevant" to your search term.
 
-- **Export your changes**
+#### Export your changes
 
   - It is a best practice in Drupal z to export your changes to `yml` files.
     Using Terminus while in SFTP mode, you can run `terminus drush [PANTHEON_SITE].[PANTHEON_ENV] -- "config:export -y"`
     to export the configuration changes you have made. Once committed, these changes
     can be deployed out to Test and Live environments.
 
-- **OPTIONAL INSTALLS**
+#### Optional Installs
 
   Any of the optional `search_api` modules should work without issue with Pantheon Solr, including but not limited to:
 
   - Search API Attachments
-
   - Search API Facets
-
   - Search API Autocomplete
-
   - Search API Spellcheck
-
   - Search API Ajax
 
 ## Pantheon Environments
