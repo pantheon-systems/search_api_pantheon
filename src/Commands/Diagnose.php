@@ -119,6 +119,9 @@ class Diagnose extends DrushCommands {
       $this->logger->notice('Index PATH Value:   {var}', [
             'var' => $this->endpoint->getPath(),
         ]);
+      $this->logger->notice('Index RELOAD_PATH Value:   {var}', [
+           'var' => $this->endpoint->getReloadPath(),
+        ]);
       $this->logger->notice('Testing bare Connection...');
       $response = $this->pingSolrHost();
       $this->logger->notice('Ping Received Response? {var}', [
