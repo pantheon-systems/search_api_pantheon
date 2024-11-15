@@ -83,7 +83,7 @@ class PantheonSolrAdminForm extends FormBase {
       if (is_array($file_contents)) {
         $file_contents = json_encode($file_contents);
       }
-      
+
       $form[$filename][] = $this->getViewSolrFile($filename, $file_contents, $is_open);
       $is_open = FALSE;
     }
