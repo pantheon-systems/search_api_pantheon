@@ -12,7 +12,8 @@ function search_api_pantheon_form_alter(&$form, &$form_state, $form_id) {
 
 function search_api_pantheon_form_submit($form, &$form_state) {
   $rl = \Drupal::service("search_api_pantheon.reload");
+  $messenger = \Drupal::service("messenger");
   $rl->reloadServer() ?
-    drupal_set_message(t('Core reloaded successfully.')) :
-    drupal_set_message(t('Core reload failed.'), 'error');
+    $messenger->addStatus(t('Core reloaded successfully.')) :
+    $messenger->addError(t('Core reload failed.'));
 }
