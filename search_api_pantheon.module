@@ -4,9 +4,6 @@
  * @file
  */
 
-use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\search_api_pantheon\ReloadInterface;
-
 function search_api_pantheon_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'solr_reload_core_form') {
     $form['#submit'][] = 'search_api_pantheon_form_submit';
