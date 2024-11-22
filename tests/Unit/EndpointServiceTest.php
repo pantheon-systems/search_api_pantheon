@@ -28,6 +28,7 @@ class EndpointServiceTest extends TestCase {
       'schema' => '/schema-path',
       'collection' => NULL,
       'leader' => FALSE,
+      'reload_path' => "/reload-path",
     ]);
 
     $this->assertEquals('/core-name', $ep->getCore());
@@ -43,6 +44,15 @@ class EndpointServiceTest extends TestCase {
       'one://two:1234/server-path/schema-path',
       $ep->getSchemaUploadUri()
     );
+    $this->assertEquals(
+      'one://two:1234/server-path/reload-path',
+      $ep->getReloadUri()
+    );
+  }
+
+  public function testReloadPath() {
+    $ep = new Endpoint(["reload_path" => "/reload"]);
+    $this->assertEquals("/reload", $ep->getReloadPath());
   }
 
 }

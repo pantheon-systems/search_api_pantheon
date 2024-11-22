@@ -58,6 +58,8 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   protected $moduleExtensionList;
 
+  protected LoggerChannelFactoryInterface $loggerFactory;
+
   /**
    * Class Constructor.
    */
@@ -68,6 +70,7 @@ class SchemaPoster implements LoggerAwareInterface {
         ModuleExtensionList $module_extension_list
     ) {
     $this->logger = $logger_factory->get('PantheonSearch');
+    $this->loggerFactory = $logger_factory;
     $this->client = $client;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleExtensionList = $module_extension_list;
@@ -105,7 +108,25 @@ class SchemaPoster implements LoggerAwareInterface {
       throw new \Exception('Cannot post schema to environment url.');
     }
 
+    $status_code = $response->getStatusCode();
+    $this->logger->info('Status code: ' . $status_code);
+    if ($status_code >= 200 && $status_code < 300) {
+      // Call reload on the server.
+      $this->reloadServer();
+    }
     return $this->processResponse($response);
+  }
+
+  /**
+   * Reload the server after schema upload.
+   *
+   * @throws \Drupal\search_api_pantheon\Exceptions\PantheonSearchApiException
+   *
+   * @return bool
+   */
+  public function reloadServer(): bool {
+    $reload = new Reload($this->loggerFactory, $this->client);
+    return $reload->reloadServer();
   }
 
   /**

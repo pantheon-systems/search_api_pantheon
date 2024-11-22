@@ -79,6 +79,11 @@ class PantheonSolrAdminForm extends FormBase {
             '#group' => 'status',
             '#weight' => substr($filename, 0, -3) === 'xml' ? -10 : 10,
         ];
+
+      if (is_array($file_contents)) {
+        $file_contents = json_encode($file_contents);
+      }
+
       $form[$filename][] = $this->getViewSolrFile($filename, $file_contents, $is_open);
       $is_open = FALSE;
     }
