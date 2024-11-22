@@ -19,6 +19,8 @@ use Psr\Log\LoggerInterface;
  */
 class GuzzleClassTest extends TestCase {
 
+  protected $loggerFactory;
+
   /**
    * {@inheritdoc}
    */

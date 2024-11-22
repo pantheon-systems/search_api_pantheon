@@ -11,6 +11,7 @@
     <server name="PANTHEON_INDEX_PATH"   value="${PANTHEON_INDEX_PATH}" />
     <server name="PANTHEON_INDEX_CORE"   value="${PANTHEON_INDEX_CORE}" />
     <server name="PANTHEON_INDEX_SCHEMA"   value="${PANTHEON_INDEX_SCHEMA}" />
+    <server name="PANTHEON_INDEX_RELOAD_PATH"   value="${PANTHEON_INDEX_RELOAD_PATH}" />
   </php>
   <testsuites>
     <testsuite name="unit">
