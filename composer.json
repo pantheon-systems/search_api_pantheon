@@ -46,8 +46,8 @@
         "http-interop/http-factory-guzzle": "^1.0",
         "kint-php/kint": "^4.1|^5",
         "psr/event-dispatcher": "^1.0",
-        "symfony/finder": "^4.4|^5|^6",
-        "symfony/yaml": "^4.4|^5|^6"
+        "symfony/finder": "^4.4|^5|^6|^7",
+        "symfony/yaml": "^4.4|^5|^6|^7"
     },
     "require-dev": {
         "consolidation/robo": "^3.0",
