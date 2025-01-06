@@ -137,7 +137,7 @@ class RoboFile extends Tasks {
   protected function getCurrentConstraint(): string {
     $branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
     if ($branch !== 'HEAD') {
-      return "${branch}-dev";
+      return "{$branch}-dev";
     } else {
       $tag = trim(shell_exec('git describe --exact-match --tags $(git log -n1 --pretty=\'%h\')'));
       if ($tag) {
@@ -148,7 +148,7 @@ class RoboFile extends Tasks {
         $branch_parts = explode('/', $branch);
         $branch = end($branch_parts);
         if ($branch) {
-          return "${branch}-dev";
+          return "{$branch}-dev";
         }
       }
     }
