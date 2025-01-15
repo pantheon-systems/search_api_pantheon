@@ -14,7 +14,7 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
       options: --user root
     name: Code linting
     env:
@@ -45,15 +45,15 @@ jobs:
       - name: PHPCompatibility
         uses: pantheon-systems/phpcompatibility-action@v1
         with:
-          test-versions: 7.4-
+          test-versions: 8.2
   build_test:
     strategy:
       matrix:
-        drupal-version: [ 10 ]
+        drupal-version: [ 10, 11 ]
       fail-fast: false
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
       options: --user root
     name: Build and test (Drupal ${{ matrix.drupal-version }})
     env:
