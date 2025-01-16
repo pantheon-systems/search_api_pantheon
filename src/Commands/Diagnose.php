@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
@@ -31,8 +30,6 @@ class Diagnose extends DrushCommands {
   /**
    * Class Constructor.
    *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
-   *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
@@ -41,12 +38,10 @@ class Diagnose extends DrushCommands {
    *   Injected by container.
    */
   public function __construct(
-        LoggerChannelFactoryInterface $loggerChannelFactory,
         PantheonGuzzle $pantheonGuzzle,
         Endpoint $endpoint,
         SolariumClient $solariumClient
     ) {
-    $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
     $this->solr = $solariumClient;
