@@ -26,7 +26,8 @@ use Drupal\Core\Session\AccountProxyInterface;
  */
 class PantheonGuzzle extends Client implements
   ClientInterface,
-  LoggerAwareInterface {
+  LoggerAwareInterface,
+  Psr18Adapter {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
@@ -142,11 +143,7 @@ class PantheonGuzzle extends Client implements
    *   The interface in question.
    */
   public function getPsr18Adapter(): AdapterInterface {
-    return new Psr18Adapter(
-          $this,
-          new RequestFactory(),
-          new StreamFactory()
-      );
+    return $this;
   }
 
   /**
