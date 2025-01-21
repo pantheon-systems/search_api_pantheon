@@ -23,7 +23,8 @@ use Drupal\Core\Session\AccountProxyInterface;
  */
 class PantheonGuzzle extends Client implements
   ClientInterface,
-  LoggerAwareInterface {
+  LoggerAwareInterface,
+  AdapterInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
