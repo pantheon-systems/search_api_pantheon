@@ -7,15 +7,12 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
-use Http\Factory\Guzzle\RequestFactory;
-use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Adapter\AdapterInterface;
-use Solarium\Core\Client\Adapter\Psr18Adapter;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 
@@ -26,8 +23,7 @@ use Drupal\Core\Session\AccountProxyInterface;
  */
 class PantheonGuzzle extends Client implements
   ClientInterface,
-  LoggerAwareInterface,
-  Psr18Adapter {
+  LoggerAwareInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
@@ -134,16 +130,6 @@ class PantheonGuzzle extends Client implements
         );
     }
     return (string) $response->getBody();
-  }
-
-  /**
-   * Get a PSR adapter interface based on this class.
-   *
-   * @return \Solarium\Core\Client\Adapter\AdapterInterface
-   *   The interface in question.
-   */
-  public function getPsr18Adapter(): AdapterInterface {
-    return $this;
   }
 
   /**

@@ -29,7 +29,7 @@ class SolariumClient extends Client {
       $event_dispatcher = new Psr14Bridge($event_dispatcher);
     }
     parent::__construct(
-          $guzzle->getPsr18Adapter(),
+          $guzzle,
           $event_dispatcher,
           ['endpoint' => [$endpoint]]
       );
