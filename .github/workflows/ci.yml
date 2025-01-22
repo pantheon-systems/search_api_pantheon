@@ -14,7 +14,7 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
+      image: quay.io/pantheon-public/build-tools-ci:v8.2
       options: --user root
     name: Code linting
     env:
@@ -30,6 +30,7 @@ jobs:
       SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -38,14 +39,19 @@ jobs:
 
       - name: Code sniff
         run: composer run-script code:lint
+
   phpcompatibility:
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:v8.2
     name: PHP Compatibility
     steps:
+
       - name: PHPCompatibility
         uses: pantheon-systems/phpcompatibility-action@v1
         with:
-          test-versions: 8.2
+          test-versions: [8.1, 8.2, 8.3, 8.4]
+
   build_test:
     strategy:
       matrix:
@@ -53,7 +59,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
     name: Build and test (Drupal ${{ matrix.drupal-version }})
     env:
@@ -70,8 +76,15 @@ jobs:
       BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+          ini-values: post_max_size=256M, max_execution_time=120
 
       - name: Login
         run: |
@@ -106,6 +119,7 @@ jobs:
         if: ${{ always() }}
         run: |
           ./vendor/bin/robo test:delete-sites
+
   mirror_do:
     runs-on: ubuntu-latest
     name: Checkout & push to remote
@@ -116,16 +130,19 @@ jobs:
       WORKSPACE: ${{ github.workspace }}
       DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: ignore
+
       - name: Pushes to drupal.org repository
         run: |
           cd $WORKSPACE

@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\CurlHandler;
@@ -13,8 +14,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Solarium\Core\Client\Adapter\AdapterInterface;
+use Solarium\Core\Client\Adapter\Psr18Adapter;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Solarium\Core\Client\Endpoint;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -23,8 +26,7 @@ use Drupal\Core\Session\AccountProxyInterface;
  */
 class PantheonGuzzle extends Client implements
   ClientInterface,
-  LoggerAwareInterface,
-  AdapterInterface {
+  LoggerAwareInterface {
   use LoggerAwareTrait;
   use EndpointAwareTrait;
 
@@ -38,7 +40,11 @@ class PantheonGuzzle extends Client implements
   /**
    * Class Constructor.
    */
-  public function __construct(Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory, AccountProxyInterface $current_user) {
+  public function __construct(
+      Endpoint $endpoint,
+      LoggerChannelFactoryInterface $logger_factory,
+      AccountProxyInterface $current_user
+  ) {
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
@@ -158,6 +164,21 @@ class PantheonGuzzle extends Client implements
     });
     $uri = $uri->withPath('/' . ltrim(implode('/', $path_parts), '/'));
     return $request->withUri($uri);
+  }
+
+  /**
+   * Get a PSR adapter interface based on this class.
+   *
+   * @return \Solarium\Core\Client\Adapter\AdapterInterface
+   *   The interface in question.
+   */
+  public function getAdapter(): AdapterInterface {
+    $factory = new HttpFactory();
+    return new Psr18Adapter(
+      $this,
+      $factory,
+      $factory,
+    );
   }
 
 }

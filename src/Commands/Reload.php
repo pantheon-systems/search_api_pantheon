@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drush\Commands\DrushCommands;

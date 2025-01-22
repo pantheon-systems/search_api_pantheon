@@ -1,0 +1,43 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - search_api_pantheon
+    - search_api_solr
+id: pantheon_search
+name: 'Pantheon Search'
+description: 'Default search server for Pantheon Search.'
+backend: search_api_solr
+backend_config:
+  retrieve_data: false
+  highlight_data: false
+  site_hash: false
+  server_prefix: ''
+  domain: generic
+  environment: default
+  connector: pantheon
+  connector_config:
+    scheme: https
+    port: 443
+    path: v1
+    timeout: 5
+    index_timeout: 5
+    optimize_timeout: 10
+    finalize_timeout: 30
+    solr_version: '8'
+    http_method: AUTO
+    commit_within: 1000
+    jmx: false
+    jts: false
+    solr_install_dir: ''
+    skip_schema_check: true
+  optimize: false
+  fallback_multiple: false
+  disabled_field_types: {  }
+  disabled_caches: {  }
+  disabled_request_handlers:
+  disabled_request_dispatchers:
+  rows: 10
+  index_single_documents_fallback_count: 10
+  index_empty_text_fields: false
+  suppress_missing_languages: false

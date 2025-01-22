@@ -1,3 +1,10 @@
+Search API Patheon 8.3.0
+--------------------------------------------------
+- Compatible with Pantheon Search (Solr 8)
+- Compatible with Drupal 10.x
+- Versions of Drupal less than 10 are not supported.
+- Versions of PHP less than 8.1 are not supported
+
 Search API Patheon 8.x-8.x-alpha1
 --------------------------------------------------
 - Compatible with Pantheon Search (Solr 8)

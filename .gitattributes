@@ -2,3 +2,5 @@
 /circle.yml export-ignore
 /.gitattributes export-ignore
 /.gitignore export-ignore
+/codacy.yml export-ignore
+/phpcs.xml export-ignore
