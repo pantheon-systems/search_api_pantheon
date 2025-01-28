@@ -1,11 +1,11 @@
-# Search API Pantheon: Solr 8 & Drupal 9/10 Integration
+# Search API Pantheon: Solr 8 & Drupal 10/11 Integration
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
 
 ## Important Notice - Schema Reversion Prevention
 
-Starting with version 8.2, this module includes critical fixes to prevent Solr schema reversions that could cause:
+Starting with version 8.3, this module includes critical fixes to prevent Solr schema reversions that could cause:
 
 - Search functionality outages
 - Loss of indexed content
@@ -18,7 +18,8 @@ Users experiencing these issues should upgrade immediately to version 8.1.x-dev.
 
 This module is for you if you meet the following requirements:
 
-- Using Drupal 9.4/10
+- Using Drupal 10/11
+- PHP 8.1 or later
 - Hosting the Drupal site on Pantheon's platform
 - Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
 
@@ -26,6 +27,7 @@ This module is for you if you meet the following requirements:
   - A Continuous Integration service like Circle CI or Travis
 
 - Have Dashboard access to the platform (necessary to deploy code changes)
+- Have Solr enabled on your Pantheon site
 
 ## Intent
 
@@ -55,7 +57,7 @@ Composer is the way you should be managing your drupal module requirements. This
 To install this module via composer, run the following command in your Drupal root:
 
 ```bash
-composer require 'drupal/search_api_pantheon:^8.1'
+composer require 'drupal/search_api_pantheon:^8.3'
 ```
 
 ### Development Version
@@ -63,7 +65,7 @@ composer require 'drupal/search_api_pantheon:^8.1'
 Note that the above will install the latest stable release of this module. To install the latest development version, use:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.1.x-dev@dev'
+composer require 'drupal/search_api_pantheon:8.x-dev@dev'
 ```
 
 ## Setup
@@ -100,7 +102,7 @@ To configure the connection with Pantheon, perform the following steps on your D
 
 #### Automatic Core Reload
 
-Starting with version 8.1.x, Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
+Starting with version 8.3.x, Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
 
 #### Schema Updates
 
