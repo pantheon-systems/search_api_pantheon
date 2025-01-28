@@ -30,6 +30,7 @@ jobs:
       SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
     steps:
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -38,18 +39,21 @@ jobs:
 
       - name: Code sniff
         run: composer run-script code:lint
+
   phpcompatibility:
     runs-on: ubuntu-latest
     name: PHP Compatibility
     steps:
+
       - name: PHPCompatibility
         uses: pantheon-systems/phpcompatibility-action@v1
         with:
-          test-versions: 7.4-
+          test-versions: 8.1
+
   build_test:
     strategy:
       matrix:
-        drupal-version: [ 10 ]
+        drupal-version: [ 10, 11 ]
       fail-fast: false
     runs-on: ubuntu-latest
     container:
@@ -70,6 +74,7 @@ jobs:
       BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -106,6 +111,7 @@ jobs:
         if: ${{ always() }}
         run: |
           ./vendor/bin/robo test:delete-sites
+
   mirror_do:
     runs-on: ubuntu-latest
     name: Checkout & push to remote
@@ -116,16 +122,19 @@ jobs:
       WORKSPACE: ${{ github.workspace }}
       DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: ignore
+
       - name: Pushes to drupal.org repository
         run: |
           cd $WORKSPACE

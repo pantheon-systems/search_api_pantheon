@@ -2,13 +2,12 @@
 
 namespace Drupal\search_api_pantheon\Services;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use Drupal\search_api_pantheon\Traits\EndpointAwareTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
-use Http\Factory\Guzzle\RequestFactory;
-use Http\Factory\Guzzle\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -18,6 +17,7 @@ use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Client\Adapter\Psr18Adapter;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Solarium\Core\Client\Endpoint;
 
 /**
  * Pantheon-specific extension of the Guzzle http query class.
@@ -40,7 +40,11 @@ class PantheonGuzzle extends Client implements
   /**
    * Class Constructor.
    */
-  public function __construct(Endpoint $endpoint, LoggerChannelFactoryInterface $logger_factory, AccountProxyInterface $current_user) {
+  public function __construct(
+      Endpoint $endpoint,
+      LoggerChannelFactoryInterface $logger_factory,
+      AccountProxyInterface $current_user
+  ) {
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
     $stack->push(
@@ -136,20 +140,6 @@ class PantheonGuzzle extends Client implements
   }
 
   /**
-   * Get a PSR adapter interface based on this class.
-   *
-   * @return \Solarium\Core\Client\Adapter\AdapterInterface
-   *   The interface in question.
-   */
-  public function getPsr18Adapter(): AdapterInterface {
-    return new Psr18Adapter(
-          $this,
-          new RequestFactory(),
-          new StreamFactory()
-      );
-  }
-
-  /**
    * Request Middleware Callback.
    *
    * @param \Psr\Http\Message\RequestInterface $request
@@ -174,6 +164,21 @@ class PantheonGuzzle extends Client implements
     });
     $uri = $uri->withPath('/' . ltrim(implode('/', $path_parts), '/'));
     return $request->withUri($uri);
+  }
+
+  /**
+   * Get a PSR adapter interface based on this class.
+   *
+   * @return \Solarium\Core\Client\Adapter\AdapterInterface
+   *   The interface in question.
+   */
+  public function getAdapter(): AdapterInterface {
+    $factory = new HttpFactory();
+    return new Psr18Adapter(
+      $this,
+      $factory,
+      $factory,
+    );
   }
 
 }

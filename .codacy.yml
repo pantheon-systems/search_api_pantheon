@@ -1,0 +1,5 @@
+---
+exclude_paths:
+  - RoboFile.php
+  - .github/workflows/ci.yml
+  - .github/workflows/create-branch-on-tag.yml

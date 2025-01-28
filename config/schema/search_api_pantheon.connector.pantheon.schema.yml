@@ -1,3 +1,0 @@
-plugin.plugin_configuration.search_api_solr_connector.pantheon:
-  type: plugin.plugin_configuration.search_api_solr_connector.standard
-  label: 'Search API Solr Pantheon connector settings'

@@ -2,8 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
@@ -14,7 +12,6 @@ use Symfony\Component\Finder\Finder;
  * Drush Search Api Pantheon Schema Commands.
  */
 class Schema extends DrushCommands {
-  use LoggerChannelTrait;
 
   /**
    * Configured pantheon-solr-specific guzzle client.
@@ -33,19 +30,15 @@ class Schema extends DrushCommands {
   /**
    * Class constructor.
    *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
-   *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
    *   Injected by Container.
    */
   public function __construct(
-        LoggerChannelFactoryInterface $loggerChannelFactory,
         PantheonGuzzle $pantheonGuzzle,
         SchemaPoster $schemaPoster
     ) {
-    $this->logger = $loggerChannelFactory->get('SearchAPIPantheon Drush');
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->schemaPoster = $schemaPoster;
   }

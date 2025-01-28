@@ -12,6 +12,9 @@ use Robo\ResultData;
 use Robo\Tasks;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Finder\Finder;
+
+define('STATUS_JQ_FILTER', 'jq -r \'.pantheon_search.status\'');
 
 /**
  * RoboFile is the main entry point for Robo commands.
@@ -30,12 +33,77 @@ class RoboFile extends Tasks {
    */
   public DateTime $started;
 
+  public array $search_index;
+  public array $search_server;
+
   /**
    * Class constructor.
    */
   public function __construct() {
     $this->started = new DateTime();
     require_once 'vendor/autoload.php';
+    $this->getInstallConfigs();
+  }
+
+  public function test() {
+    $this->output()->writeln('RoboFile constructor: ' . $this->started->format('Y-m-d H:i:s'));
+    $this->output()->writeln('Search index: ' . print_r($this->search_index, TRUE));
+    $this->output()->writeln('Search server: ' . print_r($this->search_server, TRUE));
+    $this->output()->writeln('Hello world!');
+  }
+
+  public function getInstallConfigs(): void {
+    $finder = new Finder();
+    try {
+      $finder->files()
+        ->in('./config/install')
+        ->name(['*.yml', '*.yaml'])
+        ->sortByName();
+      if (!$finder->hasResults()) {
+        throw new \RuntimeException(
+          'No YAML files found in the specified directory.'
+        );
+      }
+
+      foreach ($finder as $file) {
+        $filePath = $file->getRealPath();
+        $fileName = $file->getBasename('.yml');
+
+        // Remove .yaml extension if present
+        $fileName = str_replace('.yaml', '', $fileName);
+
+        try {
+          switch (substr($fileName, 0, 16)) {
+            case 'search_api.index':
+              $this->search_index = Yaml::parseFile($filePath);
+              break;
+            case 'search_api.serve':
+              $this->search_server = Yaml::parseFile($filePath);
+              break;
+            default:
+              break;
+          }
+        }
+        catch (\Exception $e) {
+          throw new \RuntimeException(
+            sprintf(
+              'Error parsing YAML file %s: %s',
+              $filePath,
+              $e->getMessage()
+            )
+          );
+        }
+      }
+    }
+    catch (\Exception $e) {
+      throw new \RuntimeException(
+        sprintf(
+          'Error accessing directory %s: %s',
+          $directoryPath,
+          $e->getMessage()
+        )
+      );
+    }
   }
 
   /**
@@ -58,7 +126,7 @@ class RoboFile extends Tasks {
   /**
    * Run the full test suite for this project.
    */
-  public function testFull(int $drupal_version = 9, string $site_name = NULL) {
+  public function testFull(int $drupal_version = 10, string $site_name = NULL) {
     // Get the right constraint based on current branch/tag.
     $constraint = $this->getCurrentConstraint();
     // Ensure terminus 3 is installed.
@@ -72,9 +140,10 @@ class RoboFile extends Tasks {
       $site_name = substr(\uniqid('test-'), 0, 12);
       if ($_SERVER['GITHUB_RUN_NUMBER']) {
         // Ensure that 2 almost parallel runs do not collide.
-        $site_name .= '-' . $drupal_version . '-'. $_SERVER['GITHUB_RUN_NUMBER'];
+        $site_name .= '-' . $drupal_version . '-' . $_SERVER['GITHUB_RUN_NUMBER'];
       }
     }
+    $options['drupal_version'] = $drupal_version;
 
     // Create site, set connection mode to git and clone it to local.
     $this->testCreateSite($site_name, $options);
@@ -82,12 +151,6 @@ class RoboFile extends Tasks {
     $this->testCloneSite($site_name);
     $this->testAllowPlugins($site_name, $drupal_version);
     $this->testPhpVersion($site_name, $drupal_version);
-
-    // If received Drupal 10, upgrade the recently created site to Drupal 10.
-    if ($drupal_version === 10) {
-      // @todo Make it downgrade to Drupal 9 when Drupal 10 becomes the default version.
-      $this->testUpgradeToDrupal10($site_name);
-    }
 
     // Composer require the corresponding modules, push to Pantheon and install the site.
     $this->testRequireSolr($site_name, $constraint);
@@ -113,36 +176,35 @@ class RoboFile extends Tasks {
 
     // Test all the Solr things.
     $this->testSolrEnabled($site_name);
-
-    // Test creating Solr index.
-    $this->testSolrIndexCreate($site_name, 'dev');
-
-    // Test running the reload
-    $this->testPantheonSolrReload($site_name, 'dev');
-    $this->testSolrReload($site_name, 'dev');
-
     // Test select query.
     $this->testSolrSelect($site_name, 'dev');
 
     // Finally, run Solr diagnose.
     $this->testSolrDiagnose($site_name, 'dev');
 
-    $this->output()->write( 'All done! 🎉' );
+    $this->output()->write('All done! 🎉');
     return ResultData::EXITCODE_OK;
   }
 
   /**
-   * Get current composer constraint depending on whether we're on a tag, a branch or a PR.
+   * Get current composer constraint depending on whether we're on a tag, a
+   * branch or a PR.
    */
   protected function getCurrentConstraint(): string {
     $branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
     if ($branch !== 'HEAD') {
       return "{$branch}-dev";
-    } else {
-      $tag = trim(shell_exec('git describe --exact-match --tags $(git log -n1 --pretty=\'%h\')'));
+    }
+    else {
+      $tag = trim(
+        shell_exec(
+          'git describe --exact-match --tags $(git log -n1 --pretty=\'%h\')'
+        )
+      );
       if ($tag) {
         return $tag;
-      } else {
+      }
+      else {
         // Maybe we are on a PR.
         $branch = $_SERVER['GITHUB_HEAD_REF'];
         $branch_parts = explode('/', $branch);
@@ -157,16 +219,21 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * Ensure terminus 3 is installed, otherwise offer installing it using Homebrew.
+   * Ensure terminus 3 is installed, otherwise offer installing it using
+   * Homebrew.
    */
   public function testCheckT3() {
-    if (!file_exists(static::$TERMINUS_EXE) || !is_executable(static::$TERMINUS_EXE)) {
+    if (!file_exists(static::$TERMINUS_EXE) || !is_executable(
+        static::$TERMINUS_EXE
+      )) {
       $this->confirm(
-            'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
-        );
-      $result = $this->taskExec('brew install pantheon-systems/external/terminus')->run();
+        'This demo makes extensive use of the Terminus 3 phar. Can I install it for you using homebrew?'
+      );
+      $result = $this->taskExec(
+        'brew install pantheon-systems/external/terminus'
+      )->run();
       if (!$result->wasSuccessful()) {
-        exit(1);
+        exit(ResultData::EXITCODE_ERROR);
       }
       // @todo check for build tools plugin "wait" command.
     }
@@ -177,17 +244,25 @@ class RoboFile extends Tasks {
    * Create site in Pantheon if it doesn't exist. Return site info.
    *
    * @param string $site_name
-   *  The machine name of the site to create.
+   *   The machine name of the site to create.
    *
    * @return \Robo\Result
    */
-  public function testCreateSite(string $site_name, array $options = ['org' => NULL]) {
+  public function testCreateSite(
+    string $site_name,
+    array $options = ['org' => NULL]
+  ) {
     $site_info = $this->siteInfo($site_name);
     if (empty($site_info)) {
       $home = $_SERVER['HOME'];
       $toReturn = $this->taskExec(static::$TERMINUS_EXE)
-        ->args('site:create', $site_name, $site_name, 'drupal-composer-managed');
-      if ( !empty( $options['org'] ) ) {
+        ->args(
+          'site:create',
+          $site_name,
+          $site_name,
+          sprintf('drupal-%d-composer-managed', $options['drupal_version'])
+        );
+      if (!empty($options['org'])) {
         $toReturn->option('org', $options['org']);
       }
       $toReturn->run();
@@ -205,24 +280,24 @@ class RoboFile extends Tasks {
    * @param string $site_name
    */
   public function waitForWorkflow(string $site_name, string $env = 'dev') {
-    $this->output()->write('Checking workflow status', true);
+    $this->output()->write('Checking workflow status', TRUE);
 
     exec(
       "terminus workflow:info:status $site_name.$env",
       $info
     );
 
-    $info = $this->cleanUpInfo( $info );
-    $this->output()->write( $info['workflow'], true );
+    $info = $this->cleanUpInfo($info);
+    $this->output()->write($info['workflow'], TRUE);
 
     // Wait for workflow to finish only if it hasn't already. This prevents the workflow:wait command from unnecessarily running for 260 seconds when there's no workflow in progress.
-    if ( $info['status'] !== 'succeeded' ) {
-      $this->output()->write('Waiting for platform', true);
+    if ($info['status'] !== 'succeeded') {
+      $this->output()->write('Waiting for platform', TRUE);
       exec(
-            "terminus build:workflow:wait --max=260 $site_name.$env",
-            $finished,
-            $status
-        );
+        "terminus build:workflow:wait --max=260 $site_name.$env",
+        $finished,
+        $status
+      );
     }
 
     if ($this->output()->isVerbose()) {
@@ -232,30 +307,32 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * Takes the output from a workflow:info:status command and converts it into a human-readable and easily parseable array.
+   * Takes the output from a workflow:info:status command and converts it into
+   * a human-readable and easily parseable array.
    *
-   * @param array $info Raw output from 'terminus workflow:info:status'
+   * @param array $info
+   *   Raw output from 'terminus workflow:info:status'
    *
    * @return array An array of workflow status info.
    */
-  private function cleanUpInfo( array $info ) : array {
+  private function cleanUpInfo(array $info): array {
     // Clean up the workflow status data and assign values to an array so it's easier to check.
     foreach ($info as $line => $value) {
-      $ln = array_values( array_filter( explode( "  ", trim( $value ) ) ) );
+      $ln = array_values(array_filter(explode("  ", trim($value))));
 
       // Skip lines with only one value. This filters out the ASCII dividers output by the command.
-      if ( count( $ln ) > 1  ) {
-        if ( in_array( $ln[0], [ 'Started At', 'Finished At' ] ) ) {
-          $ln[0] = trim( str_replace( 'At', '', $ln[0] ) );
+      if (count($ln) > 1) {
+        if (in_array($ln[0], ['Started At', 'Finished At'])) {
+          $ln[0] = trim(str_replace('At', '', $ln[0]));
           // Convert times to unix timestamps for easier use later.
-          $ln[1] = strtotime( $ln[1] );
+          $ln[1] = strtotime($ln[1]);
         }
 
-        $info[ str_replace( ' ', '-', strtolower( $ln[0] ) ) ] = trim( $ln[1] );
+        $info[str_replace(' ', '-', strtolower($ln[0]))] = trim($ln[1]);
       }
 
       // Remove the processed line.
-      unset( $info[ $line ] );
+      unset($info[$line]);
     }
 
     return $info;
@@ -285,7 +362,11 @@ class RoboFile extends Tasks {
    * @param string $connection
    *   The connection mode to set (git/sftp).
    */
-  public function testConnectionGit(string $site_name, string $env = 'dev', string $connection = 'git') {
+  public function testConnectionGit(
+    string $site_name,
+    string $env = 'dev',
+    string $connection = 'git'
+  ) {
     $this->taskExec('terminus')
       ->args('connection:set', $site_name . '.' . $env, $connection)
       ->run();
@@ -344,106 +425,6 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * Upgrade given site to Drupal 10.
-   *
-   * @param string $site_name
-   *   The machine name of the site to downgrade.
-   */
-  public function testUpgradeToDrupal10(string $site_name) {
-    $site_folder = $this->getSiteFolder($site_name);
-    chdir($site_folder);
-
-    // Remove composer lock.
-    $this->taskExec('rm')
-      ->args('composer.lock')
-      ->run();
-
-    $this->taskExec('composer')
-      ->args(
-        'config',
-        'minimum-stability',
-        'dev'
-      )
-      ->run();
-
-    $this->taskExec('composer')
-      ->args(
-        'config',
-        'platform.php',
-        '8.1'
-      )
-      ->run();
-
-    $this->taskExec('composer')
-      ->args(
-        'require',
-        '--no-update',
-        'drupal/core-recommended:^10',
-        'drupal/core-project-message:^10',
-        'drupal/core-composer-scaffold:^10',
-        'pantheon-systems/drupal-integrations:^10',
-        'mglaman/composer-drupal-lenient'
-      )
-      ->run();
-
-    $this->taskExec('composer')
-      ->args(
-        'require',
-        '--no-update',
-        '--dev',
-        'drupal/core-dev:^10'
-      )
-      ->run();
-
-    $this->taskExec('composer')
-      ->args('update')
-      ->run();
-
-    $this->taskExec('composer')
-        ->args(
-          'config',
-          '--merge',
-          '--json',
-          'extra.drupal-lenient.allowed-list',
-          '["drupal/search_api_pantheon"]'
-        )
-        ->run();
-    return ResultData::EXITCODE_OK;
-  }
-
-  /**
-   * Downgrade given site to Drupal 8.
-   *
-   * @param string $site_name
-   *   The machine name of the site to downgrade.
-   */
-  public function testDowngradeToDrupal8(string $site_name) {
-    $site_folder = $this->getSiteFolder($site_name);
-    chdir($site_folder);
-
-    // Remove composer lock.
-    $this->taskExec('rm')
-      ->args('composer.lock')
-      ->run();
-
-
-    $this->taskExec('composer')
-      ->args(
-        'require',
-        '--no-update',
-        '-W',
-        'drupal/core-recommended:^8',
-        'pantheon-systems/drupal-integrations:^8'
-      )
-      ->run();
-
-    $this->taskExec('composer')
-      ->args('update')
-      ->run();
-    return ResultData::EXITCODE_OK;
-  }
-
-  /**
    * Composer require the Solr related modules.
    *
    * @param string $site_name
@@ -451,7 +432,10 @@ class RoboFile extends Tasks {
    * @param string $constraint
    *   The constraint to use for the search_api_pantheon module.
    */
-  public function testRequireSolr(string $site_name, string $constraint = '^8') {
+  public function testRequireSolr(
+    string $site_name,
+    string $constraint = '^8'
+  ) {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     // Always test again latest version of search_api_solr.
@@ -491,7 +475,10 @@ class RoboFile extends Tasks {
    * @param string $commit_msg
    *   The commit message to use.
    */
-  public function testGitPush(string $site_name, string $commit_msg = 'Changes committed from demo script.') {
+  public function testGitPush(
+    string $site_name,
+    string $commit_msg = 'Changes committed from demo script.'
+  ) {
     $site_folder = $this->getSiteFolder($site_name);
     chdir($site_folder);
     try {
@@ -530,13 +517,24 @@ class RoboFile extends Tasks {
    * @param string $profile
    *   The Drupal profile to use during site installation.
    */
-  public function testSiteInstall(string $site_name, string $env = 'dev', string $profile = 'demo_umami') {
+  public function testSiteInstall(
+    string $site_name,
+    string $env = 'dev',
+    string $profile = 'demo_umami'
+  ) {
     $this->taskExec(static::$TERMINUS_EXE)
-      ->args('drush', $site_name . '.' . $env, '--', 'site:install', $profile, '-y')
+      ->args(
+        'drush',
+        $site_name . '.' . $env,
+        '--',
+        'site:install',
+        $profile,
+        '-y'
+      )
       ->options([
         'account-name' => 'admin',
-        'site-name' => $site_name,
-        'locale' => 'en',
+        'site-name'    => $site_name,
+        'locale'       => 'en',
       ])
       ->run();
     $this->waitForWorkflow($site_name);
@@ -554,55 +552,56 @@ class RoboFile extends Tasks {
   public function testModuleEnable(string $site_name, string $env = 'dev') {
     $this->taskExec(static::$TERMINUS_EXE)
       ->args(
-              'drush',
-              $site_name . '.' . $env,
-              'cr'
-          )
+        'drush',
+        $site_name . '.' . $env,
+        'cr'
+      )
       ->run();
     $this->taskExec(static::$TERMINUS_EXE)
       ->args(
-              'drush',
-              $site_name . '.' . $env,
-              'pm-uninstall',
-              'search',
-          )
+        'drush',
+        $site_name . '.' . $env,
+        'pm-uninstall',
+        'search',
+      )
       ->run();
     $this->waitForWorkflow($site_name);
     $this->taskExec(static::$TERMINUS_EXE)
       ->args(
-              'drush',
-              $site_name . '.' . $env,
-              '--',
-              'pm-enable',
-              '--yes',
-              'search_api_pantheon',
-              'search_api_pantheon_admin',
-              'search_api_solr_admin'
-          )
+        'drush',
+        $site_name . '.' . $env,
+        '--',
+        'pm-enable',
+        '--yes',
+        'search_api_pantheon',
+        'search_api_pantheon_admin',
+        'search_api_solr_admin'
+      )
       ->run();
     $this->taskExec(static::$TERMINUS_EXE)
       ->args(
-              'drush',
-              $site_name . '.' . $env,
-              'cr'
-          )
+        'drush',
+        $site_name . '.' . $env,
+        'cr'
+      )
       ->run();
   }
 
+
   /**
-   * Run through various diagnostics to ensure that Solr8 is enabled and working.
+   * Run through various diagnostics to ensure that Solr8 is enabled and
+   * working and an index has been created.
    *
    * @param string $site_name
    *   The machine name of the site to run the diagnostics on.
    * @param string $env
    *   The environment to run the diagnostics on.
    */
-  public function testSolrEnabled( string $site_name, string $env = 'dev' ) {
-
+  public function testSolrEnabled(string $site_name, string $env = 'dev') {
     try {
       // Attempt to ping the Pantheon Solr server.
-      $this->output()->write('Attempting to ping the Solr server...', true);
-      $ping = $this->taskExec( static::$TERMINUS_EXE )
+      $this->output()->write('Attempting to ping the Solr server...', TRUE);
+      $ping = $this->taskExec(static::$TERMINUS_EXE)
         ->args(
           'drush',
           "$site_name.$env",
@@ -611,33 +610,50 @@ class RoboFile extends Tasks {
         )
         ->run();
 
-        if ( $ping instanceof Result && ! $ping->wasSuccessful() ) {
-          \Kint::dump( $ping );
-          throw new \Exception( 'An error occurred attempting to ping Solr server' );
-        }
-
-        // Check that Solr8 is enabled.
-        $this->output()->write('Checking for Solr8 search API server...', true);
-        exec(
-          "terminus remote:drush $site_name.$env -- search-api-server-list | grep pantheon_solr8",
-          $server_list
+      if ($ping instanceof Result && !$ping->wasSuccessful()) {
+        \Kint::dump($ping);
+        throw new \Exception(
+          'An error occurred attempting to ping Solr server'
         );
+      }
 
-        if ( stripos( $server_list[0], 'enabled' ) === false ) {
-          \Kint::dump( $server_list );
-          throw new \Exception( 'An error occurred checking that Solr8 was enable.d' );
-        }
+      // Check that Solr8 is enabled.
+      $this->output()->write('Checking for Solr8 search API server...', TRUE);
+      exec(
+        "terminus remote:drush $site_name.$env -- search-api-server-list --format=json | " . STATUS_JQ_FILTER,
+        $server_list,
+      );
+      if (empty($server_list)) {
+        \Kint::dump($server_list);
+        throw new \Exception(
+          'No Servers Available. The default server was not imported when the module was enabled.'
+        );
+      }
+      if (stripos($server_list, 'enabled') === FALSE) {
+        \Kint::dump($server_list);
+        throw new \Exception(
+          'An error occurred checking that Solr8 was enabled: ' . print_r(
+            $server_list,
+            TRUE
+          )
+        );
+      }
+
     }
 
     catch (\Exception $e) {
+
       $this->output()->write($e->getMessage());
       return ResultData::EXITCODE_ERROR;
+
     }
+
     catch (\Throwable $t) {
       $this->output()->write($t->getMessage());
       return ResultData::EXITCODE_ERROR;
     }
 
+    $this->output()->write('👍👍👍 Solr8 is enabled and working.', TRUE);
     return ResultData::EXITCODE_OK;
   }
 
@@ -649,23 +665,25 @@ class RoboFile extends Tasks {
    * @param string $env
    *   The environment to run the diagnostics on.
    */
-  public function testSolrDiagnose( string $site_name, string $env = 'dev' ) {
+  public function testSolrDiagnose(string $site_name, string $env = 'dev') {
     try {
       // Run a diagnose command to make sure everything is okay.
-      $this->output()->write('Running search-api-pantheon:diagnose...', true);
-      $diagnose = $this->taskExec( static::$TERMINUS_EXE )
+      $this->output()->write('Running search-api-pantheon:diagnose...', TRUE);
+      $diagnose = $this->taskExec(static::$TERMINUS_EXE)
         ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'search-api-pantheon:diagnose',
-          '-v'
+        'drush',
+        "$site_name.$env",
+        '--',
+        'search-api-pantheon:diagnose',
+        '-v'
         )
         ->run();
 
-      if ( $diagnose instanceof Result && ! $diagnose->wasSuccessful() ) {
-        \Kint::dump( $diagnose );
-        throw new \Exception( 'An error occurred while running Solr search diagnostics.' );
+      if ($diagnose instanceof Result && !$diagnose->wasSuccessful()) {
+        \Kint::dump($diagnose);
+        throw new \Exception(
+          'An error occurred while running Solr search diagnostics.'
+        );
       }
     }
     catch (\Exception $e) {
@@ -685,10 +703,10 @@ class RoboFile extends Tasks {
    */
   public function demoLoginBrowser(string $site_name, string $env = 'dev') {
     exec(
-          'terminus drush ' . $site_name . '.' . $env . ' -- uli admin',
-          $finished,
-          $status
-      );
+    'terminus drush ' . $site_name . '.' . $env . ' -- uli admin',
+    $finished,
+    $status
+    );
     $finished = trim(join('', $finished));
     $this->output()->writeln($finished);
     $this->_exec('open ' . $finished);
@@ -701,15 +719,15 @@ class RoboFile extends Tasks {
     $now = new \DateTime();
 
     $filename = 'narration-' .
-            $now->diff($this->started)->format('%I-%S-%F') . '-' . $step_id . '.m4a';
+    $now->diff($this->started)->format('%I-%S-%F') . '-' . $step_id . '.m4a';
     $this->output->writeln('/Users/Shared/' . $filename);
     return (new Process([
-      '/usr/bin/say',
-      '--voice=Daniel',
-      "--output-file={$filename}",
-      '--file-format=m4af',
-      $text,
-    ], '/Users/Shared'))
+    '/usr/bin/say',
+    '--voice=Daniel',
+    "--output-file={$filename}",
+    '--file-format=m4af',
+    $text,
+  ], '/Users/Shared'))
       ->enableOutput()
       ->setTty(TRUE);
   }
@@ -724,7 +742,11 @@ class RoboFile extends Tasks {
    */
   protected function siteInfo(string $site_name) {
     try {
-      exec(static::$TERMINUS_EXE . ' site:info --format=json ' . $site_name, $output, $status);
+      exec(
+      static::$TERMINUS_EXE . ' site:info --format=json ' . $site_name,
+      $output,
+      $status
+      );
       if (!empty($output)) {
         $result = json_decode(join("", $output), TRUE, 512, JSON_THROW_ON_ERROR);
         return $result;
@@ -748,8 +770,9 @@ class RoboFile extends Tasks {
     $pantheon_yml_contents = Yaml::parseFile($site_folder . '/pantheon.yml');
     if ($drupal_version === 10) {
       $pantheon_yml_contents['php_version'] = 8.2;
-    } else {
-      $pantheon_yml_contents['php_version'] = 8.1;
+    }
+    else {
+      $pantheon_yml_contents['php_version'] = 8.3;
     }
     $pantheon_yml_contents = Yaml::dump($pantheon_yml_contents);
     file_put_contents($site_folder . '/pantheon.yml', $pantheon_yml_contents);
@@ -780,70 +803,25 @@ class RoboFile extends Tasks {
    *   The environment to create the index in.
    */
   public function testSolrIndexCreate(string $site_name, string $env = 'dev') {
-      $result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'cim',
-          '--partial',
-          '--source=modules/contrib/search_api_pantheon/.ci/config',
-          '-y'
-        )
-        ->run();
-      if (!$result->wasSuccessful()) {
-        exit(1);
-      }
 
-      // Index new solr.
-      $result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'sapi-i'
-        )
-        ->run();
-      if (!$result->wasSuccessful()) {
-        exit(1);
-      }
+
+    // Index new solr.
+    $result = $this->taskExec(static::$TERMINUS_EXE)
+      ->args(
+      'drush',
+      "$site_name.$env",
+      '--',
+      'sapi-i'
+    )
+      ->run();
+    if (!$result->wasSuccessful()) {
+      exit(1);
+    }
   }
-
-  public function testPantheonSolrReload(string $site_name, string $env = 'dev') {
-    $result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'search-api-pantheon:reloadSchema',
-        )
-        ->run();
-      if (!$result->wasSuccessful()) {
-        exit(1);
-      }
-  }
-
-  public function testSolrReload(string $site_name, string $env = 'dev') {
-    $result = $this->taskExec( static::$TERMINUS_EXE )
-        ->args(
-          'drush',
-          "$site_name.$env",
-          '--',
-          'search-api-solr:reload',
-          'pantheon_solr8'
-        )
-        ->run();
-      if (!$result->wasSuccessful()) {
-        exit(1);
-      }
-  }
-
-  
-
-
 
   /**
-   * Use search-api-pantheon:select command to ensure both Drupal index and the actual Solr index have the same amount of items.
+   * Use search-api-pantheon:select command to ensure both Drupal index and the
+   * actual Solr index have the same amount of items.
    *
    * @param string $site_name
    *   The machine name of the site to run the tests on.
@@ -851,51 +829,53 @@ class RoboFile extends Tasks {
    *   The environment to run the tests on.
    */
   public function testSolrSelect(string $site_name, string $env = 'dev') {
-      $sapi_s = new Process([
-          static::$TERMINUS_EXE,
-          'drush',
-          "$site_name.$env",
-          '--',
-          'sapi-s',
-          '--field=Indexed',
-      ]);
-      $total_indexed = 0;
-      $sapi_s->run();
-      if ($sapi_s->isSuccessful()) {
-        $result = $sapi_s->getOutput();
-        $result_parts = explode("\n", $result);
-        foreach ($result_parts as $part) {
-          if (is_numeric(trim($part))) {
-            $total_indexed = trim($part);
-          }
+    $sapi_s = new Process([
+    static::$TERMINUS_EXE,
+    'drush',
+    "$site_name.$env",
+    '--',
+    'sapi-s',
+    '--field=Indexed',
+  ]);
+    $total_indexed = 0;
+    $sapi_s->run();
+    if ($sapi_s->isSuccessful()) {
+      $result = $sapi_s->getOutput();
+      $result_parts = explode("\n", $result);
+      foreach ($result_parts as $part) {
+        if (is_numeric(trim($part))) {
+          $total_indexed = trim($part);
         }
       }
+    }
 
-      $saps = new Process([
-        static::$TERMINUS_EXE,
-        'drush',
-        "$site_name.$env",
-        '--',
-        'saps',
-        '*:*'
-      ]);
-      $num_found = 0;
-      $saps->run();
-      if ($saps->isSuccessful()) {
-        $result = $saps->getOutput();
-        $result_parts = explode("\n", $result);
-        foreach ($result_parts as $part) {
-          if (strpos($part, 'numFound') !== FALSE) {
-            $num_found = trim(str_replace('"numFound":', '', $part), ' ,');
-            break;
-          }
+    $saps = new Process([
+    static::$TERMINUS_EXE,
+    'drush',
+    "$site_name.$env",
+    '--',
+    'saps',
+    '*:*',
+  ]);
+    $num_found = 0;
+    $saps->run();
+    if ($saps->isSuccessful()) {
+      $result = $saps->getOutput();
+      $result_parts = explode("\n", $result);
+      foreach ($result_parts as $part) {
+        if (strpos($part, 'numFound') !== FALSE) {
+          $num_found = trim(str_replace('"numFound":', '', $part), ' ,');
+          break;
         }
       }
+    }
 
-      if ($total_indexed && $num_found && $total_indexed != $num_found) {
-        $this->output->writeln('Solr indexing error. Total indexed: ' . $total_indexed . ' but found: ' . $num_found);
-        exit(1);
-      }
+    if ($total_indexed && $num_found && $total_indexed != $num_found) {
+      $this->output->writeln(
+      'Solr indexing error. Total indexed: ' . $total_indexed . ' but found: ' . $num_found
+      );
+      exit(1);
+    }
   }
 
 }
