@@ -14,7 +14,7 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
     name: Code linting
     env:
@@ -42,8 +42,6 @@ jobs:
 
   phpcompatibility:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
     name: PHP Compatibility
     steps:
 
@@ -59,7 +57,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.2
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
     name: Build and test (Drupal ${{ matrix.drupal-version }})
     env:
