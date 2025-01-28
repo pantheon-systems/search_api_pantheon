@@ -48,7 +48,7 @@ jobs:
       - name: PHPCompatibility
         uses: pantheon-systems/phpcompatibility-action@v1
         with:
-          test-versions: [8.1, 8.2, 8.3, 8.4]
+          test-versions: 8.1
 
   build_test:
     strategy:
