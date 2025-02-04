@@ -22,7 +22,7 @@ class EndpointServiceTest extends TestCase {
     $ep = new Endpoint([
       'scheme' => 'one',
       'host' => 'two',
-      'port' => '1234',
+      'port' => 1234,
       'path' => 'server-path',
       'core' => '/core-name',
       'schema' => '/schema-path',
@@ -34,7 +34,8 @@ class EndpointServiceTest extends TestCase {
     $this->assertEquals('/core-name', $ep->getCore());
     $this->assertEquals('server-path', $ep->getPath());
     $this->assertEquals('one', $ep->getScheme());
-    $this->assertEquals('1234', $ep->getPort());
+    // If port is a string in the test, it should be an integer.
+    $this->assertEquals(1234, $ep->getPort());
     $this->assertEquals('one://two:1234/', $ep->getBaseUri());
     $this->assertEquals(
       'one://two:1234/server-path/core-name/',
