@@ -122,7 +122,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     return [
       'scheme' => getenv('PANTHEON_INDEX_SCHEME'),
       'host' => getenv('PANTHEON_INDEX_HOST'),
-      'port' => getenv('PANTHEON_INDEX_PORT'),
+      'port' => intval(getenv('PANTHEON_INDEX_PORT')),
       'path' => getenv('PANTHEON_INDEX_PATH'),
       'core' => getenv('PANTHEON_INDEX_CORE'),
       'schema' => getenv('PANTHEON_INDEX_SCHEMA'),
