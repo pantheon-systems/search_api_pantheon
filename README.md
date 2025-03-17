@@ -5,7 +5,7 @@
 
 ## Important Notice - Schema Reversion Prevention
 
-Starting with version 8.3, this module includes critical fixes to prevent Solr schema reversions that could cause:
+Starting with version 8.2, this module includes critical fixes to prevent Solr schema reversions that could cause:
 
 - Search functionality outages
 - Loss of indexed content
