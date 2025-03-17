@@ -102,7 +102,7 @@ To configure the connection with Pantheon, perform the following steps on your D
 
 #### Automatic Core Reload
 
-Starting with version 8.3.x, Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
+Starting with version 8.2.0, Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
 
 #### Schema Updates
 
