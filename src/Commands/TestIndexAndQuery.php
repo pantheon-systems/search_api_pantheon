@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
+use Drupal\Core\Config\ConfigInstallerInterface;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
@@ -30,6 +31,8 @@ class TestIndexAndQuery extends DrushCommands {
   protected PantheonGuzzle $pantheonGuzzle;
   protected Endpoint $endpoint;
   protected SolariumClient $solr;
+  protected FileSystemInterface $filesystem;
+  protected ConfigInstallerInterface $configInstaller;
 
   /**
    * Class Constructor.
@@ -40,15 +43,21 @@ class TestIndexAndQuery extends DrushCommands {
    *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\SolariumClient $solariumClient
    *   Injected by container.
+   * @param \Drupal\Core\File\FileSystemInterface $filesystem
+   *   Injected by container.
    */
   public function __construct(
     PantheonGuzzle $pantheonGuzzle,
     Endpoint $endpoint,
-    SolariumClient $solariumClient
+    SolariumClient $solariumClient,
+    FileSystemInterface $filesystem,
+    ConfigInstallerInterface $configInstaller,
   ) {
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
     $this->solr = $solariumClient;
+    $this->filesystem = $filesystem;
+    $this->configInstaller = $configInstaller;
   }
 
   /**
@@ -82,8 +91,7 @@ class TestIndexAndQuery extends DrushCommands {
 
       // Create a new random index.
       $this->logger->notice("Creating temporary index...");
-      $module_root = \Drupal::service('extension.list.module')->getPath('search_api_pantheon');
-      $value = Yaml::parseFile($module_root . '/.ci/config/search_api.index.solr_index.yml');
+      $value = Yaml::parseFile(__DIR__ . '/../../.ci/config/search_api.index.solr_index.yml');
 
       // Update index from config.
       if (isset($value['datasource_settings']["entity:node"])) {
@@ -99,13 +107,12 @@ class TestIndexAndQuery extends DrushCommands {
       ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] = $index_id;
-      $filesystem = \Drupal::service('file_system');
       $directory = 'temporary://' . $index_id;
-      $filesystem = $filesystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+      $this->filesystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
       $yaml = Yaml::dump($value);
       file_put_contents($directory . '/search_api.index.' . $index_id . '.yml', $yaml);
       $config_source = new FileStorage($directory);
-      \Drupal::service('config.installer')->installOptionalConfig($config_source);
+      $this->configInstaller->installOptionalConfig($config_source);
       $index = Index::load($index_id);
       $index->save();
       $this->logger->notice("Temporary index created.");

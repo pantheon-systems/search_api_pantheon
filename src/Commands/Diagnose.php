@@ -5,6 +5,7 @@ namespace Drupal\search_api_pantheon\Commands;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
+use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginManager;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
@@ -26,6 +27,7 @@ class Diagnose extends DrushCommands {
   protected PantheonGuzzle $pantheonGuzzle;
   protected Endpoint $endpoint;
   protected SolariumClient $solr;
+  protected SolrConnectorPluginManager $solrConnectorPluginManager;
 
   /**
    * Class Constructor.
@@ -40,11 +42,13 @@ class Diagnose extends DrushCommands {
   public function __construct(
         PantheonGuzzle $pantheonGuzzle,
         Endpoint $endpoint,
-        SolariumClient $solariumClient
+        SolariumClient $solariumClient,
+        SolrConnectorPluginManager $solrConnectorPluginManager,
     ) {
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
     $this->solr = $solariumClient;
+    $this->solrConnectorPluginManager = $solrConnectorPluginManager;
   }
 
   /**
@@ -129,15 +133,11 @@ class Diagnose extends DrushCommands {
         throw new \Exception('Cannot contact solr server.');
       }
       $this->logger->notice('Drupal Integration...');
-            // @codingStandardsIgnoreLine
-            $manager = \Drupal::getContainer()->get(
-            'plugin.manager.search_api_solr.connector'
-        );
-      $connectors = array_keys($manager->getDefinitions() ?? []);
+      $connectors = array_keys($this->solrConnectorPluginManager->getDefinitions() ?? []);
       $this->logger->notice('Pantheon Connector Plugin Exists? {var}', [
             'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
         ]);
-      $connectorPlugin = $manager->createInstance('pantheon');
+      $connectorPlugin = $this->solrConnectorPluginManager->createInstance('pantheon');
       $this->logger->notice('Connector Plugin Instance created {var}', [
             'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
         ]);

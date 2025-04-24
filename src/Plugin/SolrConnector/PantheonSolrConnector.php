@@ -2,7 +2,10 @@
 
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginBase;
@@ -71,21 +74,30 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   protected ContainerInterface $container;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
    * Class constructor.
    */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    array $plugin_definition,
-    ContainerInterface $container,
-    ) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition,
+    PantheonGuzzle $pantheonGuzzle,
+    PantheonSolariumClient $solariumClient,
+    DateFormatterInterface $dateFormatter,
+    MessengerInterface $messenger,
+    LoggerChannelInterface $logger,
+    EntityTypeManagerInterface $entityTypeManager,
+  ) {
     parent::__construct(array_merge($configuration, self::getPlatformConfig()), $plugin_id, $plugin_definition);
-    $this->pantheonGuzzle = $container->get('search_api_pantheon.pantheon_guzzle');
-    $this->solariumClient = $container->get('search_api_pantheon.solarium_client');
-    $this->dateFormatter = $container->get('date.formatter');
-    $this->messenger = $container->get('messenger');
-    $this->setLogger($container->get('logger.factory')->get('PantheonSearch'));
-    $this->container = $container;
+    $this->pantheonGuzzle = $pantheonGuzzle;
+    $this->solariumClient = $solariumClient;
+    $this->dateFormatter = $dateFormatter;
+    $this->messenger = $messenger;
+    $this->entityTypeManager = $entityTypeManager;
+    $this->setLogger($logger);
     $this->connect();
   }
 
@@ -98,17 +110,17 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Drupal\search_api\Plugin\ConfigurablePluginBase|\Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector|static
    * @throws \Exception
    */
-  public static function create(
-    ContainerInterface $container,
-    array $configuration,
-    $plugin_id,
-    $plugin_definition
-  ) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container,
+      $container->get('search_api_pantheon.pantheon_guzzle'),
+      $container->get('search_api_pantheon.solarium_client'),
+      $container->get('date.formatter'),
+      $container->get('messenger'),
+      $container->get('logger.factory')->get('PantheonSearch'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -245,8 +257,11 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     $previous_timeout = $endpoint->getOption($timeout);
     $options = $endpoint->getOptions();
     $options[$timeout] = $seconds;
-    $endpoint = new PantheonEndpoint($options, \Drupal::entityTypeManager());
-
+    // Instantiating an endpoint involves loading the search API server, only
+    // do it if necessary.
+    if (func_num_args() === 3) {
+      $endpoint = new PantheonEndpoint($options, $this->entityTypeManager);
+    }
     return $previous_timeout;
   }
 

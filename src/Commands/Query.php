@@ -2,6 +2,8 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\search_api_pantheon\Services\Endpoint;
 use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SolariumClient;
@@ -25,6 +27,8 @@ class Query extends DrushCommands {
   protected PantheonGuzzle $pantheonGuzzle;
   protected Endpoint $endpoint;
   protected SolariumClient $solr;
+  protected StateInterface $state;
+  protected TimeInterface $time;
 
   /**
    * Class Constructor.
@@ -39,11 +43,15 @@ class Query extends DrushCommands {
   public function __construct(
         PantheonGuzzle $pantheonGuzzle,
         Endpoint $endpoint,
-        SolariumClient $solariumClient
+        SolariumClient $solariumClient,
+        StateInterface $state,
+        TimeInterface $time,
     ) {
     $this->pantheonGuzzle = $pantheonGuzzle;
     $this->endpoint = $endpoint;
     $this->solr = $solariumClient;
+    $this->state = $state;
+    $this->time = $time;
   }
 
   /**
@@ -138,7 +146,7 @@ class Query extends DrushCommands {
       $update_query = $connector->getUpdateQuery();
       $update_query->addDeleteQuery($query);
       $connector->update($update_query, $backend->getCollectionEndpoint($index));
-      \Drupal::state()->set('search_api_solr.' . $index->id() . '.last_update', \Drupal::time()->getCurrentTime());
+      $this->state->set('search_api_solr.' . $index->id() . '.last_update', $this->time->getCurrentTime());
     }
 
   }

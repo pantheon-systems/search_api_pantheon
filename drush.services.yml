@@ -1,12 +1,12 @@
 services:
   search_api_pantheon.drush_diagnose:
     class: \Drupal\search_api_pantheon\Commands\Diagnose
-    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client" ]
+    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client", '@plugin.manager.search_api_solr.connector' ]
     tags:
       - { name: drush.command }
   search_api_pantheon.drush_test_index_and_query:
     class: \Drupal\search_api_pantheon\Commands\TestIndexAndQuery
-    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client" ]
+    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client", '@file_system', '@config.installer' ]
     tags:
       - { name: drush.command }
   search_api_pantheon.drush_schema:
@@ -16,7 +16,7 @@ services:
       - { name: drush.command }
   search_api_pantheon.drush_query:
     class: \Drupal\search_api_pantheon\Commands\Query
-    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client" ]
+    arguments: [ "@search_api_pantheon.pantheon_guzzle", "@search_api_pantheon.endpoint", "@search_api_pantheon.solarium_client", '@state', '@datetime.time' ]
     tags:
       - { name: drush.command }
   search_api_pantheon.drush_reload:
