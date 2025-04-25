@@ -33,13 +33,9 @@ class SchemaPosterTest extends TestCase {
   protected function setUp(): void {
     parent::setUp();
 
-    $logger = $this->getMockBuilder(LoggerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $logger = $this->createMock(LoggerInterface::class);
 
-    $this->loggerFactory = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
 
     $this->loggerFactory
       ->expects($this->any())

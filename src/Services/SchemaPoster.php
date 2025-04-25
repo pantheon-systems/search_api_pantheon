@@ -183,7 +183,7 @@ class SchemaPoster implements LoggerAwareInterface {
         ]);
       $toSend['files'][] = [
             'filename' => $filename,
-            'content' => base64_encode($file_contents),
+            'content' => base64_encode((string) $file_contents),
         ];
     }
 

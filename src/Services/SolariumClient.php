@@ -44,6 +44,7 @@ class SolariumClient extends Client {
    *
    * @return \Solarium\Core\Query\Result\ResultInterface
    */
+  #[\Override]
   public function execute(QueryInterface $query, $endpoint = NULL): ResultInterface {
     return parent::execute($query, $this->defaultEndpoint);
   }
@@ -56,6 +57,7 @@ class SolariumClient extends Client {
    *
    * @return \Solarium\Core\Client\Response
    */
+  #[\Override]
   public function executeRequest(Request $request, $endpoint = NULL): Response {
     return parent::executeRequest($request, $this->defaultEndpoint);
   }

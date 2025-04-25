@@ -207,7 +207,7 @@ class RoboFile extends Tasks {
       else {
         // Maybe we are on a PR.
         $branch = $_SERVER['GITHUB_HEAD_REF'];
-        $branch_parts = explode('/', $branch);
+        $branch_parts = explode('/', (string) $branch);
         $branch = end($branch_parts);
         if ($branch) {
           return "{$branch}-dev";
@@ -318,7 +318,7 @@ class RoboFile extends Tasks {
   private function cleanUpInfo(array $info): array {
     // Clean up the workflow status data and assign values to an array so it's easier to check.
     foreach ($info as $line => $value) {
-      $ln = array_values(array_filter(explode("  ", trim($value))));
+      $ln = array_values(array_filter(explode("  ", trim((string) $value))));
 
       // Skip lines with only one value. This filters out the ASCII dividers output by the command.
       if (count($ln) > 1) {
@@ -752,9 +752,7 @@ class RoboFile extends Tasks {
         return $result;
       }
     }
-    catch (\Exception $e) {
-    }
-    catch (\Throwable $t) {
+    catch (\Exception|\Throwable $e) {
     }
     return NULL;
   }

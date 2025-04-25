@@ -25,7 +25,7 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
     $files = $event->getConfigFiles();
 
     // Append at the end of the file.
-    $solrcore_properties = explode(PHP_EOL, $files['solrcore.properties']);
+    $solrcore_properties = explode(PHP_EOL, (string) $files['solrcore.properties']);
     // Remove the solr.install.dir if it exists
     foreach ($solrcore_properties as $key => $property) {
       if (substr($property, 0, 16) == 'solr.install.dir') {
@@ -49,7 +49,7 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
    */
   public static function getSubscribedEvents(): array {
     return [
-      'Drupal\search_api_solr\Event\PostConfigFilesGenerationEvent' => ['onPostConfigFilesGenerationEvent'],
+      PostConfigFilesGenerationEvent::class => ['onPostConfigFilesGenerationEvent'],
     ];
   }
 

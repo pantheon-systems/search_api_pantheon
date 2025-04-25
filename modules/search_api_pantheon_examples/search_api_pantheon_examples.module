@@ -16,7 +16,7 @@ function search_api_pantheon_examples_search_api_solr_config_files_alter(array &
 
   // Use PHP's DOM API to modify the XML files.
   $schema_xml = &$files['schema.xml'];
-  if ($schema_xml_dom = \DomDocument::loadXML($schema_xml)) {
+  if ($schema_xml_dom = (new \DomDocument())->loadXML($schema_xml)) {
     $fields = $schema_xml_dom->getElementsByTagName('field');
     foreach ($fields as $field) {
       if ($field->hasAttribute('name') && $field->getAttribute('name') === 'hash') {

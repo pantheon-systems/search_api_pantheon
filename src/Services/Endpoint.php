@@ -86,6 +86,7 @@ class Endpoint extends SolariumEndpoint {
    *
    * @throws \Solarium\Exception\UnexpectedValueException
    */
+  #[\Override]
   public function getCoreBaseUri(): string {
     return vsprintf(
       '%s%s%s/',
@@ -103,6 +104,7 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   Base URL with scheme and port.
    */
+  #[\Override]
   public function getBaseUri(): string {
     return vsprintf(
       '%s://%s:%d/',
@@ -122,6 +124,7 @@ class Endpoint extends SolariumEndpoint {
    *
    * @throws \Solarium\Exception\UnexpectedValueException
    */
+  #[\Override]
   public function getV1BaseUri(): string {
     return isset($_ENV['PANTHEON_ENVIRONMENT'])
       ? 'v1' : '';
@@ -135,6 +138,7 @@ class Endpoint extends SolariumEndpoint {
    *
    * @throws \Solarium\Exception\UnexpectedValueException
    */
+  #[\Override]
   public function getV2BaseUri(): string {
     return $this->getBaseUri() . '/api/';
   }
@@ -145,6 +149,7 @@ class Endpoint extends SolariumEndpoint {
    * @return string
    *   Base URI for the endpoint.
    */
+  #[\Override]
   public function getServerUri(): string {
     return $this->getBaseUri();
   }
@@ -253,6 +258,7 @@ class Endpoint extends SolariumEndpoint {
    * @return string|null
    *   Always use the default name.
    */
+  #[\Override]
   public function getKey(): ?string {
     return self::DEFAULT_NAME;
   }

@@ -33,6 +33,7 @@ class PantheonSolrAdminForm extends FormBase {
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public static function create(ContainerInterface $container) {
     return new static(
           $container->get('search_api_pantheon.pantheon_guzzle'),
@@ -75,9 +76,9 @@ class PantheonSolrAdminForm extends FormBase {
         ]);
       $form[$filename] = [
             '#type' => 'details',
-            '#title' => ucwords($filename),
+            '#title' => ucwords((string) $filename),
             '#group' => 'status',
-            '#weight' => substr($filename, 0, -3) === 'xml' ? -10 : 10,
+            '#weight' => substr((string) $filename, 0, -3) === 'xml' ? -10 : 10,
         ];
 
       if (is_array($file_contents)) {

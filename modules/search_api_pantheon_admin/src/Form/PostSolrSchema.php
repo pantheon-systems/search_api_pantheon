@@ -40,6 +40,7 @@ class PostSolrSchema extends FormBase {
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public static function create(ContainerInterface $container) {
     return new static(
           $container->get('search_api_pantheon.schema_poster'),
@@ -82,6 +83,7 @@ class PostSolrSchema extends FormBase {
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $path = $form_state->getValue('path');
     if ($path) {
@@ -131,7 +133,7 @@ class PostSolrSchema extends FormBase {
       return $functions[$type];
     }
 
-    $this->messenger()->addWarning(t('Unknown message type: @type', ['@type' => $message[0]]));
+    $this->messenger()->addWarning(t('Unknown message type: @type', ['@type' => $type]));
     return 'addStatus';
   }
 

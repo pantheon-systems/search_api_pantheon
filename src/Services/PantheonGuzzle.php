@@ -98,6 +98,7 @@ class PantheonGuzzle extends Client implements
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
+  #[\Override]
   public function sendRequest(RequestInterface $request): ResponseInterface {
     return $this->send($request);
   }
@@ -154,10 +155,10 @@ class PantheonGuzzle extends Client implements
     $shouldBeInUrl = $this->endpoint->getMySitename();
     $shouldBeInPath = $this->endpoint->getPath();
     if (!in_array(trim($shouldBeInUrl, '/'), $path_parts)) {
-      array_unshift($path_parts, trim($this->endpoint->getCore(), '/'));
+      array_unshift($path_parts, trim((string) $this->endpoint->getCore(), '/'));
     }
-    if (!in_array(trim($shouldBeInPath, '/'), $path_parts)) {
-      array_unshift($path_parts, trim($this->endpoint->getPath(), '/'));
+    if (!in_array(trim((string) $shouldBeInPath, '/'), $path_parts)) {
+      array_unshift($path_parts, trim((string) $this->endpoint->getPath(), '/'));
     }
     $path_parts = array_filter($path_parts, function ($item) {
         return !empty($item);

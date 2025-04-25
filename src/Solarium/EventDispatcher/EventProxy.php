@@ -17,10 +17,12 @@ class EventProxy extends Event {
     $this->event = $event;
   }
 
+  #[\Override]
   public function isPropagationStopped() {
     return $this->event->isPropagationStopped();
   }
 
+  #[\Override]
   public function stopPropagation() {
     $this->event->stopPropagation();
   }

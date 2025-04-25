@@ -77,8 +77,8 @@ class Query extends DrushCommands {
   ]) {
     $this->logger->notice('Running a select query against Pantheon Solr.');
 
-    $this->logger->notice('Query: ' . urldecode($query));
-    $options['query'] = urldecode($query);
+    $this->logger->notice('Query: ' . urldecode((string) $query));
+    $options['query'] = urldecode((string) $query);
 
     $query_object = $this->solr->createSelect($options);
     $query_object->setResponseWriter($options['wt']);

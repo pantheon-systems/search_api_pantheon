@@ -98,6 +98,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Drupal\search_api\Plugin\ConfigurablePluginBase|\Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector|static
    * @throws \Exception
    */
+  #[\Override]
   public static function create(
     ContainerInterface $container,
     array $configuration,
@@ -145,6 +146,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * @return array
    */
+  #[\Override]
   public function defaultConfiguration() {
     return array_merge(
       parent::defaultConfiguration(),
@@ -167,6 +169,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return array
    *   Form render array.
    */
+  #[\Override]
   public function buildConfigurationForm(
     array $form,
     FormStateInterface $form_state
@@ -205,6 +208,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Form state object.
    */
+  #[\Override]
   public function validateConfigurationForm(
     array &$form,
     FormStateInterface $form_state
@@ -219,6 +223,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Form state object.
    */
+  #[\Override]
   public function submitConfigurationForm(
     array &$form,
     FormStateInterface $form_state
@@ -235,6 +240,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
+  #[\Override]
   public function adjustTimeout(int $seconds, string $timeout = self::QUERY_TIMEOUT, ?Endpoint &$endpoint = NULL): int {
     $this->connect();
 
@@ -265,6 +271,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \JsonException
    */
+  #[\Override]
   public function getStatsSummary() {
     $stats = [];
     try {
@@ -339,6 +346,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public function useTimeout(
     string $timeout = self::QUERY_TIMEOUT,
     ?Endpoint $endpoint = NULL
@@ -350,6 +358,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
+  #[\Override]
   public function viewSettings() {
     $view_settings = [];
 
@@ -370,7 +379,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
     foreach ($core_info['core'] as $key => $value) {
       if (is_string($value)) {
         $view_settings[] = [
-          'label' => ucwords($key),
+          'label' => ucwords((string) $key),
           'info' => $value,
         ];
       }
@@ -388,6 +397,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    * @return \Solarium\Core\Client\Endpoint
    *   The endpoint in question.
    */
+  #[\Override]
   public function getEndpoint($key = 'search_api_solr') {
     return $this->solr->getEndpoint();
   }
@@ -406,6 +416,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public function getFile($file = NULL) {
     $query = [
       'action' => 'VIEW',
@@ -422,6 +433,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * {@inheritdoc}
    */
+  #[\Override]
   public function getServerInfo($reset = FALSE) {
     return $this->getDataFromHandler($this->configuration['core'] . '/admin/system', $reset);
   }
@@ -429,6 +441,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
   /**
    * Prepares the connection to the Solr server.
    */
+  #[\Override]
   protected function connect() {
     if (!$this->solr instanceof SolariumClient) {
       $config = $this->defaultConfiguration();
@@ -443,6 +456,7 @@ class PantheonSolrConnector extends SolrConnectorPluginBase implements
    *
    * @return object|\Solarium\Client|null
    */
+  #[\Override]
   protected function createClient(array &$configuration) {
     return $this->solariumClient;
   }
