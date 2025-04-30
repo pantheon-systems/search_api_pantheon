@@ -11,6 +11,9 @@ use Drupal\Tests\search_api_solr\Functional\IntegrationTest as SolrIntegrationTe
  */
 class IntegrationTest extends SolrIntegrationTest {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function configureBackendAndSave(array $edit) {
     $edit += [
       'backend_config[connector]' => 'pantheon',

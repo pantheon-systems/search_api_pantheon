@@ -2,4 +2,3 @@ services:
   logger.channel.search_api_pantheon:
     parent: logger.channel_base
     arguments: ['search_api_pantheon']
-

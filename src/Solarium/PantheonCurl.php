@@ -1,14 +1,12 @@
 <?php
 
-/**
- * @file
- * Override Solarium so that more options can be set before executing curl.
- */
-
 namespace Drupal\search_api_pantheon\Solarium;
 
 use Solarium\Core\Client\Adapter\Curl;
 
+/**
+ * Curl handler for to use the Pantheon cert.
+ */
 class PantheonCurl extends Curl {
 
   public function __construct(protected string $cert, ?array $options = NULL) {
@@ -24,4 +22,5 @@ class PantheonCurl extends Curl {
     curl_setopt($handler, CURLOPT_SSLCERT, $this->cert);
     return $handler;
   }
+
 }

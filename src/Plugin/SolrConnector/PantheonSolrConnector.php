@@ -1,17 +1,10 @@
 <?php
 
-/**
- * @file
- * Provide a connection to Pantheon's Solr instance.
- */
-
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
 use Drupal\search_api_pantheon\Solarium\PantheonCurl;
 use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
-use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\search_api_solr\Annotation\SolrConnector;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -73,7 +66,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       }
     }
     $form['workarounds']['#access'] = FALSE;
-    // @TODO explore whether jts works.
+    // @todo explore whether jts works.
     $form['advanced']['#access'] = FALSE;
     return $form;
   }
