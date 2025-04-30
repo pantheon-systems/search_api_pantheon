@@ -1,86 +1,19 @@
 {
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
-    "description": "Connection module for Pantheon Search (solr 8)",
-    "license": "MIT",
-    "repositories": [
-        {
+    "require-dev": {
+        "drupal/coder": "2.0-beta1",
+        "squizlabs/php_codesniffer": "2.0.*@dev",
+        "drush-ops/behat-drush-endpoint": "*",
+        "drupal/drupal-extension": "^3.4"
+    },
+    "repositories": {
+        "drupal": {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
         }
-    ],
-    "config": {
-        "process-timeout": 0,
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "platform": {
-            "php": "8.1"
-        },
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Drupal\\search_api_pantheon\\" : "src/",
-            "Drupal\\search_api_pantheon\\tests\\" : "tests/",
-            "Drupal\\search_api\\" : "vendor/drupal/search_api/src/",
-            "Drupal\\search_api_solr\\" : "vendor/drupal/search_api_solr/src/"
-        }
-    },
-    "extra": {
-        "drush": {
-            "services": {
-                "drush.services.yml": "^10"
-            }
-        }
     },
     "require": {
-        "php": ">=8.1",
-        "ext-curl": "*",
-        "ext-json": "*",
-        "ext-zip": "*",
-        "drupal/search_api_solr": "^4.3",
-        "guzzlehttp/guzzle": "^7.5",
-        "kint-php/kint": "^5|^6",
-        "php-http/guzzle7-adapter": "^1.1",
-        "psr/event-dispatcher": "^1.0",
-        "symfony/finder": "^4.4|^5|^6|^7",
-        "symfony/yaml": "^4.4|^5|^6|^7"
-    },
-    "require-dev": {
-        "consolidation/robo": "^3 || ^4 || ^5",
-        "czproject/git-php": "^4.0",
-        "drupal/coder": "@stable",
-        "phpunit/phpunit": "@stable",
-        "psy/psysh": "@stable",
-        "squizlabs/php_codesniffer": "@stable"
-    },
-    "suggest":{
-        "drupal/search_api_autocomplete": "^1",
-        "drupal/search_api_spellcheck": "^3",
-        "drupal/search_api_page": "^1.0",
-        "drupal/facets": "^1.8",
-        "kint-php/kint": "@stable"
-    },
-    "scripts": {
-        "code:test" : [
-            "vendor/bin/phpunit -c ./phpunit.xml"
-        ],
-        "code:fix": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcbf . --ignore=vendor src modules"
-        ],
-        "code:lint": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
-            "vendor/bin/phpcs --ignore=RoboFile.php,vendor . "
-        ],
-        "pre-commit": [
-            "composer validate --strict",
-            "@code:fix",
-            "@code:lint",
-            "@code:test"
-        ]
+        "drupal/search_api_solr": "^4.2"
     }
 }
