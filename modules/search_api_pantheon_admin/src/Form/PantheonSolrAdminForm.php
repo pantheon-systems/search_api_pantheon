@@ -50,10 +50,10 @@ class PantheonSolrAdminForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(
-        array $form,
-        FormStateInterface $form_state,
-        ServerInterface $search_api_server = NULL
-    ): array {
+    array $form,
+    FormStateInterface $form_state,
+    ?ServerInterface $search_api_server = NULL,
+  ): array {
     $file_list = $this->pantheonGuzzle
       ->getQueryResult('admin/file', [
         'query' => [
@@ -62,23 +62,23 @@ class PantheonSolrAdminForm extends FormBase {
         ],
       ]);
     $form['status'] = [
-          '#type' => 'vertical_tabs',
-          '#title' => $this->t('Pantheon Search Files'),
-      ];
+      '#type' => 'vertical_tabs',
+      '#title' => $this->t('Pantheon Search Files'),
+    ];
     $is_open = TRUE;
     foreach ($file_list['files'] as $filename => $fileinfo) {
       $file_contents = $this->pantheonGuzzle->getQueryResult('admin/file', [
-            'query' => [
-                'action' => 'VIEW',
-                'file' => $filename,
-            ],
-        ]);
+        'query' => [
+          'action' => 'VIEW',
+          'file' => $filename,
+        ],
+      ]);
       $form[$filename] = [
-            '#type' => 'details',
-            '#title' => ucwords($filename),
-            '#group' => 'status',
-            '#weight' => substr($filename, 0, -3) === 'xml' ? -10 : 10,
-        ];
+        '#type' => 'details',
+        '#title' => ucwords($filename),
+        '#group' => 'status',
+        '#weight' => substr($filename, 0, -3) === 'xml' ? -10 : 10,
+      ];
 
       if (is_array($file_contents)) {
         $file_contents = json_encode($file_contents);
@@ -112,16 +112,16 @@ class PantheonSolrAdminForm extends FormBase {
    */
   protected function getViewSolrFile(string $filename, string $contents, bool $open = FALSE): array {
     return [
-          '#type' => 'details',
-          '#title' => $filename,
-          '#open' => $open,
-          'contents' => [
+      '#type' => 'details',
+      '#title' => $filename,
+      '#open' => $open,
+      'contents' => [
               [
-                  '#type' => 'markup',
-                  '#markup' => sprintf('<pre>%s</pre>', Html::escape($contents)),
+                '#type' => 'markup',
+                '#markup' => sprintf('<pre>%s</pre>', Html::escape($contents)),
               ],
-          ],
-      ];
+      ],
+    ];
   }
 
 }
