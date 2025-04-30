@@ -42,5 +42,10 @@
             "@code:lint",
             "@code:test"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }
