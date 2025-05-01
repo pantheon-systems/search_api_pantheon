@@ -1,0 +1,5 @@
+services:
+  search_api_pantheon.drush_diagnose:
+    class: \Drupal\search_api_pantheon\Commands\Diagnose
+    tags:
+      - { name: drush.command }
