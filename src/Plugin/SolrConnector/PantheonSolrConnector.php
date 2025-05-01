@@ -27,6 +27,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
     if (getenv('PANTHEON_ENVIRONMENT')) {
       $configuration = static::getEnvironmentVariables() + $configuration;
       $configuration['search_api_pantheon_cert'] = ($_SERVER['HOME'] ?? '') . '/certs/binding.pem';
+      // This is used in Endpoint::getCollectionBaseUri() and similar.
       $configuration['context'] = '';
     }
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -39,7 +40,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
   }
 
   /**
-   * @param string $env
+   * The environment variables overriding server configuration form values.
    *
    * @return array
    */
