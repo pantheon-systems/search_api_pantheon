@@ -4,6 +4,7 @@ namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\search_api\Entity\Server;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\Yaml\Yaml;
 
@@ -72,18 +73,20 @@ class Diagnose extends DrushCommands {
       }
       $this->logger->notice('Pantheon.yml file looks ok ✅');
       $backend = Server::load('pantheon_search')->getBackend();
+      assert($backend instanceof SearchApiSolrBackend);
+      $connector = $backend->getSolrConnector();
       $this->logger->notice('Pantheon connector found {var}', [
-        'var' => $backend instanceof PantheonSolrConnector ? '✅' : '❌',
+        'var' => $connector instanceof PantheonSolrConnector ? '✅' : '❌',
       ]);
-      if (!$backend instanceof PantheonSolrConnector) {
+      if (!$connector instanceof PantheonSolrConnector) {
         return;
       }
-      $this->logger->notice((string) $backend->getEndpoint());
-      $response = $backend->pingServer();
+      $this->logger->notice((string) $connector->getEndpoint());
+      $response = $connector->pingServer();
       $this->logger->notice('Ping Received Response? {var}', [
         'var' => $response !== FALSE ? '✅' : '❌',
       ]);
-      $indexedStats = $backend->getLuke();
+      $indexedStats = $connector->getLuke();
       if ($this->output()->isVerbose()) {
         $this->logger->notice('Solr Index Stats: {stats}', [
           'stats' => print_r($indexedStats['index'], TRUE),
@@ -92,7 +95,7 @@ class Diagnose extends DrushCommands {
       else {
         $this->logger->notice('We got Solr stats ✅');
       }
-      $beans = $backend->getServerInfo(TRUE);
+      $beans = $connector->getServerInfo(TRUE);
       if ($this->output()->isVerbose()) {
         $this->logger->notice('Mbeans Stats: {stats}', [
           'stats' => print_r($beans['solr-mbeans'], TRUE),
