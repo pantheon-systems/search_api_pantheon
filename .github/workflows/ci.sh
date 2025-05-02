@@ -12,13 +12,11 @@ terminus solr:enable $SITE_NAME
 git commit -am 'modules, search'
 git push
 terminus workflow:wait --max=260 $SITE_NAME.dev
-yes|terminus drush $SITE_NAME.dev si standard
-yes|terminus drush $SITE_NAME.dev en search_api_pantheon,devel_generate
+terminus drush -y $SITE_NAME.dev si standard
+terminus drush -y $SITE_NAME.dev en search_api_pantheon,devel_generate
 terminus drush $SITE_NAME.dev genc 5
-terminus drush $SITE_NAME.dev sapi-s|grep primary
-exit 0
 indexed=$(terminus drush $SITE_NAME.dev sapi-s|grep primary|cut -c 36-36)
-if [ "$result" == "5" ]; then
+if [ "$indexed" == "5" ]; then
   exit 0
 else
   echo "Expected '5', got '$result'" >&2
