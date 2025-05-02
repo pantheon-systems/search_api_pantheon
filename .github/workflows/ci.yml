@@ -17,7 +17,7 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_EMAIL: "test@pantheon.com"
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -60,7 +60,7 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_EMAIL: "test@pantheon.com"
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -78,8 +78,8 @@ jobs:
 
       - name: Log in to Terminus
         run: |
-          terminus auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
-          terminus auth:whoami | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          terminus auth:whoami
 
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@v0.5.3
