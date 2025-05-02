@@ -90,7 +90,7 @@ jobs:
         id: prepare_env_vars
         run: |
           # dsapip is short for Drupal Search API Pantheon.
-          echo "SITE_NAME=dsapip-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
+          echo "SITE=dsapip-$DRUPAL_VERSION-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
           echo "TERMINUS_ORG=$TERMINUS_ORG" >> "$GITHUB_ENV"
           echo "DRUPAL_VERSION=$DRUPAL_VERSION" >> "$GITHUB_ENV"
 
@@ -104,7 +104,7 @@ jobs:
       - name: Cleanup sites
         if: ${{ always() }}
         run: |
-          yes|terminus site:delete $SITE_NAME
+          yes|terminus site:delete $SITE
 
   mirror_do:
     runs-on: ubuntu-latest
