@@ -1,5 +1,6 @@
 #!/usr/bin/bash
-. ./.github/workflows/git-constraint.sh
+set -e
+. "$(dirname "${BASH_SOURCE[0]}")/git-constraint.sh"
 terminus site:create $SITE_NAME $SITE_NAME drupal-$DRUPAL_VERSION-composer-managed
 terminus local:clone $SITE_NAME
 cd $HOME/pantheon-local-copies/$SITE_NAME
