@@ -1,12 +1,13 @@
 #!/usr/bin/bash
 set -e
 . "$(dirname "${BASH_SOURCE[0]}")/git-constraint.sh"
+CONSTRAINT=$(get_current_constraint)
 terminus site:create $SITE_NAME $SITE_NAME drupal-$DRUPAL_VERSION-composer-managed --org $TERMINUS_ORG
 terminus local:clone $SITE_NAME
 cd $HOME/pantheon-local-copies/$SITE_NAME
 echo "search:" >> pantheon.yml
 echo "  version: 8" >> pantheon.yml
-composer require pantheon-systems/search_api_pantheon:$(get_current_constraint) drupal/devel
+composer require pantheon-systems/search_api_pantheon:$CONSTRAINT drupal/devel
 terminus solr:enable $SITE_NAME
 git commit -am 'modules, search'
 git push
