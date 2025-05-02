@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-. ./git-constraint.sh
-terminus site:create $SITE_NAME $SITE_NAME drupal-10-composer-managed
+. ./.github/workflows/git-constraint.sh
+terminus site:create $SITE_NAME $SITE_NAME drupal-$DRUPAL_VERSION-composer-managed
 terminus local:clone $SITE_NAME
 cd $HOME/pantheon-local-copies/$SITE_NAME
 echo "search:" >> pantheon.yml
