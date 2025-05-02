@@ -16,11 +16,10 @@ terminus workflow:wait --max=260 $SITE.dev
 terminus drush -y $SITE.dev si standard
 terminus drush -y $SITE.dev en search_api_pantheon,devel_generate
 terminus drush $SITE.dev genc 5
-indexed=$(terminus drush $SITE.dev sapi-s|grep primary|cut -c 36-36)
-if [ "$indexed" == "5" ]; then
+if terminus drush $SITE.dev sapi-s | grep -q 'primary.*5'; then
   exit 0
 else
-  echo "Expected '5', got '$result'" >&2
+  echo "Not found the expected five documents, running the search-api-pantheon-diagnose command"
   terminus drush $SITE.dev sapd
   exit 1
 fi
