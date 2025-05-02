@@ -89,12 +89,16 @@ jobs:
       - name: Prepare environment variables
         id: prepare_env_vars
         run: |
-          echo "SITE_NAME=test-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
+          # dsapip is short for Drupal Search API Pantheon.
+          echo "SITE_NAME=dsapip-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
           echo "TERMINUS_ORG=$TERMINUS_ORG" >> "$GITHUB_ENV"
+
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Run tests
         run: |
-          ./ci.sh
+          ./.github/workflows/ci.sh
 
       - name: Cleanup sites
         if: ${{ always() }}
