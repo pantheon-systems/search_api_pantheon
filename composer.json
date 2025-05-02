@@ -3,10 +3,6 @@
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
     "description": "Connection module for Pantheon Search (solr 8)",
-    "require-dev": {
-        "drupal/coder": "2.0-beta1",
-        "drupal/devel": "*"
-    },
     "repositories": {
         "drupal": {
             "type": "composer",
@@ -17,8 +13,6 @@
         "drupal/search_api_solr": "^4.2"
     },
     "require-dev": {
-        "consolidation/robo": "^3 || ^4 || ^5",
-        "czproject/git-php": "^4.0",
         "drupal/coder": "@stable",
         "squizlabs/php_codesniffer": "@stable"
     },

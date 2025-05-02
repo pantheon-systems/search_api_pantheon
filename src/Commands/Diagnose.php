@@ -56,7 +56,6 @@ class Diagnose extends DrushCommands {
       }
       $pantheon_yml = Yaml::parse($pantheon_yml_contents);
       $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
-      $found = FALSE;
       if (empty($pantheon_yml['search']['version'])) {
         // Merge from pantheon_upstream as fallback.
         if (!empty($pantheon_upstream_yml['search']['version'])) {
@@ -86,23 +85,14 @@ class Diagnose extends DrushCommands {
       $this->logger->notice('Ping Received Response? {var}', [
         'var' => $response !== FALSE ? '✅' : '❌',
       ]);
-      $indexedStats = $connector->getLuke();
-      if ($this->output()->isVerbose()) {
-        $this->logger->notice('Solr Index Stats: {stats}', [
-          'stats' => print_r($indexedStats['index'], TRUE),
-        ]);
-      }
-      else {
-        $this->logger->notice('We got Solr stats ✅');
-      }
-      $beans = $connector->getServerInfo(TRUE);
-      if ($this->output()->isVerbose()) {
-        $this->logger->notice('Mbeans Stats: {stats}', [
-          'stats' => print_r($beans['solr-mbeans'], TRUE),
-        ]);
-      }
-      else {
-        $this->logger->notice('We got Mbeans stats ✅');
+      foreach ($backend->viewSettings() as $setting) {
+        if (isset($setting['status'])) {
+          $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
+          $this->logger->notice('{label}: {info} {status}', $setting);
+        }
+        else {
+          $this->logger->notice('{label}: {info}', $setting);
+        }
       }
     }
     catch (\Exception $e) {

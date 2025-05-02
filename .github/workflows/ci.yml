@@ -4,12 +4,6 @@ on:
   repository_dispatch:
   schedule:
     - cron: '0 0 * * *'
-  workflow_dispatch:
-    inputs:
-      tmate_enabled:
-        description: Enable tmate debugging
-        required: true
-        default: "0"
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -75,9 +69,6 @@ jobs:
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
     steps:
 
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Login
         run: |
           git config --global user.email "$GIT_EMAIL"
@@ -95,22 +86,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
-      - name: Composer install
-        run: composer install --ignore-platform-req=php
-
-      - name: Setup tmate session
-        if: ${{ github.event.inputs.tmate_enabled == 1 }}
-        uses: mxschmitt/action-tmate@v3
+      - name: Prepare environment variables
+        id: prepare_env_vars
+        run: |
+          echo "SITE_NAME=test-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
+          echo "TERMINUS_ORG=$TERMINUS_ORG" >> "$GITHUB_ENV"
 
       - name: Run tests
         run: |
-          export TERMINUS_ORG=$TERMINUS_ORG
-          ./vendor/bin/robo test:full $DRUPAL_VERSION $TERMINUS_SITE
+          ./ci.sh
 
       - name: Cleanup sites
         if: ${{ always() }}
         run: |
-          ./vendor/bin/robo test:delete-sites
+          yes|terminus site:delete $SITE_NAME
 
   mirror_do:
     runs-on: ubuntu-latest
