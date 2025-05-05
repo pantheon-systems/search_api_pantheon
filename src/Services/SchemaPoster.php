@@ -57,7 +57,7 @@ class SchemaPoster implements LoggerAwareInterface {
   public function postSchema(?string $server_id, array $files = []): array {
     $server = $this->getPantheonSolrServer($server_id);
     // PANTHEON Environment.
-    if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
+    if (getenv('PANTHEON_ENVIRONMENT')) {
       if (!$files) {
         $files = $this->getSolrFiles($server);
       }
