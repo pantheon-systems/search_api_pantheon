@@ -80,17 +80,17 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    if ($overrides = static::getEnvironmentVariables()) {
-      foreach (array_keys($overrides) as $key) {
-        if (isset($form[$key])) {
-          $form[$key]['#disabled'] = TRUE;
-          $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure".');
-        }
+    foreach (array_keys(static::getEnvironmentVariables()) as $key) {
+      if (isset($form[$key])) {
+        $form[$key]['#disabled'] = TRUE;
+        $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure".');
       }
-      $form['workarounds']['#access'] = FALSE;
-      // @todo explore whether jts works.
-      $form['advanced']['#access'] = FALSE;
     }
+    // Keep workarounds and advanced disabled on local too so when config is
+    // exported then there's no chance of it messing with Pantheon.
+    $form['workarounds']['#access'] = FALSE;
+    // @todo explore whether jts works.
+    $form['advanced']['#access'] = FALSE;
     return $form;
   }
 
