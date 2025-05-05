@@ -23,20 +23,17 @@ use Drupal\search_api\Entity\Index;
  *   - http://cgit.drupalcode.org/devel/tree/src/Commands/DevelCommands.php
  *   - http://cgit.drupalcode.org/devel/tree/drush.services.yml
  */
-class TestIndexAndQuery extends DrushCommands {
-
-  use GetPantheonSolrServerTrait;
+class TestIndexAndQuery extends PantheonCommandBase {
 
   /**
    * Class Constructor.
    */
   public function __construct(
-      EntityTypeManagerInterface $entityTypeManager,
-      protected FileSystemInterface $fileSystem,
-      protected ConfigInstallerInterface $configInstaller,
-    ) {
-    $this->storage = $entityTypeManager->getStorage('search_api_server');
-    parent::__construct();
+    EntityTypeManagerInterface $entityTypeManager,
+    protected FileSystemInterface $fileSystem,
+    protected ConfigInstallerInterface $configInstaller,
+  ) {
+    parent::__construct($entityTypeManager);
   }
 
   /**

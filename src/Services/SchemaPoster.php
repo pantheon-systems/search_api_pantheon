@@ -32,11 +32,11 @@ class SchemaPoster implements LoggerAwareInterface {
    * Class Constructor.
    */
   public function __construct(
-        LoggerChannelFactoryInterface $logger_factory,
-        // ::uploadSchemaAsZip() needs this.
-        protected ClientInterface $client,
-        protected ModuleExtensionList $moduleExtensionList
-    ) {
+    LoggerChannelFactoryInterface $logger_factory,
+    // ::uploadSchemaAsZip() needs this.
+    protected ClientInterface $client,
+    protected ModuleExtensionList $moduleExtensionList,
+  ) {
     $this->logger = $logger_factory->get('PantheonSearch');
   }
 
@@ -141,6 +141,7 @@ class SchemaPoster implements LoggerAwareInterface {
    *   The server the files will be uploaded to.
    *
    * @return \Psr\Http\Message\ResponseInterface
+   *
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    * @throws \GuzzleHttp\Exception\GuzzleException
@@ -210,20 +211,20 @@ class SchemaPoster implements LoggerAwareInterface {
     try {
       $response = $this->getPantheonSolrConnector()->getFile($filename);
       $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
-            'filename' => $filename,
-            'status_code' => $response->getStatusCode(),
-            'status_message' => $response->getStatusMessage(),
-        ]);
+        'filename' => $filename,
+        'status_code' => $response->getStatusCode(),
+        'status_message' => $response->getStatusMessage(),
+      ]);
       $this->logger->debug($message);
 
       return $response->getBody();
     }
     catch (\Throwable $e) {
       $message = vsprintf($this->t('File: %s, Status code: %d - %s'), [
-            'filename' => $filename,
-            'status_code' => $e->getCode(),
-            'message' => $e->getMessage(),
-        ]);
+        'filename' => $filename,
+        'status_code' => $e->getCode(),
+        'message' => $e->getMessage(),
+      ]);
       $this->logger->error($message);
     }
 

@@ -2,11 +2,8 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\search_api\Entity\Server;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
-use Drush\Commands\DrushCommands;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -20,20 +17,7 @@ use Symfony\Component\Yaml\Yaml;
  *   - http://cgit.drupalcode.org/devel/tree/src/Commands/DevelCommands.php
  *   - http://cgit.drupalcode.org/devel/tree/drush.services.yml
  */
-class Diagnose extends DrushCommands {
-
-  use GetPantheonSolrServerTrait;
-
-  /**
-   * Construct a Diagnose command object.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entity type manager.
-   */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, ) {
-    parent::__construct();
-    $this->storage = $entityTypeManager->getStorage('search_api_server');
-  }
+class Diagnose extends PantheonCommandBase {
 
   /**
    * Search_api_pantheon:diagnose.

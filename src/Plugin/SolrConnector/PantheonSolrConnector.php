@@ -62,7 +62,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is set to "/site/{site-uuid}}/environment/{env}}/configs",
       // very similar to core and so also can't start with a slash.
       'search_api_pantheon_schema_endpoint' => trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'),
-      'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/')
+      'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/'),
     ];
   }
 
@@ -165,7 +165,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
 
   /**
    * @param \Solarium\Core\Client\Response $response
-   *   The solarium response
+   *   The solarium response.
    *
    * @return string
    *   info when 2xx, error otherwise.

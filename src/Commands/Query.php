@@ -2,15 +2,10 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\search_api\ServerInterface;
-use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrBackendInterface;
 use Drush\Commands\DrushCommands;
-use Solarium\Core\Query\Result\ResultInterface;
-use const JSON_PRETTY_PRINT;
 
 /**
  * A Drush command file.
@@ -25,7 +20,7 @@ class Query extends DrushCommands {
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, ) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager) {
     parent::__construct();
     $this->storage = $entityTypeManager->getStorage('search_api_server');
   }
@@ -51,14 +46,17 @@ class Query extends DrushCommands {
    * @throws \JsonException
    * @throws \Exception
    */
-  public function select($query, $options = [
-    'wt' => 'json',
-    'rows' => 10,
-    'qf' => '',
-    'defType' => 'edismax',
-    'omitHeader' => 'true',
-    'fields' => 'ss_search_api_id,ss_search_api_language,score,hash',
-  ]) {
+  public function select(
+    $query,
+    $options = [
+      'wt' => 'json',
+      'rows' => 10,
+      'qf' => '',
+      'defType' => 'edismax',
+      'omitHeader' => 'true',
+      'fields' => 'ss_search_api_id,ss_search_api_language,score,hash',
+    ],
+  ) {
     $this->logger->notice('Running a select query against Pantheon Solr.');
 
     $this->logger->notice('Query: ' . urldecode($query));
@@ -87,11 +85,12 @@ class Query extends DrushCommands {
       $result = $connector->execute($query_object);
       $this->logger->notice('Query executed successfully.');
       $this->logger->notice('Query result:');
-      return json_encode($result->getData(), JSON_PRETTY_PRINT);
+      return json_encode($result->getData(), \JSON_PRETTY_PRINT);
     }
     catch (SearchApiSolrException $e) {
-      $this->logger->error('Query failed with message:');;
-      return json_encode(['error' => $e->getMessage()], JSON_PRETTY_PRINT);
+      $this->logger->error('Query failed with message:');
+
+      return json_encode(['error' => $e->getMessage()], \JSON_PRETTY_PRINT);
     }
   }
 
