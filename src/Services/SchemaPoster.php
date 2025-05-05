@@ -43,8 +43,8 @@ class SchemaPoster implements LoggerAwareInterface {
   /**
    * Post a schema file to the Pantheon Solr server.
    *
-   * @param ?string $server_id
-   *   Search Api Server ID.
+   * @param string $server_id
+   *   Search Api Server ID (optional).
    * @param array $files
    *   Array of files to post.
    *
@@ -54,7 +54,7 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function postSchema(?string $server_id, array $files = []): array {
+  public function postSchema(string $server_id = '', array $files = []): array {
     $server = $this->getPantheonSolrServer($server_id);
     // PANTHEON Environment.
     if (getenv('PANTHEON_ENVIRONMENT')) {

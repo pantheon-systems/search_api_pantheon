@@ -28,8 +28,11 @@ class PantheonSolrConnector extends StandardSolrConnector {
     // assert these overrides.
     if (getenv('PANTHEON_ENVIRONMENT')) {
       $configuration = static::getEnvironmentVariables() + $configuration;
+      // This is used by ::createClient() only.
       $configuration['search_api_pantheon_cert'] = ($_SERVER['HOME'] ?? '') . '/certs/binding.pem';
-      // This is used in Endpoint::getCollectionBaseUri() and similar.
+      // This is used in Endpoint::getCollectionBaseUri() and similar. Usually
+      // it's "solr" but the Pantheon endpoint does not have a /solr/ part in
+      // their path.
       $configuration['context'] = '';
     }
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -60,9 +63,11 @@ class PantheonSolrConnector extends StandardSolrConnector {
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
       'solr_version' => 8,
       // This is set to "/site/{site-uuid}/environment/{env}/configs",
-      // very similar to core and so also can't start with a slash.
+      // very similar to core and so also can't start with a slash. It is used
+      // by ::postSchema().
       'search_api_pantheon_schema_endpoint' => trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'),
-      // Same for "/site/{site-uuid}/environment/{env}/reload",
+      // Same for "/site/{site-uuid}/environment/{env}/reload". It is used by
+      // ::reloadCore().
       'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/'),
     ];
   }

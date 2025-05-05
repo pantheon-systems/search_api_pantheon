@@ -31,14 +31,12 @@ class Schema extends DrushCommands {
    *
    * @command search-api-pantheon:postSchema
    *
-   * @param $server_id
-   *   Server id to post schema for.
    * @param $path
    *   Path to schema files (Leave empty to use default schema).
    *
    * @aliases sapps
    */
-  public function postSchema(?string $server_id = NULL, ?string $path = NULL): void {
+  public function postSchema(string $path = ''): void {
     try {
       $files = [];
       if ($path) {
@@ -57,7 +55,7 @@ class Schema extends DrushCommands {
         }
       }
 
-      $this->schemaPoster->postSchema($server_id, $files);
+      $this->schemaPoster->postSchema(files: $files);
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);

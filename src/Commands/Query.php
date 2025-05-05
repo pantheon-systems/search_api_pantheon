@@ -26,10 +26,6 @@ class Query extends PantheonCommandBase {
    * @option fields Fields to return
    *
    * @aliases saps
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
-   * @throws \Exception
    */
   public function select(
     $query,
@@ -47,9 +43,7 @@ class Query extends PantheonCommandBase {
     $this->logger->notice('Query: ' . urldecode($query));
     $options['query'] = urldecode($query);
 
-    $backend = $this->getPantheonSolrServer()->getBackend();
-    assert($backend instanceof SolrBackendInterface);
-    $connector = $backend->getSolrConnector();
+    $connector = $this->getPantheonSolrConnector();
     $query_object = $connector->getSelectQuery();
     $query_object->setOptions($options);
     $query_object->setResponseWriter($options['wt']);
@@ -82,8 +76,8 @@ class Query extends PantheonCommandBase {
   /**
    * Force Solr server cleanup if hash has changed.
    *
-   * @usage search-api-pantheon:force-cleanup <server_id>
-   *   Force server cleanup by updating hash and running a delete query on given server.
+   * @usage search-api-pantheon:force-cleanup
+   *   Force server cleanup by updating hash and running a delete query.
    *
    * @command search-api-pantheon:force-cleanup
    *
@@ -92,9 +86,9 @@ class Query extends PantheonCommandBase {
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    * @throws \Exception
    */
-  public function forceServerClean($server_id = '') {
-    $server = $this->getPantheonSolrServer($server_id);
-    $connector = $this->getPantheonSolrConnector($server);
+  public function forceServerClean() {
+    $server = $this->getPantheonSolrServer();
+    $connector = $this->getPantheonSolrConnector();
     $properties['status'] = TRUE;
     $properties['read_only'] = FALSE;
     foreach ($server->getIndexes($properties) as $index) {
