@@ -237,7 +237,7 @@ If you experience schema reversion issues:
 - `drush search-api-pantheon:force-cleanup` (`sapfc`) This command will delete all of the contents for the given
   Solr server (no matter if hash or index_id have changed).
 
-- `drush search-api-pantheon:postSchema [solr-server] [path-to-schema]` (`sapps`) This command will upload schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set.
+- `drush search-api-pantheon:postSchema [path-to-schema]` (`sapps`) This command will upload schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set.
 
 The current default schema on Pantheon when a new Solr container is provisioned is the 4.2.1 version of the solr8 jump-start config set provided by the Search API Solr module. To upgrade the default Pantheon solr 8 server to a version 4.3.0+ compatible config set, run the following command after you've upgraded the Search API Solr module to your desired version.
 
