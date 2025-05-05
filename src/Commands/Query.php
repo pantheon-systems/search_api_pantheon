@@ -3,7 +3,6 @@
 namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\search_api_solr\SearchApiSolrException;
-use Drupal\search_api_solr\SolrBackendInterface;
 
 /**
  * A Drush command file.
