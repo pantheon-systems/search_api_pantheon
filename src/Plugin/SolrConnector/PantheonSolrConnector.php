@@ -156,7 +156,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * {@inheritdoc}
    */
   public function reloadCore(): void {
-    parent::reloadCore();
+    $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
       ->setHandler($this->configuration['search_api_pantheon_reload_endpoint'])
       ->setMethod(Request::METHOD_POST)
