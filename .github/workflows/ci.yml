@@ -97,8 +97,6 @@ jobs:
         run: |
           # dsapip is short for Drupal Search API Pantheon.
           echo "SITE=dsapip-$DRUPAL_VERSION-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
-          echo "TERMINUS_ORG=$TERMINUS_ORG" >> "$GITHUB_ENV"
-          echo "DRUPAL_VERSION=$DRUPAL_VERSION" >> "$GITHUB_ENV"
 
       - name: Checkout code
         uses: actions/checkout@v3
