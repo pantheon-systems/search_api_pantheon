@@ -59,9 +59,10 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
       'solr_version' => 8,
-      // This is set to "/site/{site-uuid}}/environment/{env}}/configs",
+      // This is set to "/site/{site-uuid}}/environment/{env}/configs",
       // very similar to core and so also can't start with a slash.
       'search_api_pantheon_schema_endpoint' => trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'),
+      // Same for "/site/{site-uuid}}/environment/{env}/reload",
       'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/'),
     ];
   }
