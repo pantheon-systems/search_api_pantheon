@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\search_api_pantheon\Commands;
+namespace Drupal\search_api_pantheon;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\search_api\ServerInterface;

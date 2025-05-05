@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\search_api_pantheon\GetPantheonSolrServerTrait;
 use Drush\Commands\DrushCommands;
 
 /**

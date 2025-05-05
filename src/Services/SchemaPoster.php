@@ -6,7 +6,7 @@ use Drupal\Component\FileSystem\FileSystem;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api\ServerInterface;
-use Drupal\search_api_pantheon\Commands\GetPantheonSolrServerTrait;
+use Drupal\search_api_pantheon\GetPantheonSolrServerTrait;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\Controller\SolrConfigSetController;
 use GuzzleHttp\ClientInterface;
