@@ -5,6 +5,8 @@ namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 use Drupal\search_api_pantheon\Solarium\PantheonCurl;
 use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
 use Drupal\Core\Form\FormStateInterface;
+use Solarium\Core\Client\Request;
+use Solarium\Core\Client\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -49,7 +51,12 @@ class PantheonSolrConnector extends StandardSolrConnector {
       'scheme' => 'https',
       'host' => getenv('PANTHEON_INDEX_HOST'),
       'port' => getenv('PANTHEON_INDEX_PORT'),
-      'path' => '/' . trim(getenv('PANTHEON_INDEX_PATH'), '/'),
+      // Just the string "v1". In Endpoint::getServerUri() this will be
+      // appended directly to the port which means an additional slash is
+      // required.
+      'path' => '/' . getenv('PANTHEON_INDEX_PATH'),
+      // This is set to "/site/{site-uuid}/environment/{env}/backend" and
+      // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
       'solr_version' => 8,
     ];
@@ -93,6 +100,61 @@ class PantheonSolrConnector extends StandardSolrConnector {
       $client->setAdapter($adapter);
     }
     return $client;
+  }
+
+  /**
+   * Posts schema files to the proprietary Pantheon endpoint.
+   *
+   * @param array $schemaFiles
+   *   A key => value paired array of filenames => file_contents.
+   *
+   * @return \Solarium\Core\Client\Response
+   *   The Solarium response object.
+   *
+   * @throws \Drupal\search_api_solr\SearchApiSolrException
+   *
+   * @internal
+   */
+  public function postSchema(array $schemaFiles): Response {
+    $this->useTimeout();
+    $filesToSend = [];
+    foreach ($schemaFiles as $filename => $file_contents) {
+      $this->logger->info($this->t('Encoding file: {filename}'), [
+        'filename' => $filename,
+      ]);
+      $filesToSend['files'][] = [
+        'filename' => $filename,
+        'content' => base64_encode($file_contents),
+      ];
+    }
+
+    $request = (new Request())
+      // This is "/site/{site-uuid}}/environment/{env}}/configs". Much like
+      // the very similar core value set in ::getEnvironmentVariables() this
+      // also can't start with a slash.
+      ->setHandler(trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'))
+      ->setMethod(Request::METHOD_POST)
+      ->setContentType('application/json')
+      ->setRawData(json_encode($filesToSend));
+    $response = $this->executeRequest($request);
+    $logMethod = static::getLogMethod($response);
+    $this->logger->{$logMethod}($this->t('Files uploaded: {status_code} {reason}'), [
+      'status_code' => $response->getStatusCode(),
+      'status_message' => $response->getStatusMessage(),
+    ]);
+    return $response;
+  }
+
+  /**
+   * @param \Solarium\Core\Client\Response $response
+   *   The solarium response
+   *
+   * @return string
+   *   info when 2xx, error otherwise.
+   */
+  public static function getLogMethod(Response $response): string {
+    $statusCode = (string) $response->getStatusCode();
+    return ($statusCode[0] ?? '') === '2' ? 'info' : 'error';
   }
 
 }

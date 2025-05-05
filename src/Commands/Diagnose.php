@@ -2,6 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\search_api\Entity\Server;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
@@ -21,6 +22,19 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Diagnose extends DrushCommands {
 
+  use GetPantheonSolrServerTrait;
+
+  /**
+   * Construct a Diagnose command object.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
+   */
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, ) {
+    parent::__construct();
+    $this->storage = $entityTypeManager->getStorage('search_api_server');
+  }
+
   /**
    * Search_api_pantheon:diagnose.
    *
@@ -29,10 +43,6 @@ class Diagnose extends DrushCommands {
    *
    * @command search-api-pantheon:diagnose
    * @aliases sapd
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
-   * @throws \Exception
    */
   public function solrDiagnose(): void {
     try {
@@ -71,7 +81,7 @@ class Diagnose extends DrushCommands {
         throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
       }
       $this->logger->notice('Pantheon.yml file looks ok ✅');
-      $backend = Server::load('pantheon_search')->getBackend();
+      $backend = $this->getPantheonSolrServer()->getBackend();
       assert($backend instanceof SearchApiSolrBackend);
       $connector = $backend->getSolrConnector();
       $this->logger->notice('Pantheon connector found {var}', [
