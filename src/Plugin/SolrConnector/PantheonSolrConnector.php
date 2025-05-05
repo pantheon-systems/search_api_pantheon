@@ -20,6 +20,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class PantheonSolrConnector extends StandardSolrConnector {
 
+  /**
+   * Creates a pantheon solr connector instance.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin ID for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   *
+   * @SuppressWarnings(PHPMD.Superglobals)
+   */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     // While normally reading global state should be in ::create() the very
     // point of this class is to force override the configuration with these

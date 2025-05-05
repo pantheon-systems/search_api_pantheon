@@ -74,8 +74,8 @@ class Diagnose extends PantheonCommandBase {
   }
 
   /**
-   * @return void
-   * @throws \Exception
+   * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+   * @SuppressWarnings(PHPMD.NPathComplexity)
    */
   public function verifyYamlFiles(): void {
     $pantheon_yml_contents = '';

@@ -53,6 +53,8 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @throws \Drupal\search_api\SearchApiException
    * @throws \GuzzleHttp\Exception\GuzzleException
+   *
+   * @SuppressWarnings(PHPMD.Superglobals)
    */
   public function postSchema(string $server_id = '', array $files = []): array {
     $server = $this->getPantheonSolrServer($server_id);
@@ -88,6 +90,8 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @return array
    *   Message to be displayed to the user (type, message).
+   *
+   * @SuppressWarnings(PHPMD.StaticAccess)
    */
   public function processResponse(Response $response): array {
     $logMethod = PantheonSolrConnector::getLogMethod($response);
@@ -126,6 +130,8 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
+   *
+   * @SuppressWarnings(PHPMD.LongVariable)
    */
   public function getSolrFiles(ServerInterface $server): array {
     $solr_config_set_controller = new SolrConfigSetController($this->moduleExtensionList);

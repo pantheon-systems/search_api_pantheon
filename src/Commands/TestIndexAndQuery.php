@@ -21,6 +21,8 @@ use Drupal\search_api\Entity\Index;
  * See these files for an example of injecting Drupal services:
  *   - http://cgit.drupalcode.org/devel/tree/src/Commands/DevelCommands.php
  *   - http://cgit.drupalcode.org/devel/tree/drush.services.yml
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TestIndexAndQuery extends PantheonCommandBase {
 
@@ -43,10 +45,6 @@ class TestIndexAndQuery extends PantheonCommandBase {
    *
    * @command search-api-pantheon:test-index-and-query
    * @aliases sap-tiq
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
-   * @throws \Exception
    */
   public function testIndexAndQuery() {
     try {
