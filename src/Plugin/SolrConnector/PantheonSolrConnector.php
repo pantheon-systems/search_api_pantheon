@@ -59,6 +59,10 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
       'solr_version' => 8,
+      // This is set to "/site/{site-uuid}}/environment/{env}}/configs",
+      // very similar to core and so also can't start with a slash.
+      'search_api_pantheon_schema_endpoint' => trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'),
+      'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/')
     ];
   }
 
@@ -129,20 +133,34 @@ class PantheonSolrConnector extends StandardSolrConnector {
     }
 
     $request = (new Request())
-      // This is "/site/{site-uuid}}/environment/{env}}/configs". Much like
-      // the very similar core value set in ::getEnvironmentVariables() this
-      // also can't start with a slash.
-      ->setHandler(trim(getenv('PANTHEON_INDEX_SCHEMA'), '/'))
+      ->setHandler($this->configuration['search_api_pantheon_schema_endpoint'])
       ->setMethod(Request::METHOD_POST)
       ->setContentType('application/json')
       ->setRawData(json_encode($filesToSend));
     $response = $this->executeRequest($request);
     $logMethod = static::getLogMethod($response);
-    $this->logger->{$logMethod}($this->t('Files uploaded: {status_code} {reason}'), [
+    $this->logger->{$logMethod}($this->t('Files uploaded: {status_code} {status_message}'), [
       'status_code' => $response->getStatusCode(),
       'status_message' => $response->getStatusMessage(),
     ]);
     return $response;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function reloadCore(): void {
+    parent::reloadCore();
+    $request = (new Request())
+      ->setHandler($this->configuration['search_api_pantheon_reload_endpoint'])
+      ->setMethod(Request::METHOD_POST)
+      ->setContentType('application/json');
+    $response = $this->executeRequest($request);
+    $logMethod = static::getLogMethod($response);
+    $this->logger->{$logMethod}($this->t('Core reload: {status_code} {status_message}'), [
+      'status_code' => $response->getStatusCode(),
+      'status_message' => $response->getStatusMessage(),
+    ]);
   }
 
   /**
