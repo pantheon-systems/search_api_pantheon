@@ -4,7 +4,6 @@ namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\Core\Config\ConfigInstallerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drush\Commands\DrushCommands;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
 use Symfony\Component\Yaml\Yaml;
