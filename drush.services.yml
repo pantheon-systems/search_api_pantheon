@@ -3,7 +3,7 @@ services:
     class: Drupal\search_api_pantheon\Commands\Diagnose
     tags:
       - { name: drush.command }
-    arguments: [ '@entity_type.manager']
+    arguments: [ '@entity_type.manager', '%app.root%']
   search_api_pantheon.drush_test_index_and_query:
     class: Drupal\search_api_pantheon\Commands\TestIndexAndQuery
     arguments: ['@entity_type.manager', '@file_system', '@config.installer']
