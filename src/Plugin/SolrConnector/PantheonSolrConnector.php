@@ -26,8 +26,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     // environment variables. Testability is not a problem thanks to putenv()
     // and more importantly, any testing would be pointless if it didn't
     // assert these overrides.
-    if (getenv('PANTHEON_ENVIRONMENT')) {
-      $configuration = static::getEnvironmentVariables() + $configuration;
+    if ($overrides = static::getEnvironmentVariables()) {
+      $configuration = $overrides + $configuration;
       // This is used by ::createClient() only.
       $configuration['search_api_pantheon_cert'] = ($_SERVER['HOME'] ?? '') . '/certs/binding.pem';
       // This is used in Endpoint::getCollectionBaseUri() and similar. Usually
@@ -50,6 +50,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * @return array
    */
   public static function getEnvironmentVariables(): array {
+    if (!getenv('PANTHEON_ENVIRONMENT')) {
+      return [];
+    }
     return [
       'scheme' => 'https',
       'host' => getenv('PANTHEON_INDEX_HOST'),
@@ -77,15 +80,17 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    foreach (array_keys(static::getEnvironmentVariables()) as $key) {
-      if (isset($form[$key])) {
-        $form[$key]['#disabled'] = TRUE;
-        $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure".');
+    if ($overrides = static::getEnvironmentVariables()) {
+      foreach (array_keys($overrides) as $key) {
+        if (isset($form[$key])) {
+          $form[$key]['#disabled'] = TRUE;
+          $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure".');
+        }
       }
+      $form['workarounds']['#access'] = FALSE;
+      // @todo explore whether jts works.
+      $form['advanced']['#access'] = FALSE;
     }
-    $form['workarounds']['#access'] = FALSE;
-    // @todo explore whether jts works.
-    $form['advanced']['#access'] = FALSE;
     return $form;
   }
 
@@ -94,7 +99,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function getServerInfo($reset = FALSE) {
     // The parent uses a system-wide endpoint which is not supported on
-    // Pantheon.
+    // Pantheon but the core specific one works everywhere.
     return $this->getDataFromHandler($this->configuration['core'] . '/admin/system', $reset);
   }
 
@@ -156,6 +161,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * {@inheritdoc}
    */
   public function reloadCore(): void {
+    if (!isset($this->configuration['search_api_pantheon_reload_endpoint'])) {
+      parent::reloadCore();
+    }
     $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
       ->setHandler($this->configuration['search_api_pantheon_reload_endpoint'])
