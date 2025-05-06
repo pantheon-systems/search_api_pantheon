@@ -25,7 +25,7 @@ if [ "$INDEXED" != "5" ]; then
   exit 1
 fi
 echo "Verifying the number of items in Solr directly"
-FOUND=$(terminus drush sap-old-is-new.dev -- search-api-pantheon:select '*' |grep -v notice|jq '.response.numFound')
+FOUND=$(terminus drush "$SITE.dev" -- search-api-pantheon:select '*' |grep -v notice|jq .response.numFound)
 if [ "$FOUND" != "5" ]; then
   echo "Solr reports the number of documents is $FOUND, 5 was expected. See the following report for more info."
   terminus drush "$SITE.dev" sapd
