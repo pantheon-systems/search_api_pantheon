@@ -157,6 +157,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
 
     $request = (new Request())
       ->setHandler($this->configuration['search_api_pantheon_schema_endpoint'])
+      ->setIsServerRequest(TRUE)
       ->setMethod(Request::METHOD_POST)
       ->setContentType('application/json')
       ->setRawData(json_encode($filesToSend));
@@ -172,13 +173,14 @@ class PantheonSolrConnector extends StandardSolrConnector {
   /**
    * {@inheritdoc}
    */
-  public function reloadCore(): void {
+  public function reloadCore(): bool {
     if (!isset($this->configuration['search_api_pantheon_reload_endpoint'])) {
       parent::reloadCore();
     }
     $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
       ->setHandler($this->configuration['search_api_pantheon_reload_endpoint'])
+      ->setIsServerRequest(TRUE)
       ->setMethod(Request::METHOD_POST)
       ->setContentType('application/json');
     $response = $this->executeRequest($request);
@@ -187,6 +189,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       'status_code' => $response->getStatusCode(),
       'status_message' => $response->getStatusMessage(),
     ]);
+    return $logMethod === 'info';
   }
 
   /**
