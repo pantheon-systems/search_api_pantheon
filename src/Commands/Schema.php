@@ -24,14 +24,14 @@ class Schema extends DrushCommands {
   /**
    * Search_api_pantheon:postSchema.
    *
+   * @param $path
+   *   Path to schema files (Leave empty to use default schema).
+   *
    * @command search-api-pantheon:postSchema
    *
    * @usage search-api-pantheon:postSchema [path]
    *   Post the latest schema to the Solr server.
    *   Default path = empty (build files using the search_api_solr mechanism).
-   *
-   * @param $path
-   *   Path to schema files (Leave empty to use default schema).
    *
    * @aliases sapps
    */

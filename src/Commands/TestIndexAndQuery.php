@@ -137,13 +137,12 @@ class TestIndexAndQuery extends PantheonCommandBase {
    * @command search-api-pantheon:ping
    * @aliases sapp
    *
-   * @return mixed
-   *   The latency in milliseconds if the core can be accessed,
-   *   otherwise FALSE.
+   * @return bool
+   *   TRUE on success, FALSE on failure.
    */
-  public function pingSolrHost(): mixed {
+  public function pingSolrHost(): bool {
     try {
-      return $this->getPantheonSolrConnector()->pingServer();
+      return $this->getPantheonSolrConnector()->pingServer()['responseHeader']['status'] === '0';
     }
     catch (\Exception $e) {
     }
