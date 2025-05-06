@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Component\FileSystem\FileSystem;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api\ServerInterface;
@@ -33,11 +34,13 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   public function __construct(
     LoggerChannelFactoryInterface $logger_factory,
+    EntityTypeManagerInterface $entity_type_manager,
     // ::uploadSchemaAsZip() needs this.
     protected ClientInterface $client,
     protected ModuleExtensionList $moduleExtensionList,
   ) {
     $this->logger = $logger_factory->get('PantheonSearch');
+    $this->storage = $entity_type_manager->getStorage('search_api_schema');
   }
 
   /**
