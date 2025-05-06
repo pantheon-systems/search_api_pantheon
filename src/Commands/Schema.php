@@ -34,7 +34,7 @@ class Schema extends DrushCommands {
    *   Post the latest schema to the Solr server.
    *   Default path = empty (build files using the search_api_solr mechanism).
    */
-  public function postSchema(string $path = ''): void {
+  public function postSchema(string $path = ''): int {
     try {
       $files = [];
       if ($path) {
@@ -53,11 +53,16 @@ class Schema extends DrushCommands {
         }
       }
 
-      $this->schemaPoster->postSchema(files: $files);
+      $result = $this->schemaPoster->postSchema(files: $files);
+      $this->logger->{$result[0]}($result[1]);
+      if ($result[0] === 'info') {
+        return self::EXIT_SUCCESS;
+      }
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);
     }
+    return self::EXIT_FAILURE;
   }
 
   /**
