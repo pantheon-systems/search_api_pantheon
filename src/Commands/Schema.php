@@ -28,12 +28,12 @@ class Schema extends DrushCommands {
    *   Path to schema files (Leave empty to use default schema).
    *
    * @command search-api-pantheon:postSchema
+   * @aliases sapps
    *
    * @usage search-api-pantheon:postSchema [path]
    *   Post the latest schema to the Solr server.
    *   Default path = empty (build files using the search_api_solr mechanism).
    *
-   * @aliases sapps
    */
   public function postSchema(string $path = ''): void {
     try {

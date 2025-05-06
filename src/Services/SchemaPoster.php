@@ -40,7 +40,7 @@ class SchemaPoster implements LoggerAwareInterface {
     protected ModuleExtensionList $moduleExtensionList,
   ) {
     $this->logger = $logger_factory->get('PantheonSearch');
-    $this->storage = $entity_type_manager->getStorage('search_api_schema');
+    $this->storage = $entity_type_manager->getStorage('search_api_server');
   }
 
   /**
