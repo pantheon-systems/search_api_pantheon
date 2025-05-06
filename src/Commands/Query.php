@@ -63,12 +63,13 @@ class Query extends PantheonCommandBase {
       $result = $connector->execute($query_object);
       $this->logger->notice('Query executed successfully.');
       $this->logger->notice('Query result:');
-      return json_encode($result->getData(), \JSON_PRETTY_PRINT);
+      $this->output()->writeln(json_encode($result->getData(), \JSON_PRETTY_PRINT));
+      return self::EXIT_SUCCESS;
     }
     catch (SearchApiSolrException $e) {
       $this->logger->error('Query failed with message:');
-
-      return json_encode(['error' => $e->getMessage()], \JSON_PRETTY_PRINT);
+      $this->output->writeln(json_encode(['error' => $e->getMessage()], \JSON_PRETTY_PRINT));
+      return self::EXIT_FAILURE;
     }
   }
 

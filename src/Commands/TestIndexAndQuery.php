@@ -46,7 +46,7 @@ class TestIndexAndQuery extends PantheonCommandBase {
    * @command search-api-pantheon:test-index-and-query
    * @aliases sap-tiq
    */
-  public function testIndexAndQuery() {
+  public function testIndexAndQuery(): int {
     try {
       $response = $this->pingSolrHost();
       $this->logger->notice('Ping Received Response? {var}', [
@@ -106,12 +106,12 @@ class TestIndexAndQuery extends PantheonCommandBase {
     catch (\Exception $e) {
       \Kint::dump($e);
       $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      return self::EXIT_FAILURE;
     }
     catch (\Throwable $t) {
       \Kint::dump($t);
       $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      return self::EXIT_FAILURE;
     }
     finally {
       if ($index) {
@@ -126,6 +126,7 @@ class TestIndexAndQuery extends PantheonCommandBase {
     $this->logger->notice(
       "If there's an issue with Solr, it would have shown up here. You should be good to go!"
     );
+    return self::EXIT_SUCCESS;
   }
 
   /**
@@ -142,13 +143,15 @@ class TestIndexAndQuery extends PantheonCommandBase {
    */
   public function pingSolrHost(): bool {
     try {
-      return $this->getPantheonSolrConnector()->pingServer()['responseHeader']['status'] === '0';
+      if ($this->getPantheonSolrConnector()->pingServer()['responseHeader']['status'] === '0') {
+        return self::EXIT_SUCCESS;
+      }
     }
     catch (\Exception $e) {
     }
     catch (\Throwable $t) {
     }
-    return FALSE;
+    return self::EXIT_FAILURE;
   }
 
   /**
