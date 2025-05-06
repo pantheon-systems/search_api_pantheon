@@ -7,9 +7,13 @@ services:
   search_api_pantheon.drush_test_index_and_query:
     class: Drupal\search_api_pantheon\Commands\TestIndexAndQuery
     arguments: ['@entity_type.manager', '@file_system', '@config.installer']
+    tags:
+      - { name: drush.command }
   search_api_pantheon.drush_schema:
     class: Drupal\search_api_pantheon\Commands\Schema
     arguments: ['@search_api_pantheon.schema_poster']
+    tags:
+      - { name: drush.command }
   search_api_pantheon.drush_query:
     class: Drupal\search_api_pantheon\Commands\Query
     arguments: ['@entity_type.manager']
@@ -18,3 +22,5 @@ services:
   search_api_pantheon.drush_reload:
     class: Drupal\search_api_pantheon\Commands\Reload
     arguments: ['@entity_type.manager']
+    tags:
+      - { name: drush.command }
