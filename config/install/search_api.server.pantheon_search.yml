@@ -36,7 +36,10 @@ backend_config:
   disabled_field_types: {  }
   disabled_caches: {  }
   disabled_request_handlers:
+    - request_handler_replicationslave_default_7_0_0
+    - request_handler_replicationmaster_default_7_0_0
   disabled_request_dispatchers:
+    - request_dispatcher_httpcachingnever_default_7_0_0
   rows: 10
   index_single_documents_fallback_count: 10
   index_empty_text_fields: false
