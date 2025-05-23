@@ -87,7 +87,7 @@ jobs:
 
       - name: Log in to Terminus
         run: |
-          terminus auth:login --email=$GIT_EMAIL --machine-token="$TERMINUS_TOKEN"
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
           terminus auth:whoami
 
       - name: Setup SSH Keys
