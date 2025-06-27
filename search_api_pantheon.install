@@ -26,3 +26,39 @@ function search_api_pantheon_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Migrate  search server pantheon_solr8  to pantheon_search.
+ */
+function search_api_pantheon_update_8300() {
+  $config_factory = \Drupal::configFactory();
+  $server = $config_factory->getEditable('search_api.server.pantheon_solr8');
+  $logger = \Drupal::logger('search_api_pantheon');
+
+  if ($server->get('id')) {
+    $data = $server->getRawdata();
+    $data['id'] = 'pantheon_search';
+    $config_factory->getEditable('search_api.server.pantheon_search')
+      ->setData($data)
+      ->save();
+    $logger->info("Search server id changed from 'pantheon_solr8' to 'pantheon_search'");
+  }
+  else {
+    return;
+  }
+
+  // Replace  server id  for all indexes with  pantheon_search.
+  $indexes = \Drupal::entityTypeManager()->getStorage('search_api_index')->loadMultiple();
+  foreach ($indexes as $index) {
+    if ($index->get('server') === 'pantheon_solr8') {
+      $index->set('server', 'pantheon_search');
+      $index->save();
+      $logger->info('Updated  search server id for index @index to  pantheon_search.', ['@index' => $index->id()]);
+    }
+  }
+
+  // Delete the old search  server 'pantheon_solr8'.
+  if ($server->get('id')) {
+    $server->delete();
+  }
+}

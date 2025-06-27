@@ -1,9 +1,20 @@
-# Search API Pantheon: Solr 8 & Drupal 9/10 Integration
+# Search API Pantheon: Solr 8 & Drupal 9/10/11 Integration
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
 
-## Important Notice - Schema Reversion Prevention
+## Important Notice
+
+** Search Server Migration (8.3.x)
+
+If you are upgrading from version 8.2.x or earlier to 8.3.x, you must run database updates after the upgrade to complete the migration:
+- Run `drush updb` or visit `/update.php` in your browser.
+- This will migrate all search indexes to the new `pantheon_search` server ID and delete the old `pantheon_solr8` server.
+
+For new installations of version 8.3.x, no action is needed.
+
+
+** Schema Reversion Prevention
 
 Starting with version 8.2, this module includes critical fixes to prevent Solr schema reversions that could cause:
 
@@ -18,7 +29,7 @@ Users experiencing these issues should upgrade immediately to version 8.1.x-dev.
 
 This module is for you if you meet the following requirements:
 
-- Using Drupal 9.4/10
+- Using Drupal 9.4/10/11
 - Hosting the Drupal site on Pantheon's platform
 - Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
 
@@ -35,7 +46,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 9 and 10](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
+This module provides [Drupal 9 -11](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
 
 ## Composer
 
@@ -55,7 +66,7 @@ Composer is the way you should be managing your drupal module requirements. This
 To install this module via composer, run the following command in your Drupal root:
 
 ```bash
-composer require 'drupal/search_api_pantheon:^8.1'
+composer require 'drupal/search_api_pantheon:^8.3'
 ```
 
 ### Development Version
