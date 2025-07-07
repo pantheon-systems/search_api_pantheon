@@ -1,20 +1,49 @@
+Search API Pantheon 8.3.3
+--------------------------------------------------
+This release includes an important bug fix that simplifies the transition of search server and index configurations when upgrading from earlier versions to 8.3.x.
+
+### What's Changed
+
+Bug Fix #3505065: This fix significantly improves the upgrade experience from previous versions to 8.3.x.
+
+- In version 8.3.0, the Pantheon Search server ID was updated to pantheon_search,and  the basic content index example configuration previously found in the config/optional folder has been replaced with a primary index located in the config/install folder.
+- This update now provides a smoother migration of the internal search server ID from pantheon_solr8 to pantheon_search and ensures the creation of a new basic index named primary.
+
+
+### Upgrade Instructions
+
+If you're upgrading from version 8.2.x or earlier to 8.3.x, you must run database updates to complete the migration.
+- Run 'drush updb' in your terminal or visit /update.php in your browser.
+
+Running the database update will:
+ - Update the search server ID from pantheon_solr8 to pantheon_search.
+ - Migrate all existing search indexes from the old pantheon_solr8 server to the   new pantheon_search server.
+ - Create the new 'primary' basic index.
+
+After database updates, indexed items will be staged for reindexing. Please re-index from the admin UI or by running the command:
+'drush search-api:reindex <INDEX_NAME>'.
+
+After that , please export the configuration changes  using  the command 'drush cex'.
+
+For new installations of version 8.3.x, no action is required. The new search server pantheon_search and index primary will be set up automatically.
+
 Search API Patheon 8.3.0
 --------------------------------------------------
 - Compatible with Pantheon Search (Solr 8)
-- Compatible with Drupal 10.x
+- Compatible with Drupal 11.x
 - Versions of Drupal less than 10 are not supported.
 - Versions of PHP less than 8.1 are not supported
 
-Search API Patheon 8.x-8.x-alpha1
+Search API Pantheon 8.x-8.x-alpha1
 --------------------------------------------------
 - Compatible with Pantheon Search (Solr 8)
 - Compatible with Drupal 9.x
 
-Search API Patheon 8.x-1.x-alpha2
+Search API Pantheon 8.x-1.x-alpha2
 --------------------------------------------------
 - Issue #2818001 by stevector: Refactor for SolrConnector Plugin
 - Issue #2761831 by stevector: Update .gitattributes file
 
-Search API Patheon 8.x-1.x-alpha1
+Search API Pantheon 8.x-1.x-alpha1
 --------------------------------------------------
 - Issue #2821769 by stevector: Initial release. Compatible with Search API Solr alpha6.

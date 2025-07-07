@@ -6,6 +6,8 @@
  */
 
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+use Drupal\search_api\Entity\Index;
+use Drupal\search_api\Entity\Server;
 
 /**
  * Implements hook_requirements().
@@ -25,4 +27,79 @@ function search_api_pantheon_requirements($phase) {
   }
 
   return $requirements;
+}
+
+/**
+ * Updates search server and index configuration during module upgrade.
+ *
+ * This update hook assists in the transition when upgrading the
+ * Search API Pantheon module from earlier versions to 8.3.x.
+ * It updates the search server from 'pantheon_solr8' to 'pantheon_search',
+ * and  creates new index 'primary'.
+ */
+function search_api_pantheon_update_8300() {
+  $old_server_id          = 'pantheon_solr8';
+  $new_server_id          = 'pantheon_search';
+  $old_index_id           = 'content_index';
+  $new_index_id           = 'primary';
+  $config_factory         = \Drupal::configFactory();
+  $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
+  $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
+  $primary_index_config   = $config_factory->getEditable("search_api.index.primary");
+  $logger                 = \Drupal::logger('search_api_pantheon');
+
+  // Skip migration if 'pantheon_solr8' search server doesn't exist,
+  // or if both the 'pantheon_search' server and 'primary' index already exist.
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew() && !$primary_index_config->isNew())) {
+    return;
+  }
+
+  try {
+    // Create the 'pantheon_search' server  if it doesn't exist.
+    if ($pantheon_search_config->isNew()) {
+      $data = $pantheon_solr8_config->getRawData();
+      $data['id'] = $new_server_id;
+      $pantheon_search_config->setData($data)->save();
+      $logger->info("Search server ID changed from '$old_server_id' to '$new_server_id'.");
+    }
+    // Update all search indexes with 'pantheon_solr8' as search server to 'pantheon_search'
+    $indexes = \Drupal::entityTypeManager()->getStorage('search_api_index')->loadMultiple();
+    foreach ($indexes as $index) {
+      if ($index->get('server') === $old_server_id) {
+        $index->set('server', $new_server_id);
+        $index->save();
+        $logger->info('Updated server for index "@index" to "@new_server_id".', [
+          '@index' => $index->id(),
+          '@new_server_id' => $new_server_id,
+        ]);
+      }
+    }
+    // Create a duplicate index from  'content_index' index, if it  exists.
+    $old_index = Index::load($old_index_id);
+    if ($old_index && $primary_index_config->isNew()) {
+      $new_index = $old_index->createDuplicate();
+      $new_index->set('id', $new_index_id);
+      $new_index->set('name', 'Primary');
+      $new_index->enforceIsNew();
+      $new_index->save();
+      $logger->info("Created new index 'Primary'. ");
+    }
+    // Delete the old index.
+    // $old_index->delete();
+    // $logger->notice('Old index @old deleted.', ['@old' => $old_index_id]);
+
+    //  Delete the old search server if it exists.
+    $old_server = Server::load($old_server_id);
+    if ($old_server) {
+      $old_server->delete();
+      $logger->info("Deleted old search server '$old_server_id'.");
+    }
+
+  }
+  catch (\Exception $e) {
+    $logger->error('Error occurred during Search API Pantheon migration: @message. Please re-run database updates.', [
+      '@message' => $e->getMessage(),
+    ]);
+    throw $e;
+  }
 }
