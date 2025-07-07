@@ -26,3 +26,77 @@ function search_api_pantheon_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Updates search server and index configuration during module upgrade.
+ *
+ * This update hook assists in the transition when upgrading the
+ * module from earlier versions to 8.3.x.
+ * It updates the search server from 'pantheon_solr8' to 'pantheon_search',
+ * and updates 'Basic Content Index (content_index)' with  'Primary(primary)'
+ */
+function search_api_pantheon_update_8300() {
+  $old_server_id          = 'pantheon_solr8';
+  $new_server_id          = 'pantheon_search';
+  $old_index_id           = 'content_index';
+  $new_index_id           = 'primary';
+  $config_factory         = \Drupal::configFactory();
+  $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
+  $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
+  $primary_index_config   = $config_factory->getEditable("search_api.index.primary");
+  $content_index_config   = $config_factory->getEditable("search_api.index.content_index");
+  $logger                 = \Drupal::logger('search_api_pantheon');
+
+  // Skip migration if 'pantheon_solr8' search server doesn't exist,
+  // or if both the 'pantheon_search' server and 'primary' index already exist.
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew() && !$primary_index_config->isNew())) {
+    return;
+  }
+
+  try {
+    // Create the 'pantheon_search' server if it doesn't exist.
+    if ($pantheon_search_config->isNew()) {
+      $data = $pantheon_solr8_config->getRawData();
+      $data['id'] = $new_server_id;
+      $pantheon_search_config->setData($data)->save();
+      $logger->info("Search server ID changed from '$old_server_id' to '$new_server_id'.");
+    }
+
+    // Update all search indexes with 'pantheon_solr8' as search server to 'pantheon_search'
+    $indexes = \Drupal::entityTypeManager()->getStorage('search_api_index')->loadMultiple();
+    foreach ($indexes as $index) {
+      if ($index->get('server') === $old_server_id) {
+        $index->set('server', $new_server_id);
+        $index->save();
+        $logger->info('Updated server for index "@index" to "@new_server_id".', [
+          '@index' => $index->id(),
+          '@new_server_id' => $new_server_id,
+        ]);
+      }
+    }
+
+    // Check if the OLD 'content_index' config exists and the new 'primary' config does not.
+    if ($primary_index_config->isNew() && !$content_index_config->isNew()) {
+      $index_data = $content_index_config->getRawData();
+      $index_data['id'] = $new_index_id;
+      $index_data['name'] = 'Primary';
+      $primary_index_config->setData($index_data)->save();
+
+      // Delete the old 'content_index' configuration.
+      $content_index_config->delete();
+      $logger->info("Replaced index '{$old_index_id}' with '{$new_index_id}' and deleted old configuration.");
+    }
+
+    // Delete the old search server if it exists.
+    if ($pantheon_solr8_config) {
+      $pantheon_solr8_config->delete();
+      $logger->info("Deleted old search server '$old_server_id'.");
+    }
+
+  } catch (\Exception $e) {
+    $logger->error('Error occurred during search server migration: @message. Please re-run database updates.', [
+      '@message' => $e->getMessage(),
+    ]);
+    throw $e;
+  }
+}
