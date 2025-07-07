@@ -93,10 +93,11 @@ function search_api_pantheon_update_8300() {
       $logger->info("Deleted old search server '$old_server_id'.");
     }
 
-  } catch (\Exception $e) {
+  }
+  catch (\Exception $e) {
     $logger->error('Error occurred during search server migration: @message. Please re-run database updates.', [
       '@message' => $e->getMessage(),
-    ]);
+     ]);
     throw $e;
   }
 }
