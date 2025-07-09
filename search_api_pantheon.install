@@ -29,7 +29,6 @@ function search_api_pantheon_requirements($phase) {
   return $requirements;
 }
 
-
 /**
  * Implements hook_update_N().
  *
@@ -78,7 +77,7 @@ function search_api_pantheon_update_8300() {
       }
     }
     // Create a 'primary' index by duplicating 'content_index'.
-   //  This is executed only if 'content_index' (from prior versions) exists.
+    //  This is executed only if 'content_index' (from prior versions) exists.
     $old_index = Index::load($old_index_id);
     if ($old_index && $primary_index_config->isNew()) {
       $new_index = $old_index->createDuplicate();
