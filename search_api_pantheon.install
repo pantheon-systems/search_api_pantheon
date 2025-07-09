@@ -29,13 +29,14 @@ function search_api_pantheon_requirements($phase) {
   return $requirements;
 }
 
+
 /**
- * Updates search server and index configuration during module upgrade.
+ * Implements hook_update_N().
  *
  * This update hook assists in the transition when upgrading the
- * Search API Pantheon module from earlier versions to 8.3.x.
+ * module from earlier versions to 8.3.x.
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search',
- * and  creates new index 'primary'.
+ * and creates a new 'primary' index if the 'content_index' (provided by earlier versions) exists.
  */
 function search_api_pantheon_update_8300() {
   $old_server_id          = 'pantheon_solr8';
@@ -48,8 +49,10 @@ function search_api_pantheon_update_8300() {
   $primary_index_config   = $config_factory->getEditable("search_api.index.primary");
   $logger                 = \Drupal::logger('search_api_pantheon');
 
-  // Skip migration if 'pantheon_solr8' search server doesn't exist,
-  // or if both the 'pantheon_search' server and 'primary' index already exist.
+  // Skip migration if :
+  // - it's not an update from 8.2.x or earlier versions.
+  // - 'pantheon_solr8' search server doesn't exist,
+  // - or both the 'pantheon_search' server and 'primary' index already exist.
   if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew() && !$primary_index_config->isNew())) {
     return;
   }
@@ -74,7 +77,8 @@ function search_api_pantheon_update_8300() {
         ]);
       }
     }
-    // Create a duplicate index from  'content_index' index, if 'content_index' index  exists.
+    // Create a 'primary' index by duplicating 'content_index'.
+   //  This is executed only if 'content_index' (from prior versions) exists.
     $old_index = Index::load($old_index_id);
     if ($old_index && $primary_index_config->isNew()) {
       $new_index = $old_index->createDuplicate();
@@ -84,11 +88,14 @@ function search_api_pantheon_update_8300() {
       $new_index->save();
       $logger->info("Created new index 'Primary'. ");
     }
-    // Delete the old index.
+
+    // Commenting the code for deletion of old index,
+    // since the old index deletion should be done manually, if needed).
+    //
     // $old_index->delete();
     // $logger->notice('Old index @old deleted.', ['@old' => $old_index_id]);
 
-    //  Delete the old search server, if it exists.
+    // Delete the old search server, if it exists.
     $old_server = Server::load($old_server_id);
     if ($old_server) {
       $old_server->delete();
