@@ -1,7 +1,7 @@
-# Search API Pantheon: Solr 8 & Drupal 9/10 Integration
+# Search API Pantheon: Solr 8 & Drupal 9.4+ Integration
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
-[![Limited Availability](https://img.shields.io/badge/Pantheon-Limited_Availability-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#limited-availability)
+[![Actively Maintained](https://img.shields.io/badge/Pantheon-Actively_Maintained-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#actively-maintained-support)
 
 ## Important Notice - Schema Reversion Prevention
 
@@ -18,7 +18,7 @@ Users experiencing these issues should upgrade immediately to version 8.1.x-dev.
 
 This module is for you if you meet the following requirements:
 
-- Using Drupal 9.4/10
+- Using Drupal 9.4+
 - Hosting the Drupal site on Pantheon's platform
 - Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
 
@@ -35,7 +35,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 9 and 10](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
+This module provides [Drupal 9.4+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
 
 ## Composer
 
@@ -80,13 +80,9 @@ To configure the connection with Pantheon, perform the following steps on your D
 
 #### Enable Solr 8 in your pantheon.yml file
 
-  - Add the bolded portion to your `pantheon.yml` file:
+  - Add or update the following in your `pantheon.yml` file:
 
     ```yaml
-    php_version: 8.1
-    database:
-      version: 10.4
-    drush_version: 10
     search:
       version: 8
     ```
@@ -250,4 +246,3 @@ Once you have enabled the Search API Pantheon module, when you reload the schema
 ## Feedback and Collaboration
 
 Bug reports, feature requests, and feedback should be posted in [the drupal.org issue queue.](https://www.drupal.org/project/issues/search_api_pantheon?categories=All) For code changes, please submit pull requests against the [GitHub repository](https://github.com/pantheon-systems/search_api_pantheon).
-

@@ -34,8 +34,7 @@ function search_api_pantheon_requirements($phase) {
  *
  * This update hook assists in the transition when upgrading the
  * module from earlier versions to 8.3.x.
- * It updates the search server from 'pantheon_solr8' to 'pantheon_search',
- * and creates a new 'primary' index if the 'content_index' (provided by earlier versions) exists.
+ * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
 function search_api_pantheon_update_8300() {
   $old_server_id          = 'pantheon_solr8';
@@ -50,9 +49,9 @@ function search_api_pantheon_update_8300() {
 
   // Skip migration if :
   // - it's not an update from 8.2.x or earlier versions.
-  // - 'pantheon_solr8' search server doesn't exist,
-  // - or both the 'pantheon_search' server and 'primary' index already exist.
-  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew() && !$primary_index_config->isNew())) {
+  // - 'pantheon_solr8' search server doesn't exists,
+  // - or the 'pantheon_search' server already exists.
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) {
     return;
   }
 
@@ -76,25 +75,8 @@ function search_api_pantheon_update_8300() {
         ]);
       }
     }
-    // Create a 'primary' index by duplicating 'content_index'.
-    //  This is executed only if 'content_index' (from prior versions) exists.
-    $old_index = Index::load($old_index_id);
-    if ($old_index && $primary_index_config->isNew()) {
-      $new_index = $old_index->createDuplicate();
-      $new_index->set('id', $new_index_id);
-      $new_index->set('name', 'Primary');
-      $new_index->enforceIsNew();
-      $new_index->save();
-      $logger->info("Created new index 'Primary'. ");
-    }
 
-    // Commenting the code for deletion of old index,
-    // since the old index deletion should be done manually, if needed).
-    //
-    // $old_index->delete();
-    // $logger->notice('Old index @old deleted.', ['@old' => $old_index_id]);
-
-    // Delete the old search server, if it exists.
+     // Delete the old search server, if it exists.
     $old_server = Server::load($old_server_id);
     if ($old_server) {
       $old_server->delete();

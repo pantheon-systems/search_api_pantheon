@@ -6,19 +6,11 @@ This release includes an important bug fix that simplifies the transition of sea
 
 Bug Fix #3505065: This fix significantly improves the upgrade experience from previous versions to 8.3.x.
 
-- In version 8.3.0, the Pantheon Search server Id was updated to 'pantheon_search',and  the basic content index  configuration previously found in the config/optional folder has been replaced with  'primary index' located in the config/install folder.
+- In version 8.3.0, the Pantheon Search server id was updated to 'pantheon_search',and  the basic content index  configuration previously found in the config/optional folder has been replaced with  'primary index' located in the config/install folder.
 
-- This update now provides a smoother migration of the  search server Id from 'pantheon_solr8' to 'pantheon_search' and creates a new 'primary' index if you are using  'content_index' provided by earlier versions of the module.
+- This release now provides a smoother migration of the  search server Id from 'pantheon_solr8' to 'pantheon_search' and  updates the search server for all the indexes using 'pantheon_solr8' with 'pantheon_search'.
 
-Important Notes for Users:
-
-If you were actively using the old content_index (index created by earlier module versions),
-
-You can continue using your existing content_index (then disable the newly created primary index).
-
-or Migrate your associated entities from the old content_index to the new primary index  and disable the old 'content_index'.
-
- If you were already using custom search indexes in your site (not the module's default content_index), they remain unaffected by this update. These custom indexes will continue to function normally, now automatically pointing to the pantheon_search server.
+- If you are using the default 'content_index' provided by earlier versions of  the module you can continue using that.
 
 ### Upgrade Instructions
 
@@ -28,11 +20,11 @@ If you're upgrading from version 8.2.x or earlier to 8.3.x, you must run databas
 Running the database update will:
  - Update the search server ID from pantheon_solr8 to pantheon_search.
  - Migrate all existing search indexes from the old pantheon_solr8 server to the   new pantheon_search server.
- - Create the new 'primary' basic index, if you are using 'content_index' provided by the earlier vesrions of the module.
 
  ### Post-Update Steps:
 
-Re-index your data: After the database updates, indexed items will be staged for reindexing. Please re-index from the admin UI or by running the command:
+Re-index your data: After the database updates, since the server gets updated, indexed items will be staged for reindexing. Please re-index from the admin UI or by running the command:
+
 'drush search-api:reindex <INDEX_NAME>'
 
 Export configuration: After re-indexing is complete and you've verified your search setup, please export the configuration changes using the command:
