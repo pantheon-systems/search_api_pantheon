@@ -23,7 +23,7 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  */
 class Endpoint extends SolariumEndpoint {
 
-  const DEFAULT_NAME = 'pantheon_solr8';
+  const DEFAULT_NAME = 'pantheon_search';
 
   /**
    * Default name for Endpoint.
