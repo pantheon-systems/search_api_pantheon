@@ -51,8 +51,8 @@ third_party_settings:
       specific_languages:
         en: '0'
       use_universal_collation: false
-id: Primary
-name: primary
+id: primary
+name: Primary
 description: 'Default Search Index for Pantheon Search'
 read_only: false
 field_settings: {  }
