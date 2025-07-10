@@ -6,7 +6,6 @@
  */
 
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
-use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Entity\Server;
 
 /**
@@ -76,7 +75,7 @@ function search_api_pantheon_update_8300() {
       }
     }
 
-     // Delete the old search server, if it exists.
+    // Delete the old search server, if it exists.
     $old_server = Server::load($old_server_id);
     if ($old_server) {
       $old_server->delete();
