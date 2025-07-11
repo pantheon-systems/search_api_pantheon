@@ -45,7 +45,6 @@ function search_api_pantheon_update_8300() {
   $logger                 = \Drupal::logger('search_api_pantheon');
 
   // Skip migration if :
-  // - it's not an update from 8.2.x or earlier versions.
   // - 'pantheon_solr8' search server doesn't exists,
   // - or the 'pantheon_search' server already exists.
   if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew())) {
