@@ -55,7 +55,7 @@ Composer is the way you should be managing your drupal module requirements. This
 To install this module via composer, run the following command in your Drupal root:
 
 ```bash
-composer require 'drupal/search_api_pantheon:^8.1'
+composer require 'drupal/search_api_pantheon:^8.3'
 ```
 
 ### Development Version
@@ -63,7 +63,7 @@ composer require 'drupal/search_api_pantheon:^8.1'
 Note that the above will install the latest stable release of this module. To install the latest development version, use:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.1.x-dev@dev'
+composer require 'drupal/search_api_pantheon:8.3.x-dev@dev'
 ```
 
 ## Setup
@@ -246,4 +246,3 @@ Once you have enabled the Search API Pantheon module, when you reload the schema
 ## Feedback and Collaboration
 
 Bug reports, feature requests, and feedback should be posted in [the drupal.org issue queue.](https://www.drupal.org/project/issues/search_api_pantheon?categories=All) For code changes, please submit pull requests against the [GitHub repository](https://github.com/pantheon-systems/search_api_pantheon).
-
