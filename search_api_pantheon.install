@@ -39,11 +39,9 @@ function search_api_pantheon_update_8300() {
   $old_server_id          = 'pantheon_solr8';
   $new_server_id          = 'pantheon_search';
   $old_index_id           = 'content_index';
-  $new_index_id           = 'primary';
   $config_factory         = \Drupal::configFactory();
   $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
   $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
-  $primary_index_config   = $config_factory->getEditable("search_api.index.primary");
   $logger                 = \Drupal::logger('search_api_pantheon');
 
   // Skip migration if :
