@@ -63,7 +63,7 @@ composer require 'drupal/search_api_pantheon:^8.3'
 Note that the above will install the latest stable release of this module. To install the latest development version, use:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.3.x-dev@dev'
+composer require 'drupal/search_api_pantheon:8.x-dev@dev'
 ```
 
 ## Setup

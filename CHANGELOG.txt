@@ -5,7 +5,7 @@ This release includes an important bug fix that simplifies the transition of sea
 ### What's Changed
 
 Bug Fix #3505065: This fix significantly improves the upgrade experience from previous versions to 8.3.x.
-- In version 8.3.0, the Pantheon Search server id was updated to 'pantheon_search',and the basic content index  configuration previously found in the config/optional folder has been replaced with  new 'primary index' in  config/install folder.
+- In version 8.3.0, the Pantheon Search server id was updated to 'pantheon_search',and the 'Basic Content Index'  configuration previously found in the config/optional folder has been replaced with  new 'Primary' index in  config/install folder.
 - This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
 - If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
 
@@ -19,9 +19,15 @@ Running the database update will:
 
 ### Post-Update Steps:
 
-- After running the database updates, your search server will be updated, which causes previously indexed items to be flagged for reindexing.
-Please re-index from the admin UI or by running the command:
-'drush search-api:reindex <INDEX_NAME>'
+- After running the database updates, your search server will be updated, which causes previously indexed items to be flagged(queued) for reindexing.
+Please re-index using either the Admin UI or Drush.
+
+Admin UI:
+Go to admin/config/search/search-api → select your index → Index Status tab → click "Index now"
+
+Drush:
+drush search-api:index <INDEX_NAME>  // Replace  <INDEX_NAME>  with the  machine  name of the  index
+
 - After re-indexing is complete and you've verified your search setup, please export the configuration changes using the command:
 'drush cex'
 
