@@ -26,7 +26,7 @@ Admin UI:
 Go to admin/config/search/search-api → select your index → Index Status tab → click "Index now"
 
 Drush:
-drush search-api:index <INDEX_NAME>
+drush search-api:index <INDEX_NAME>  // Replace  <INDEX_NAME>  with the  machine  name of the  index
 
 - After re-indexing is complete and you've verified your search setup, please export the configuration changes using the command:
 'drush cex'
