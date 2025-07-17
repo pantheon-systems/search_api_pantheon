@@ -21,7 +21,7 @@ class AdminAccessCheck implements AccessInterface {
    * @param \Drupal\search_api\ServerInterface|null $search_api_server
    *   (optional) The Search API server entity.
    */
-  public function access(AccountInterface $account, ServerInterface $search_api_server = NULL) {
+  public function access(AccountInterface $account, ?ServerInterface $search_api_server = NULL) {
     if ($search_api_server && $search_api_server->getBackend() instanceof SolrBackendInterface) {
       return AccessResult::allowed();
     }

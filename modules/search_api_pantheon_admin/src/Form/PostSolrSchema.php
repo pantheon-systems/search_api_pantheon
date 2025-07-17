@@ -56,7 +56,7 @@ class PostSolrSchema extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, ServerInterface $search_api_server = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, ?ServerInterface $search_api_server = NULL) {
     $this->server = $search_api_server;
 
     $form['path'] = [
