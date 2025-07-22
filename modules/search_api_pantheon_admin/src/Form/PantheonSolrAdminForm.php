@@ -52,7 +52,7 @@ class PantheonSolrAdminForm extends FormBase {
   public function buildForm(
         array $form,
         FormStateInterface $form_state,
-        ServerInterface $search_api_server = NULL
+        ?ServerInterface $search_api_server = NULL
     ): array {
     $file_list = $this->pantheonGuzzle
       ->getQueryResult('admin/file', [

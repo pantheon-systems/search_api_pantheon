@@ -25,7 +25,7 @@ final class SearchApiPantheonSolrConfigFilesAlter implements EventSubscriberInte
     $files = $event->getConfigFiles();
 
     // Append at the end of the file.
-    $solrcore_properties = explode(PHP_EOL, $files['solrcore.properties']);
+    $solrcore_properties = explode(PHP_EOL, $files['solrcore.properties'] ?? '');
     // Remove the solr.install.dir if it exists
     foreach ($solrcore_properties as $key => $property) {
       if (substr($property, 0, 16) == 'solr.install.dir') {
