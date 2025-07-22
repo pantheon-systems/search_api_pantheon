@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Services;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\SolrConnectorInterface;
 use Solarium\Core\Client\Endpoint as SolariumEndpoint;
@@ -52,8 +53,9 @@ class Endpoint extends SolariumEndpoint {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(array $options, EntityTypeManagerInterface $entityTypeManager) {
+    $server_id = $this->getDefaultSearchServer();
     /** @var \Drupal\search_api\ServerInterface $server */
-    $server = $entityTypeManager->getStorage('search_api_server')->load(self::DEFAULT_NAME);
+    $server = $entityTypeManager->getStorage('search_api_server')->load($server_id);
     $timeout_config = [];
     if ($server) {
       $connector_config = $server->getBackendConfig()['connector_config'];
@@ -254,7 +256,17 @@ class Endpoint extends SolariumEndpoint {
    *   Always use the default name.
    */
   public function getKey(): ?string {
-    return self::DEFAULT_NAME;
+    return $this->getDefaultSearchServer();
+  }
+
+  /**
+   * Get the name of default search server.
+   *
+   * @return string|null
+   *   The default search server name.
+   */
+  public function getDefaultSearchServer(): ?string {
+   return Settings::get('default_search_server', self::DEFAULT_NAME);
   }
 
 }
