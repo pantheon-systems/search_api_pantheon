@@ -7,6 +7,7 @@
 
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api\Entity\Server;
+use Drupal\Core\Site\Settings;
 
 /**
  * Implements hook_requirements().
@@ -43,11 +44,13 @@ function search_api_pantheon_update_8300() {
   $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
   $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
   $logger                 = \Drupal::logger('search_api_pantheon');
+  $default_search_server  = Settings::get('default_search_server', NULL);
 
   // Skip migration if :
   // - 'pantheon_solr8' search server doesn't exists,
   // - or the 'pantheon_search' server already exists.
-  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew())) {
+  // - Default search server is set as 'pantheon_solr8' in settings.php
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) || $default_search_server === 'pantheon_solr8') {
     return;
   }
 

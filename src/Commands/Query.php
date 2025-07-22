@@ -122,7 +122,7 @@ class Query extends DrushCommands {
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    * @throws \Exception
    */
-  public function forceServerClean($server_id = 'pantheon_solr8') {
+  public function forceServerClean($server_id = 'pantheon_search') {
 
     $server = Server::load($server_id);
     $backend = $server->getBackend();
