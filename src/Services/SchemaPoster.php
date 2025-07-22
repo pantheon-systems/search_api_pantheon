@@ -250,7 +250,7 @@ class SchemaPoster implements LoggerAwareInterface {
    * Get the schema and config files for posting on the solr server.
    *
    * @param string $server_id
-   *   The Search API server id. Typically, `pantheon_solr8`.
+   *   The Search API server id. Typically, `pantheon_search`.
    *
    * @return array
    *   Array of key-value pairs: 'filename' => 'file contents'.

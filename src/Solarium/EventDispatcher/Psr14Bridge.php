@@ -20,7 +20,7 @@ final class Psr14Bridge extends ContainerAwareEventDispatcher implements EventDi
     $this->dispatcher = $eventDispatcher;
   }
 
-  public function dispatch($event, Event $null = NULL) {
+  public function dispatch($event, ?Event $null = NULL) {
     if (\is_object($event)) {
       return $this->dispatcher->dispatch(\get_class($event), new EventProxy($event));
     }
