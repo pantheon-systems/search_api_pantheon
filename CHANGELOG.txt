@@ -9,8 +9,8 @@ Bug Fix #3505065: This fix significantly improves the upgrade experience from pr
 - This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
 - If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
 
-### Optional:
-If you prefer to keep using the old server id 'pantheon_solr8'  and skip the migration, add the following line to your settings.php file before running updates:
+### Optional: Skip Search Server Migration
+If you prefer to keep using the old server with  id 'pantheon_solr8'  and skip the migration, add the following line to your settings.php file before running database updates:
 
 $settings['default_search_server'] = 'pantheon_solr8';
 

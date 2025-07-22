@@ -50,7 +50,7 @@ function search_api_pantheon_update_8300() {
   // - 'pantheon_solr8' search server doesn't exists,
   // - or the 'pantheon_search' server already exists.
   // - Default search server is set as 'pantheon_solr8' in settings.php
-   if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) || $default_search_server === 'pantheon_solr8') {
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) || $default_search_server === 'pantheon_solr8') {
     return;
   }
 
