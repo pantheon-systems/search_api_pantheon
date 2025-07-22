@@ -20,7 +20,7 @@ This will prevent the migration of 'pantheon_solr8' to 'pantheon_search'.
 
 If you're upgrading from version 8.2.x or earlier to 8.3.x, you must run database updates to complete the migration.
 Run 'drush updb' in your terminal or visit /update.php in your browser.
-Running the database update will:
+Unless you elect to skip the search server migration (see above), running the database update will:
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'.
 - Migrate all existing search indexes from the old 'pantheon_solr8' server to the new 'pantheon_search' server.
 
