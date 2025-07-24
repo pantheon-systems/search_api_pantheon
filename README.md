@@ -103,7 +103,7 @@ Starting with version 8.1.x, Search API Pantheon automatically reloads the Solr 
 Schema updates can be performed through:
 
 - Admin UI: Navigate to `/admin/config/search/search-api/server/pantheon_search/pantheon-admin/schema`
-- Drush: Run `drush search-api-pantheon:postSchema`
+- Drush: Run `drush search-api-pantheon:postSchema [solr-server]`
 
 #### Manual Core Reload
 
