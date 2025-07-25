@@ -171,7 +171,6 @@ class TestIndexAndQuery extends DrushCommands {
     );
   }
 
-
   /**
    * Pings the Solr host.
    *

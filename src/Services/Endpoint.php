@@ -265,7 +265,7 @@ class Endpoint extends SolariumEndpoint {
    * @return string|null
    *   The default search server name.
    */
-  public  static function getDefaultSearchServer(): ?string {
+  public static function getDefaultSearchServer(): ?string {
     return Settings::get('default_search_server', self::DEFAULT_NAME);
   }
 
