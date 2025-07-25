@@ -1,3 +1,22 @@
+Search API Pantheon 8.3.4
+--------------------------------------------------
+This release addresses issues from version 8.3.3 and includes bug fix and improvements to Drush commands provided by the search_api_pantheon module:
+
+### Drush Commands
+
+drush search-api-pantheon:postSchema
+Fixed  error where the command failed when run without a server id argument.
+
+drush search-api-pantheon:force-cleanup
+When no server argument is provided, the command previously defaulted to pantheon_search.
+It now supports the pantheon_solr8 server if it is set as the default in settings.php.
+$settings['default_search_server'] = 'pantheon_solr8';
+
+drush search-api-pantheon:test-index-and-query
+When no server argument is provided, the command previously defaulted to pantheon_search.
+It now supports the pantheon_solr8 server if it is set as the default in settings.php.
+$settings['default_search_server'] = 'pantheon_solr8';
+
 Search API Pantheon 8.3.3
 --------------------------------------------------
 This release includes an important bug fix that simplifies the transition of search configurations when upgrading from earlier versions to 8.3.x.
