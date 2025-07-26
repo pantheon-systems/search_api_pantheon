@@ -99,6 +99,15 @@ class TestIndexAndQuery extends DrushCommands {
       ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] = $index_id;
+
+      // if default search server is set us 'pantheon_sol8' in settings.php,
+      // use  pantheon_solr 8 , otherwise  use  pantheon_search
+      $value['server'] = $this->endpoint->getDefaultSearchServer();
+      $value['dependencies']['config'] = [
+        'search_api.server.' . $value['server'],
+      ];
+      $this->logger->notice("Creating temporary index using server: " . $value['server']);
+
       $filesystem = \Drupal::service('file_system');
       $directory = 'temporary://' . $index_id;
       $filesystem = $filesystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);

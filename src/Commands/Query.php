@@ -122,8 +122,10 @@ class Query extends DrushCommands {
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    * @throws \Exception
    */
-  public function forceServerClean($server_id = 'pantheon_search') {
-
+  public function forceServerClean($server_id = NULL) {
+    if (!$server_id) {
+      $server_id = $this->endpoint->getDefaultSearchServer();
+    }
     $server = Server::load($server_id);
     $backend = $server->getBackend();
     $connector = $backend->getSolrConnector();
