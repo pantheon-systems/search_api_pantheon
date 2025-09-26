@@ -43,7 +43,6 @@
         "ext-zip": "*",
         "drupal/search_api_solr": "^4.3",
         "guzzlehttp/guzzle": "^7.5",
-        "kint-php/kint": "^5|^6",
         "php-http/guzzle7-adapter": "^1.1",
         "psr/event-dispatcher": "^1.0",
         "symfony/finder": "^4.4|^5|^6|^7",
@@ -55,14 +54,14 @@
         "drupal/coder": "@stable",
         "phpunit/phpunit": "@stable",
         "psy/psysh": "@stable",
-        "squizlabs/php_codesniffer": "@stable"
+        "squizlabs/php_codesniffer": "@stable",
+        "kint-php/kint": "^5|^6"
     },
     "suggest":{
         "drupal/search_api_autocomplete": "^1",
         "drupal/search_api_spellcheck": "^3",
         "drupal/search_api_page": "^1.0",
-        "drupal/facets": "^1.8",
-        "kint-php/kint": "@stable"
+        "drupal/facets": "^1.8"
     },
     "scripts": {
         "code:test" : [
