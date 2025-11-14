@@ -7,7 +7,7 @@ dependencies:
     - node
     - search_api
   config:
-    - search_api.server.pantheon_solr8
+    - search_api.server.pantheon_search
 third_party_settings:
   search_api_solr:
     finalize: false
@@ -83,4 +83,4 @@ options:
   index_directly: true
   track_changes_in_references: true
   cron_limit: 50
-server: pantheon_solr8
+server: pantheon_search
