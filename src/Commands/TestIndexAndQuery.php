@@ -71,6 +71,14 @@ class TestIndexAndQuery extends PantheonCommandBase {
       ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] = $index_id;
+      // if default search server is set us 'pantheon_sol8' in settings.php,
+      // use  pantheon_solr 8 , otherwise  use  pantheon_search
+      $value['server'] = $this->getPantheonSolrServer();
+      $value['dependencies']['config'] = [
+        'search_api.server.' . $value['server'],
+      ];
+      $this->logger->notice("Creating temporary index using server: " . $value['server']);
+      $filesystem = \Drupal::service('file_system');
       $directory = 'temporary://' . $index_id;
       $this->fileSystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
       $yaml = Yaml::dump($value);
@@ -104,13 +112,19 @@ class TestIndexAndQuery extends PantheonCommandBase {
       }
     }
     catch (\Exception $e) {
-      \Kint::dump($e);
-      $this->logger->emergency("There's a problem somewhere...");
+      var_dump($e);
+      $this->logger->emergency('An exception occurred: {message}', [
+        'message' => $e->getMessage(),
+        'exception' => $e,
+      ]);
       return self::EXIT_FAILURE;
     }
     catch (\Throwable $t) {
-      \Kint::dump($t);
-      $this->logger->emergency("There's a problem somewhere...");
+      var_dump($t);
+      $this->logger->emergency('An error occurred: {message}', [
+        'message' => $t->getMessage(),
+        'exception' => $t,
+      ]);
       return self::EXIT_FAILURE;
     }
     finally {
