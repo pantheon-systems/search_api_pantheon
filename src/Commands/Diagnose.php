@@ -61,12 +61,12 @@ class Diagnose extends PantheonCommandBase {
       }
     }
     catch (\Exception $e) {
-      \Kint::dump($e);
+      var_dump($e);
       $this->logger->emergency("There's a problem somewhere...");
       exit(1);
     }
     catch (\Throwable $t) {
-      \Kint::dump($t);
+      var_dump($t);
       $this->logger->emergency("There's a problem somewhere...");
       exit(1);
     }
