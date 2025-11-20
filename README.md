@@ -8,7 +8,7 @@
 Starting with version **4.0.0**, this module follows [semantic versioning](https://www.drupal.org/docs/develop/git/git-for-drupal-project-maintainers/release-naming-conventions) (MAJOR.MINOR.PATCH).
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
-### Summary of Key Changes
+### Summary of Key Changes in 4.x
 #### Code Clean-up and Refactoring
   - Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 
@@ -21,7 +21,7 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 #### Drush Commands
  -  Parameters and behavior for Drush commands were kept consistent.
  -  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
- -  Avoid passing server_id in drush [diagnostic commands]([https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#:~:text=250-,251,-252](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands) as it is no longer needed.
+ -  Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
 ### Pantheon Search Server and Index Migration Enhancements in 8.3.x and 4.0.0
 - In version 8.3.x, the Pantheon Search server id was updated to 'pantheon_search',and the 'Basic Content Index'  configuration previously found in the config/optional folder has been replaced with  new 'Primary' index in  config/install folder.
 - This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
@@ -42,7 +42,7 @@ Unless you elect to skip the search server migration (see above), running the da
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'.
 - Migrate all existing search indexes from the old 'pantheon_solr8' server to the new 'pantheon_search' server.
 
-NB: If you have references to the old server in custom code, you will need to update those references manually.
+NB: If you have references to the old server id 'pantheon_solr8' in the custom code, you will need to update those references manually.
 
 #### Post-Update Steps:
 
