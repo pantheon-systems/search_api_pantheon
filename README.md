@@ -3,11 +3,67 @@
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Actively Maintained](https://img.shields.io/badge/Pantheon-Actively_Maintained-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#actively-maintained-support)
 
+## Important
+
+Starting with version **4.0.0**, this module follows [semantic versioning](https://www.drupal.org/docs/develop/git/git-for-drupal-project-maintainers/release-naming-conventions) (MAJOR.MINOR.PATCH).
+Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
+
+Summary of Key Changes
+1. Code Clean-up and Refactoring
+   Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
+
+Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
+
+2. Configuration and Local Development
+   Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
+   These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
+
+3. Drush Commands
+   Parameters and behavior for Drush commands were kept consistent.
+   The code now searches for the first server using the Pantheon connector to handle recent default server renames.
+   Avoid passing server_id in Drush Diagnostic commands as it is no longer needed.
+
+- In version 8.3.x, the Pantheon Search server id was updated to 'pantheon_search',and the 'Basic Content Index'  configuration previously found in the config/optional folder has been replaced with  new 'Primary' index in  config/install folder.
+- This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
+- If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
+
+### Optional: Skip Search Server Migration
+If you prefer to keep using the old server with  id 'pantheon_solr8'  and skip the migration, add the following line to your settings.php file before running database updates:
+
+$settings['default_search_server'] = 'pantheon_solr8';
+
+This will prevent the migration of 'pantheon_solr8' to 'pantheon_search'.
+
+### Upgrade Instructions
+
+If you're upgrading from version 8.2.x or 8.3.x to 4.0.0, you must run database updates to complete the migration.
+Run 'drush updb' in your terminal or visit /update.php in your browser.
+Unless you elect to skip the search server migration (see above), running the database update will:
+- Update the search server id from 'pantheon_solr8' to 'pantheon_search'.
+- Migrate all existing search indexes from the old 'pantheon_solr8' server to the new 'pantheon_search' server.
+
+NB: If you have references to the old server in custom code, you will need to update those references manually.
+
+### Post-Update Steps:
+
+- After running the database updates, your search server will be updated, which causes previously indexed items to be flagged(queued) for reindexing.
+Please re-index using either the Admin UI or Drush.
+
+Admin UI:
+Go to admin/config/search/search-api → select your index → Index Status tab → click "Index now"
+
+Drush:
+drush search-api:index <INDEX_NAME>  // Replace  <INDEX_NAME>  with the  machine  name of the  index
+
+- After re-indexing is complete and you've verified your search setup, please export the configuration changes using the command:
+'drush cex'
+
 ## Requirements
 
 This module is for you if you meet the following requirements:
 
-- Using Drupal 10+
+- Using Drupal 10/11
+- PHP 8.1 or later
 - Hosting the Drupal site on Pantheon's platform
 - Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
 
@@ -15,6 +71,7 @@ This module is for you if you meet the following requirements:
   - A Continuous Integration service like Circle CI or Travis
 
 - Have Dashboard access to the platform (necessary to deploy code changes)
+- Have Solr enabled on your Pantheon site
 
 ## Intent
 
@@ -24,16 +81,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
-
-## Composer
-
-Composer is the way you should be managing your drupal module requirements. This module will install its dependencies when you use composer to install.
-
-## Dependencies (installed by Composer):
-
-- [Search API](https://www.drupal.org/project/search_api). Search API is Drupal's module for indexing content entities.
-- [Search API Solr](https://www.drupal.org/project/search_api_solr). Search API Solr makes search API work with Apache Solr. Composer will manage which version.
+This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current version as of the update of this document is 8.11.4.
 
 ## Install
 
@@ -42,7 +90,7 @@ Composer is the way you should be managing your drupal module requirements. This
 To install this module via composer, run the following command in your Drupal root:
 
 ```bash
-composer require 'drupal/search_api_pantheon:^9.0'
+composer require 'drupal/search_api_pantheon:^4.0'
 ```
 
 ### Development Version
@@ -50,17 +98,13 @@ composer require 'drupal/search_api_pantheon:^9.0'
 Note that the above will install the latest stable release of this module. To install the latest development version, use:
 
 ```bash
-composer require 'drupal/search_api_pantheon:9.x-dev@dev'
+composer require 'drupal/search_api_pantheon:4.x-dev@dev'
 ```
 
 ## Setup
 
-### Platform Support
+### Enable Solr on Pantheon
 
-See [Drupal.org for complete documentation on Search API](https://www.drupal.org/node/1250878).
-To configure the connection with Pantheon, perform the following steps on your Dev environment (or a Multidev):
-
-#### Enable Solr on your Pantheon site
   - Under "Settings" in your Pantheon site dashboard, enable Solr as an add on.
     This feature is available for sandbox sites as well as paid plans at the
     Professional level and above.
@@ -79,26 +123,6 @@ To configure the connection with Pantheon, perform the following steps on your D
     and ensure the content is indexed after creation. Indices are specific to the Solr core
     with/for which they were created. Indices cannot be exported or moved once created.
 
-### Core Reloading
-
-#### Automatic Core Reload
-
- Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
-
-#### Schema Updates
-
-Schema updates can be performed through:
-
-- Drush: Run `drush search-api-pantheon:postSchema`
-
-#### Manual Core Reload
-
-If needed, manually reload the core using:
-
-```bash
-drush search-api-pantheon:reload
-```
-
 ### Usage
 
 #### Enable the modules
@@ -111,21 +135,38 @@ drush search-api-pantheon:reload
   - If you are using Search API, then you probably will not be using Drupal Core's Search module.
   - Uninstall it to save some confusion in the further configuration steps: `admin/modules/uninstall`.
 
-#### The module should install a SEARCH API server for you
+#### Verify Installation
 
   - Navigate in the Drupal interface to `CONFIG` => `SEARCH & METADATA` => `SEARCH API`
-  - Validate that the `PANTHEON SEARCH` server exists and is "enabled".
+  - Validate that the `PANTHEON SEARCH` server and Primary Index exists and is "enabled".
 
 #### Solr versions and schemas
 
   - The version of Solr on Pantheon is Apache Solr 8.8. When you first create
     your index or alter it significantly, you will need to update the SCHEMA
-    on the server. Do that either with a drush command or in the administration
-    for the Solr Server.
-  - Navigate to `CONFIGURATION` => `SEARCH AND METADATA` => `SEARCH API`
-    => `PANTHEON SEARCH` => `PANTHEON SEARCH ADMIN`
-  - Choose the button labeled "Post Solr Schema".
-  - The module will post a schema specific to your site.
+    on the server.
+
+#### Schema Updates
+
+Schema updates can be performed using:
+
+- **Drush:**
+  ```bash
+  drush search-api-pantheon:postSchema
+  ```
+### Core Reloading
+
+#### Automatic Core Reload
+
+ Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
+
+ #### Manual Core Reload
+
+If needed, manually reload the core using:
+
+```bash
+drush search-api-pantheon:reload
+```
 
 #### Use the server with an index
 
@@ -146,7 +187,7 @@ drush search-api-pantheon:reload
 
 #### Search the Index
 
-  - Create a new view returning `INDEX PANTHEON SOLR8` of type 'ALL'. Don't worry right now how it's sorted, we're
+  - Create a new view returning  using the search index of type 'ALL'. Don't worry right now how it's sorted, we're
     going to change that to 'relevance' once we have some data being returned during the search.
   - In the view, `CHOOSE FIELDS TO BE INCLUDED IN THE RESULTS` from the fields you added to your index
     when you created it. In addition to the fields you added to the index, choose 'relevance' to add
@@ -209,10 +250,12 @@ If you experience schema reversion issues:
 
 ### Diagnostic Commands
 
+Starting from version 4.x, diagnostic commands no longer accept the server argument; instead, the command automatically uses the first configured server with the Pantheon connector, irrespective of the specific Solr server configuration being used (e.g., pantheon_solr8 or pantheon_search).
+
 - `drush search-api-pantheon:diagnose` (`sapd`) The DIAGNOSE command will check the various pieces of the Search API install
   and throw errors on the pieces that are not working. This command will develop further as the module nears general availability.
 
-- `drush search-api-pantheon:select [solr-server]` (`saps`) This command will run the given query against Solr server. It's recommended to use
+- `drush search-api-pantheon:select` (`saps`) This command will run the given query against Solr server. It's recommended to use
   `?debug=true` in any Solr page (having the right permissions) to get a good query to pass to this command to debug results.
 
 - `drush search-api-pantheon:force-cleanup [solr-server]` (`sapfc`) This command will delete all of the contents for the given
@@ -226,7 +269,7 @@ The current default schema on Pantheon when a new Solr container is provisioned 
 
 Once you have enabled the Search API Pantheon module, when you reload the schema the Pantheon module will use the config-set for the version of the Search API Solr module installed in your codebase. See the [Search API Solr 4.3.0 release notes](https://www.drupal.org/project/search_api_solr/releases/4.3.0) for more information about upgrading to a 4.3.0+ compatible schema.
 
-- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command will connect to the solr8 server to index a single item and immediately query it.
+- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command connects to the search server, indexes a single item, and immediately queries it. If you are still using the legacy pantheon_solr8 server, you must explicitly define the default search server in your settings.php file before running this command.
 
 ## Feedback and Collaboration
 
