@@ -9,16 +9,16 @@ Starting with version **4.0.0**, this module follows [semantic versioning](https
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
 Summary of Key Changes
-1. Code Clean-up and Refactoring
+ Code Clean-up and Refactoring
    Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 
 Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
-2. Configuration and Local Development
+ Configuration and Local Development
    Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
    These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
 
-3. Drush Commands
+ Drush Commands
    Parameters and behavior for Drush commands were kept consistent.
    The code now searches for the first server using the Pantheon connector to handle recent default server renames.
    Avoid passing server_id in Drush Diagnostic commands as it is no longer needed.
@@ -187,7 +187,7 @@ drush search-api-pantheon:reload
 
 #### Search the Index
 
-  - Create a new view returning  using the search index of type 'ALL'. Don't worry right now how it's sorted, we're
+  - Create a new view returning using the search index of type 'ALL'. Don't worry right now how it's sorted, we're
     going to change that to 'relevance' once we have some data being returned during the search.
   - In the view, `CHOOSE FIELDS TO BE INCLUDED IN THE RESULTS` from the fields you added to your index
     when you created it. In addition to the fields you added to the index, choose 'relevance' to add
@@ -198,7 +198,7 @@ drush search-api-pantheon:reload
 
 #### Export your changes
 
-  - It is a best practice in Drupal  to export your changes to `yml` files.
+  - It is a best practice in Drupal to export your changes to `yml` files.
     Using Terminus while in SFTP mode, you can run `terminus drush [PANTHEON_SITE].[PANTHEON_ENV] -- "config:export -y"`
     to export the configuration changes you have made. Once committed, these changes
     can be deployed out to Test and Live environments.
