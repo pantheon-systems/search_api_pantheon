@@ -8,33 +8,33 @@
 Starting with version **4.0.0**, this module follows [semantic versioning](https://www.drupal.org/docs/develop/git/git-for-drupal-project-maintainers/release-naming-conventions) (MAJOR.MINOR.PATCH).
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
-Summary of Key Changes
- Code Clean-up and Refactoring
-   Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
+### Summary of Key Changes
+#### Code Clean-up and Refactoring
+  - Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 
-Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
+- Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
- Configuration and Local Development
-   Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
-   These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
+ #### Configuration and Local Development
+  - Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
+  - These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
 
- Drush Commands
-   Parameters and behavior for Drush commands were kept consistent.
-   The code now searches for the first server using the Pantheon connector to handle recent default server renames.
-   Avoid passing server_id in Drush Diagnostic commands as it is no longer needed.
-
+#### Drush Commands
+ -  Parameters and behavior for Drush commands were kept consistent.
+ -  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
+ -  Avoid passing server_id in drush [diagnostic commands]([https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#:~:text=250-,251,-252](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands) as it is no longer needed.
+### Pantheon Search Server and Index Migration Enhancements in 8.3.x and 4.0.0
 - In version 8.3.x, the Pantheon Search server id was updated to 'pantheon_search',and the 'Basic Content Index'  configuration previously found in the config/optional folder has been replaced with  new 'Primary' index in  config/install folder.
 - This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
 - If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
 
-### Optional: Skip Search Server Migration
+#### Optional: Skip Search Server Migration
 If you prefer to keep using the old server with  id 'pantheon_solr8'  and skip the migration, add the following line to your settings.php file before running database updates:
 
 $settings['default_search_server'] = 'pantheon_solr8';
 
 This will prevent the migration of 'pantheon_solr8' to 'pantheon_search'.
 
-### Upgrade Instructions
+#### Upgrade Instructions
 
 If you're upgrading from version 8.2.x or 8.3.x to 4.0.0, you must run database updates to complete the migration.
 Run 'drush updb' in your terminal or visit /update.php in your browser.
@@ -44,7 +44,7 @@ Unless you elect to skip the search server migration (see above), running the da
 
 NB: If you have references to the old server in custom code, you will need to update those references manually.
 
-### Post-Update Steps:
+#### Post-Update Steps:
 
 - After running the database updates, your search server will be updated, which causes previously indexed items to be flagged(queued) for reindexing.
 Please re-index using either the Admin UI or Drush.
