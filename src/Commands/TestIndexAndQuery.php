@@ -71,9 +71,7 @@ class TestIndexAndQuery extends PantheonCommandBase {
       ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] = $index_id;
-      // if default search server is set us 'pantheon_sol8' in settings.php,
-      // use  pantheon_solr 8 , otherwise  use  pantheon_search
-      $value['server'] = $this->getPantheonSolrServer();
+      $value['server'] = $this->getPantheonSolrServer()->id();
       $value['dependencies']['config'] = [
         'search_api.server.' . $value['server'],
       ];

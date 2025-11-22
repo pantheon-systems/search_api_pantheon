@@ -51,6 +51,10 @@ class Diagnose extends PantheonCommandBase {
         'var' => $response !== FALSE ? '✅' : '❌',
       ]);
       foreach ($backend->viewSettings() as $setting) {
+        // Define keys to hide from diagnose output
+        $excludedKeys = ['authentication'];
+        $setting = array_diff_key($setting, array_flip($excludedKeys));
+
         if (isset($setting['status'])) {
           $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
           $this->logger->notice('{label}: {info} {status}', $setting);
