@@ -3,6 +3,7 @@
 namespace Drupal\search_api_pantheon\Commands;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Link;
 use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
 use Symfony\Component\Yaml\Yaml;
@@ -57,7 +58,7 @@ class Diagnose extends PantheonCommandBase {
       foreach ($backend->viewSettings() as $setting) {
 
         // Convert the Link object into its URL string.
-        if (isset($setting['info']) && $setting['info'] instanceof \Drupal\Core\Link) {
+        if (isset($setting['info']) && $setting['info'] instanceof Link) {
           $setting['info'] = $setting['info']->getUrl()->toString();
         }
         // Strip unwanted HTML tags from the label.
