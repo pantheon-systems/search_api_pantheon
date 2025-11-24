@@ -9,22 +9,30 @@ Starting with version **4.0.0**, this module follows [semantic versioning](https
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
 ### Summary of Key Changes in 4.x
+
 #### Code Clean-up and Refactoring
-  - Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
+- Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
 #### Configuration and Local Development
-  - Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
-  - These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
+
+- Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
+- These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
 
 #### Drush Commands
+
  -  Parameters and behavior for Drush commands were kept consistent.
+
  -  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
  -  Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
+
 ### Pantheon Search Server and Index Migration Enhancements in 8.3.x and 4.0.0
+
 - In version 8.3.x, the Pantheon Search server id was updated to 'pantheon_search',and the 'Basic Content Index'  configuration previously found in the config/optional folder has been replaced with  new 'Primary' index in  config/install folder.
+
 - This release now provides a smoother migration of the  search server id from 'pantheon_solr8' to 'pantheon_search' and  all indexes previously linked to 'pantheon_solr8' will be updated to use the new 'pantheon_search' server.
+
 - If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
 
 #### Optional: Skip Search Server Migration
@@ -39,7 +47,9 @@ This will prevent the migration of 'pantheon_solr8' to 'pantheon_search'.
 If you're upgrading from version 8.2.x or 8.3.x to 4.0.0, you must run database updates to complete the migration.
 Run 'drush updb' in your terminal or visit /update.php in your browser.
 Unless you elect to skip the search server migration (see above), running the database update will:
+
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'.
+
 - Migrate all existing search indexes from the old 'pantheon_solr8' server to the new 'pantheon_search' server.
 
 NB: If you have references to the old server id 'pantheon_solr8' in the custom code, you will need to update those references manually.
@@ -128,8 +138,8 @@ composer require 'drupal/search_api_pantheon:4.x-dev@dev'
 
 #### Enable the modules
 
-  - Go to `admin/modules` and enable "Search API Pantheon."
-  - Doing so will also enable Search API and Search API Solr if they are not already enabled.
+- Go to `admin/modules` and enable "Search API Pantheon."
+- Doing so will also enable Search API and Search API Solr if they are not already enabled.
 
 #### OPTIONAL: Disable Drupal Core's search module
 
@@ -138,12 +148,12 @@ composer require 'drupal/search_api_pantheon:4.x-dev@dev'
 
 #### Verify Installation
 
-  - Navigate in the Drupal interface to `CONFIG` => `SEARCH & METADATA` => `SEARCH API`
-  - Validate that the `PANTHEON SEARCH` server and Primary Index exists and is "enabled".
+- Navigate in the Drupal interface to `CONFIG` => `SEARCH & METADATA` => `SEARCH API`
+- Validate that the `PANTHEON SEARCH` server and Primary Index exists and is "enabled".
 
 #### Solr versions and schemas
 
-  - The version of Solr on Pantheon is Apache Solr 8.8. When you first create
+- The version of Solr on Pantheon is Apache Solr 8.8. When you first create
     your index or alter it significantly, you will need to update the SCHEMA
     on the server.
 
@@ -155,13 +165,14 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
+
 ### Core Reloading
 
 #### Automatic Core Reload
 
  Search API Pantheon automatically reloads the Solr core after schema updates to prevent schema reversions and maintain index integrity.
 
- #### Manual Core Reload
+#### Manual Core Reload
 
 If needed, manually reload the core using:
 
@@ -188,18 +199,18 @@ drush search-api-pantheon:reload
 
 #### Search the Index
 
-  - Create a new view returning using the search index of type 'ALL'. Don't worry right now how it's sorted, we're
+- Create a new view returning using the search index of type 'ALL'. Don't worry right now how it's sorted, we're
     going to change that to 'relevance' once we have some data being returned during the search.
-  - In the view, `CHOOSE FIELDS TO BE INCLUDED IN THE RESULTS` from the fields you added to your index
+- In the view, `CHOOSE FIELDS TO BE INCLUDED IN THE RESULTS` from the fields you added to your index
     when you created it. In addition to the fields you added to the index, choose 'relevance' to add
     to the results.
-  - Expose any keywords to the user to change and the view will put a KEYWORDS
-  - Once your search is returning results, you can now sort by the "relevance" field and Solr will give the documents
+- Expose any keywords to the user to change and the view will put a KEYWORDS
+- Once your search is returning results, you can now sort by the "relevance" field and Solr will give the documents
     a relevance rating. A higher rating means Solr thinks the item is "more relevant" to your search term.
 
 #### Export your changes
 
-  - It is a best practice in Drupal to export your changes to `yml` files.
+- It is a best practice in Drupal to export your changes to `yml` files.
     Using Terminus while in SFTP mode, you can run `terminus drush [PANTHEON_SITE].[PANTHEON_ENV] -- "config:export -y"`
     to export the configuration changes you have made. Once committed, these changes
     can be deployed out to Test and Live environments.
