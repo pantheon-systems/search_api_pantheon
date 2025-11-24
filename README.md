@@ -18,14 +18,16 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 #### Configuration and Local Development
 
 - Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
+
 - These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
 
 #### Drush Commands
 
- -  Parameters and behavior for Drush commands were kept consistent.
+-  Parameters and behavior for Drush commands were kept consistent.
 
- -  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
- -  Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
+-  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
+
+-  Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
 
 ### Pantheon Search Server and Index Migration Enhancements in 8.3.x and 4.0.0
 
@@ -54,7 +56,7 @@ Unless you elect to skip the search server migration (see above), running the da
 
 NB: If you have references to the old server id 'pantheon_solr8' in the custom code, you will need to update those references manually.
 
-#### Post-Update Steps:
+#### Post-Update Steps
 
 - After running the database updates, your search server will be updated, which causes previously indexed items to be flagged(queued) for reindexing.
 Please re-index using either the Admin UI or Drush.
