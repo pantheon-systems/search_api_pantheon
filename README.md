@@ -14,7 +14,7 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
- #### Configuration and Local Development
+#### Configuration and Local Development
   - Search API Server connector configuration fields are now visible but disabled when running on Pantheon.
   - These fields are not disabled on local environments, making local development significantly easier—developers can now simply fill in local connection details. Settings are automatically overridden when deployed to Pantheon.
 
@@ -85,9 +85,10 @@ This module provides [Drupal 10+](https://drupal.org) integration with the [Apac
 
 ## Install
 
-### Stable Release
+### Stable Release (coming soon)
 
-To install this module via composer, run the following command in your Drupal root:
+Once the first stable version (4.0.0) is released, it can be installed via Composer by running the following command in your Drupal root:
+
 
 ```bash
 composer require 'drupal/search_api_pantheon:^4.0'
@@ -95,7 +96,7 @@ composer require 'drupal/search_api_pantheon:^4.0'
 
 ### Development Version
 
-Note that the above will install the latest stable release of this module. To install the latest development version, use:
+To install the latest development version, use:
 
 ```bash
 composer require 'drupal/search_api_pantheon:4.x-dev@dev'
@@ -111,7 +112,7 @@ composer require 'drupal/search_api_pantheon:4.x-dev@dev'
 
 #### Enable Solr 8 in your pantheon.yml file
 
-  - Add or update the following in your `pantheon.yml` file:
+- Add or update the following in your `pantheon.yml` file:
 
     ```yaml
     search:
@@ -258,7 +259,7 @@ Starting from version 4.x, diagnostic commands no longer accept the server argum
 - `drush search-api-pantheon:select` (`saps`) This command will run the given query against Solr server. It's recommended to use
   `?debug=true` in any Solr page (having the right permissions) to get a good query to pass to this command to debug results.
 
-- `drush search-api-pantheon:force-cleanup [solr-server]` (`sapfc`) This command will delete all of the contents for the given
+- `drush search-api-pantheon:force-cleanup` (`sapfc`) This command will delete all of the contents for the
   Solr server (no matter if hash or index_id have changed).
 
 - `drush search-api-pantheon:postSchema [path-to-schema]` (`sapps`) This command will upload schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set.
@@ -269,7 +270,7 @@ The current default schema on Pantheon when a new Solr container is provisioned 
 
 Once you have enabled the Search API Pantheon module, when you reload the schema the Pantheon module will use the config-set for the version of the Search API Solr module installed in your codebase. See the [Search API Solr 4.3.0 release notes](https://www.drupal.org/project/search_api_solr/releases/4.3.0) for more information about upgrading to a 4.3.0+ compatible schema.
 
-- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command connects to the search server, indexes a single item, and immediately queries it. If you are still using the legacy pantheon_solr8 server, you must explicitly define the default search server in your settings.php file before running this command.
+- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command connects to the search server, indexes a single item, and immediately queries it.
 
 ## Feedback and Collaboration
 
