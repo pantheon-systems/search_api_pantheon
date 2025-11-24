@@ -45,16 +45,25 @@ class Diagnose extends PantheonCommandBase {
       if (!$connector instanceof PantheonSolrConnector) {
         return;
       }
-      $this->logger->notice((string) $connector->getEndpoint());
+      $endpoint = $connector->getEndpoint();
+      $this->logger->notice('Index HOST Value: ' . $endpoint->getHost());
+      $this->logger->notice('Index PORT Value: ' . $endpoint->getPort());
+      $this->logger->notice('Index PATH Value: ' . $endpoint->getPath());
+      $this->logger->notice('Index CORE Value: ' . $endpoint->getCore());
       $response = $connector->pingServer();
       $this->logger->notice('Ping Received Response? {var}', [
         'var' => $response !== FALSE ? '✅' : '❌',
       ]);
       foreach ($backend->viewSettings() as $setting) {
-        // Define keys to hide from diagnose output
-        $excludedKeys = ['authentication'];
-        $setting = array_diff_key($setting, array_flip($excludedKeys));
 
+        // Convert the Link object into its URL string.
+        if (isset($setting['info']) && $setting['info'] instanceof \Drupal\Core\Link) {
+          $setting['info'] = $setting['info']->getUrl()->toString();
+        }
+        // Strip unwanted HTML tags from the label.
+        if (isset($setting['label'])) {
+          $setting['label'] = strip_tags((string) $setting['label']);
+        }
         if (isset($setting['status'])) {
           $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
           $this->logger->notice('{label}: {info} {status}', $setting);
