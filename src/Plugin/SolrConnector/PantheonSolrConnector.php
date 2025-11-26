@@ -7,6 +7,7 @@ use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
 use Drupal\Core\Form\FormStateInterface;
 use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Response;
+use Solarium\QueryType\Select\Query\Query;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -202,6 +203,27 @@ class PantheonSolrConnector extends StandardSolrConnector {
   public static function getLogMethod(Response $response): string {
     $statusCode = (string) $response->getStatusCode();
     return ($statusCode[0] ?? '') === '2' ? 'info' : 'error';
+  }
+
+  public function getStatsSummary() {
+
+    $summary = [
+      '@core_name' => '',
+      '@index_size' => '',
+      '@schema_version' => '',
+    ];
+
+    $query = $this->solr->createPing();
+    $query->setResponseWriter(Query::WT_PHPS);
+    $query->setHandler('admin/mbeans?stats=true');
+    $stats = $this->execute($query)->getData();
+
+        if (!empty($stats)) {
+        $summary['@core_name'] = $stats['solr-mbeans']['CORE']['core']['class'] ?? $this->t('No information available.');
+        $summary['@index_size'] = $stats['solr-mbeans']['CORE']['searcher']['stats']['SEARCHER.searcher.numDocs'] ?? $this->t('No information available.');
+        $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
+    }
+    return $summary;
   }
 
 }
