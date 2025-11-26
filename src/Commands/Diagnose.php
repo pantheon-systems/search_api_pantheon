@@ -52,29 +52,7 @@ class Diagnose extends PantheonCommandBase {
       $this->logger->notice('Index PATH Value: ' . $endpoint->getPath());
       $this->logger->notice('Index CORE Value: ' . $endpoint->getCore());
       $this->logPingStatus($connector);
-      foreach ($backend->viewSettings() as $setting) {
-
-        // Convert the Link object into its URL string.
-        if (isset($setting['info']) && $setting['info'] instanceof Link) {
-          $setting['info'] = $setting['info']->getUrl()->toString();
-        }
-        // Strip unwanted HTML tags from the label.
-        if (isset($setting['label'])) {
-          $setting['label'] = strip_tags((string) $setting['label']);
-        }
-        if (isset($setting['status'])) {
-          $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
-          $this->logger->notice('{label}: {info} {status}', $setting);
-        }
-        else {
-          $this->logger->notice('{label}: {info}', $setting);
-        }
-      }
-    }
-    catch (\Exception $e) {
-      var_dump($e);
-      $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      $this->logBackendSettings($backend);
     }
     catch (\Throwable $t) {
       var_dump($t);
@@ -92,6 +70,29 @@ class Diagnose extends PantheonCommandBase {
     $this->logger->notice('Ping Received Response? {var}', [
       'var' => $response !== FALSE ? '✅' : '❌',
     ]);
+  }
+
+  /**
+   * Log backend settings.
+   */
+  private function logBackendSettings(SearchApiSolrBackend $backend): void {
+    foreach ($backend->viewSettings() as $setting) {
+      // Convert the Link object into its URL string.
+      if (isset($setting['info']) && $setting['info'] instanceof Link) {
+        $setting['info'] = $setting['info']->getUrl()->toString();
+      }
+      // Strip unwanted HTML tags from the label.
+      if (isset($setting['label'])) {
+        $setting['label'] = strip_tags((string) $setting['label']);
+      }
+      if (isset($setting['status'])) {
+        $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
+        $this->logger->notice('{label}: {info} {status}', $setting);
+      }
+      else {
+        $this->logger->notice('{label}: {info}', $setting);
+      }
+    }
   }
 
   /**
