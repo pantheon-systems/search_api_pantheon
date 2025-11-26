@@ -23,11 +23,11 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 #### Drush Commands
 
--  Parameters and behavior for Drush commands were kept consistent.
+- Parameters and behavior for Drush commands were kept consistent.
 
--  The code now searches for the first server using the Pantheon connector to handle recent default server renames.
+- The code now searches for the first server using the Pantheon connector to handle recent default server renames.
 
--  Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
+- Avoid passing server_id in drush [diagnostic commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands](https://github.com/pantheon-systems/search_api_pantheon/edit/TEST-FORK-PR-212/README.md#diagnostic-commands)) as it is no longer needed.
 
 ### Pantheon Search Server and Index Migration Enhancements in 8.3.x and 4.0.0
 

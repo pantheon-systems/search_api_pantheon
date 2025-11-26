@@ -205,6 +205,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
     return ($statusCode[0] ?? '') === '2' ? 'info' : 'error';
   }
 
+   /**
+   * Gets summary information about the Solr Core
+   */
   public function getStatsSummary() {
 
     $summary = [
@@ -218,10 +221,10 @@ class PantheonSolrConnector extends StandardSolrConnector {
     $query->setHandler('admin/mbeans?stats=true');
     $stats = $this->execute($query)->getData();
 
-        if (!empty($stats)) {
-        $summary['@core_name'] = $stats['solr-mbeans']['CORE']['core']['class'] ?? $this->t('No information available.');
-        $summary['@index_size'] = $stats['solr-mbeans']['CORE']['searcher']['stats']['SEARCHER.searcher.numDocs'] ?? $this->t('No information available.');
-        $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
+    if (!empty($stats)) {
+      $summary['@core_name'] = $stats['solr-mbeans']['CORE']['core']['class'] ?? $this->t('No information available.');
+      $summary['@index_size'] = $stats['solr-mbeans']['CORE']['searcher']['stats']['SEARCHER.searcher.numDocs'] ?? $this->t('No information available.');
+      $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
     }
     return $summary;
   }
