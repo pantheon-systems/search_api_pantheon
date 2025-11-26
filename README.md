@@ -38,6 +38,7 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 - If you're using the default content_index from earlier versions of the module, no changes are required. It will continue to work as expected.
 
 #### Optional: Skip Search Server Migration
+
 If you prefer to keep using the old server with  id 'pantheon_solr8'  and skip the migration, add the following line to your settings.php file before running database updates:
 
 $settings['default_search_server'] = 'pantheon_solr8';
