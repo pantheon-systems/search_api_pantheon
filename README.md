@@ -10,7 +10,6 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 ### Summary of Key Changes in 4.x
 
-
 - Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.

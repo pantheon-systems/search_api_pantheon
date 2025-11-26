@@ -205,8 +205,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     return ($statusCode[0] ?? '') === '2' ? 'info' : 'error';
   }
 
-   /**
-   * Gets summary information about the Solr Core
+  /**
+   * Gets summary information about the Solr Core.
    */
   public function getStatsSummary() {
 

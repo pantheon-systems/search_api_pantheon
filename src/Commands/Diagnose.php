@@ -51,10 +51,7 @@ class Diagnose extends PantheonCommandBase {
       $this->logger->notice('Index PORT Value: ' . $endpoint->getPort());
       $this->logger->notice('Index PATH Value: ' . $endpoint->getPath());
       $this->logger->notice('Index CORE Value: ' . $endpoint->getCore());
-      $response = $connector->pingServer();
-      $this->logger->notice('Ping Received Response? {var}', [
-        'var' => $response !== FALSE ? '✅' : '❌',
-      ]);
+      $this->logPingStatus($connector);
       foreach ($backend->viewSettings() as $setting) {
 
         // Convert the Link object into its URL string.
@@ -85,6 +82,16 @@ class Diagnose extends PantheonCommandBase {
       exit(1);
     }
     $this->logger->notice("If there's an issue with the connection, it would have shown up here. You should be good to go!");
+  }
+
+  /**
+   * Log ping status.
+   */
+  private function logPingStatus(PantheonSolrConnector $connector): void {
+    $response = $connector->pingServer();
+    $this->logger->notice('Ping Received Response? {var}', [
+      'var' => $response !== FALSE ? '✅' : '❌',
+    ]);
   }
 
   /**
