@@ -14,6 +14,8 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
+- The search_api_pantheon_admin submodule has been removed. Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
+
 #### Configuration and Local Development
 
 - Search API Server connector configuration fields are now visible but disabled when running on Pantheon.

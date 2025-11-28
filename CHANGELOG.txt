@@ -1,3 +1,0 @@
-Search API Pantheon 4.x-dev
---------------------------------------------------
-- Initial release
