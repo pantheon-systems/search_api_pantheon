@@ -211,6 +211,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
   public function getStatsSummary() {
 
     $summary = [
+      '@pending_docs' => '',
       '@core_name' => '',
       '@index_size' => '',
       '@schema_version' => '',
@@ -222,6 +223,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     $stats = $this->execute($query)->getData();
 
     if (!empty($stats)) {
+      $update_handler_stats = $stats['solr-mbeans']['UPDATE']['updateHandler']['stats'];
+      $summary['@pending_docs'] = (int) $update_handler_stats['UPDATE.updateHandler.docsPending'];
       $summary['@core_name'] = $stats['solr-mbeans']['CORE']['core']['class'] ?? $this->t('No information available.');
       $summary['@index_size'] = $stats['solr-mbeans']['CORE']['searcher']['stats']['SEARCHER.searcher.numDocs'] ?? $this->t('No information available.');
       $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);

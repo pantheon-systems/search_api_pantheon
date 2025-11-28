@@ -47,6 +47,7 @@ class Diagnose extends PantheonCommandBase {
         return;
       }
       $endpoint = $connector->getEndpoint();
+      $this->logger->notice('Index SCHEME Value: ' . $endpoint->getScheme());
       $this->logger->notice('Index HOST Value: ' . $endpoint->getHost());
       $this->logger->notice('Index PORT Value: ' . $endpoint->getPort());
       $this->logger->notice('Index PATH Value: ' . $endpoint->getPath());
