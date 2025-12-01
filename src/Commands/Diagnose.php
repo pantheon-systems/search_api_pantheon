@@ -29,7 +29,7 @@ class Diagnose extends PantheonCommandBase {
    * Search_api_pantheon:diagnose.
    *
    * @usage search-api-pantheon:diagnose
-   *   Connect to the solr8 server.
+   *   Connect to the pantheon search server.
    *
    * @command search-api-pantheon:diagnose
    * @aliases sapd

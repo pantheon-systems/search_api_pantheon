@@ -41,7 +41,7 @@ class TestIndexAndQuery extends PantheonCommandBase {
    * Search_api_pantheon:test-index-and-query.
    *
    * @usage search-api-pantheon:test-index-and-query
-   *   Connect to the solr8 server to index a single item and immediately query it.
+   *   Connect to the pantheon search server to index a single item and immediately query it.
    *
    * @command search-api-pantheon:test-index-and-query
    * @aliases sap-tiq
