@@ -15,7 +15,7 @@ use Drupal\Core\Site\Settings;
  * module from earlier versions to 4.x
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
-function search_api_pantheon_update_4000() {
+function search_api_pantheon_update_10041() {
   $old_server_id          = 'pantheon_solr8';
   $new_server_id          = 'pantheon_search';
   $old_index_id           = 'content_index';
