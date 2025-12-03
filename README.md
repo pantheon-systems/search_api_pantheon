@@ -20,7 +20,6 @@ Starting with version **4.0.0**, this module follows [semantic versioning](https
 
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
-
 ### Summary of Key Changes in 4.x
 
 #### Code Refactoring
@@ -224,6 +223,7 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
+  
 [path] is optional.
 
 Provide it only if you want to use a custom config-set directory.
@@ -345,7 +345,7 @@ Starting from version 4.x, diagnostic commands automatically use the first serve
 
 | Command | Alias | Arguments | Description |
 |---------|-------|-----------|-------------|
-| `drush search-api-pantheon:diagnose` | `sapd` | None | Checks the various pieces of the Search API install and throws errors on pieces that are not working. This command will develop further as the module nears general availability. |
+| `drush search-api-pantheon:diagnose` | `sapd` | None | Checks the various pieces of the Search API install and throws errors on pieces that are not working. |
 | `drush search-api-pantheon:select` | `saps` | `<query>` (required) | Runs the given query against Solr server. It's recommended to use `?debug=true` in any Solr page (having the right permissions) to get a good query to pass to this command to debug results. |
 | `drush search-api-pantheon:force-cleanup` | `sapfc` | None | Deletes all of the contents for the Solr server (no matter if hash or index_id have changed). |
 | `drush search-api-pantheon:postSchema` | `sapps` | `[path]` (optional) | Uploads schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set. |
