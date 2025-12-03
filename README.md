@@ -6,9 +6,9 @@
 ## Table of Contents
 
 - [Important Notice](#important-notice)
-- [Upgrading from 8.x to 4.0.0](#upgrading-from-8x-to-400)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Upgrading from 8.x to 4.x](#upgrading-from-8x-to-4x)
 - [Setup](#setup)
 - [Pantheon Environments](#pantheon-environments)
 - [Troubleshooting](#troubleshooting)
@@ -43,6 +43,51 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 - The code now searches for the first server using the Pantheon connector to handle recent default server renames.
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed.
+
+## Requirements
+
+This module is for you if you meet the following requirements:
+
+- Using Drupal 10/11
+- PHP 8.1 or later
+- Hosting the Drupal site on Pantheon's platform
+- Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
+
+  - Pantheon's integrated composer (`build step: true` in your pantheon.yml)
+  - A Continuous Integration service like Circle CI or Travis
+
+- Have Dashboard access to the platform (necessary to deploy code changes)
+- Have Solr enabled on your Pantheon site
+
+## Intent
+
+This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_solr) on [Pantheon](https://pantheon.io)'s Platform.
+
+Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes its connection information based on different Pantheon environments and each Pantheon Environment has its own [Solr Core](#solr-jargon). Doing so eliminates the need to do extra work setting up Solr servers for each environment.
+
+## What it provides
+
+This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current version as of the update of this document is 8.11.4.
+
+## Installation
+
+### Stable Release (4.x)
+
+Once the first stable version (4.0.0) is released, it can be installed via composer by running the following command in your drupal root:
+
+Install via Composer:
+
+```bash
+composer require 'drupal/search_api_pantheon:^4'
+```
+
+### Development Version
+
+To install the latest development version:
+
+```bash
+composer require 'drupal/search_api_pantheon:4.x-dev@dev'
+```
 
 ## Upgrading from 8.x to 4.x
 
@@ -126,51 +171,6 @@ Version 4.0.0 continues this migration using update hooks that automatically:
 | Module warnings: search_api_pantheon_admin missing | Uninstall before upgrading: `drush pm:uninstall search_api_pantheon_admin` |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
-
-## Requirements
-
-This module is for you if you meet the following requirements:
-
-- Using Drupal 10/11
-- PHP 8.1 or later
-- Hosting the Drupal site on Pantheon's platform
-- Your site uses `composer` to install modules and upgrade Drupal core using one of the following integrations:
-
-  - Pantheon's integrated composer (`build step: true` in your pantheon.yml)
-  - A Continuous Integration service like Circle CI or Travis
-
-- Have Dashboard access to the platform (necessary to deploy code changes)
-- Have Solr enabled on your Pantheon site
-
-## Intent
-
-This module is meant to simplify the usage of [Search API](https://www.drupal.org/project/search_api) and [Search API Solr](https://www.drupal.org/project/search_api_solr) on [Pantheon](https://pantheon.io)'s Platform.
-
-Search API Solr provides the ability to connect to any Solr server by providing numerous configuration options. This module automatically sets the Solr connection options by extending the plugin from Search API Solr. The module also changes its connection information based on different Pantheon environments and each Pantheon Environment has its own [Solr Core](#solr-jargon). Doing so eliminates the need to do extra work setting up Solr servers for each environment.
-
-## What it provides
-
-This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current version as of the update of this document is 8.11.4.
-
-## Installation
-
-### Stable Release (4.x)
-
-Once the first stable version (4.0.0) is released, it can be installed via composer by running the following command in your drupal root:
-
-Install via Composer:
-
-```bash
-composer require 'drupal/search_api_pantheon:^4'
-```
-
-### Development Version
-
-To install the latest development version:
-
-```bash
-composer require 'drupal/search_api_pantheon:4.x-dev@dev'
-```
 
 ## Setup
 
