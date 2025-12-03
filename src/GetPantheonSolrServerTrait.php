@@ -32,6 +32,7 @@ trait GetPantheonSolrServerTrait {
     if (!$server_id) {
       $ids = $this->storage->getQuery()
         ->condition('backend_config.connector', 'pantheon')
+        ->condition('status', TRUE)
         ->execute();
       $server_id = reset($ids);
     }
