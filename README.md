@@ -17,6 +17,7 @@
 ## 🚨 Important Notice
 
 Starting with version **4.0.0**, this module follows [semantic versioning](https://www.drupal.org/docs/develop/git/git-for-drupal-project-maintainers/release-naming-conventions) (MAJOR.MINOR.PATCH).
+
 Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
 
 
@@ -38,11 +39,9 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 #### Drush Commands
 
-- Parameters and behavior for Drush commands were kept consistent.
-
 - The code now searches for the first server using the Pantheon connector to handle recent default server renames.
 
-- Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed.
+- Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
 ## Requirements
 
