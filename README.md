@@ -151,7 +151,7 @@ Version 4.0.0 continues this migration using update hooks that automatically:
 
 ### Upgrade Scenarios
 
-| Source Version | Target Version | Server Migration         | Reindex Required? | Notes                                                                 |
+| Source Version | Target Version | Server Migration         | Reindexing Required? | Notes                                                                 |
 |----------------|----------------|-------------------------|------------------|----------------------------------------------------------------------|
 | 8.2.x          | 4.x       | Yes (default)           | ✅ Yes           | Updates server Id from `pantheon_solr8` → `pantheon_search`, reassigns all indexes, and flags content for reindexing. |
 | 8.2.x/8.3.x    | 4.x         | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates. |
