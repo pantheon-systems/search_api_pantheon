@@ -224,7 +224,8 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
-[path] is optional. Provide it only if you want to use a custom config-set directory.
+[path] is optional.
+Provide it only if you want to use a custom config-set directory.
 If omitted, the module will use the default config set that matches the installed Search API Solr version.
 When Pantheon provisions a new Solr container, the default schema is based on the 4.2.1 version of the Solr 8 jump-start config set provided by the Search API Solr module.
 
