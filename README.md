@@ -248,7 +248,7 @@ When you enable the Search API Pantheon module, a **Primary** index is automatic
 
 - Go to `admin/config/search/search-api` and select the "Primary" index
 - Configure fields to be indexed by selecting the "Fields" tab
-  - Add fields you want to search (e.g., "Title", "Body", etc.)
+- Add fields you want to search (e.g., "Title", "Body", etc.)
 - Click "Save" and then "Index now" to populate the index
 
 **To create a custom index:**
