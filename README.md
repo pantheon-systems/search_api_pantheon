@@ -253,7 +253,7 @@ When you enable the Search API Pantheon module, a **Primary** index is automatic
 
 **To create a custom index:**
 
-  - Go to `admin/config/search/search-api/add-index`
+- Go to `admin/config/search/search-api/add-index`
   - Name your index and choose a data source. If this is your
     first time using Search API, start by selecting "Content"
     as a data source. That option will index the articles,
