@@ -245,7 +245,7 @@ drush search-api-pantheon:reload
 When you enable the Search API Pantheon module, a **Primary** index is automatically created and linked to the Pantheon search server. You can use this default index or create your own custom index.
 
 **To use the default 'Primary' index created  by the Search API Pantheon Module:**
-  - Go to `admin/config/search/search-api` and select the "Primary" index
+- Go to `admin/config/search/search-api` and select the "Primary" index
   - Configure fields to be indexed by selecting the "Fields" tab
   - Add fields you want to search (e.g., "Title", "Body", etc.)
   - Click "Save" and then "Index now" to populate the index
