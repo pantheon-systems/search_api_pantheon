@@ -44,7 +44,7 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed.
 
-## Upgrading from 8.x to 4.0.0
+## Upgrading from 8.x to 4.x
 
 ### Pantheon Search Server Migration
 
@@ -59,7 +59,7 @@ Version 4.0.0 continues this migration using update hooks that automatically:
 ### ⚠️ Before You Upgrade
 
 1. **Backup your database** - The upgrade process may modify server and index configurations
-2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 4.0.0:
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 4.x:
    ```bash
    drush pm:uninstall search_api_pantheon_admin
    ```
@@ -108,9 +108,9 @@ Version 4.0.0 continues this migration using update hooks that automatically:
 
 | Source Version | Target Version | Server Migration         | Reindex Required? | Notes                                                                 |
 |----------------|----------------|-------------------------|------------------|----------------------------------------------------------------------|
-| 8.2.x          | 4.0.0          | Yes (default)           | ✅ Yes           | Updates server Id from `pantheon_solr8` → `pantheon_search`, reassigns all indexes, and flags content for reindexing. |
-| 8.2.x/8.3.x    | 4.0.0          | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates |
-| 8.3.x          | 4.0.0          | Already `pantheon_search` | ❌ No          | No search server migration needed; indexes already use `pantheon_search` search server        |
+| 8.2.x          | 4.x       | Yes (default)           | ✅ Yes           | Updates server Id from `pantheon_solr8` → `pantheon_search`, reassigns all indexes, and flags content for reindexing. |
+| 8.2.x/8.3.x    | 4.x         | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates |
+| 8.3.x          | 4.x          | Already `pantheon_search` | ❌ No          | No search server migration needed; indexes already use `pantheon_search` search server        |
 
 
 ### Notes
