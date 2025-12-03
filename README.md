@@ -66,7 +66,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current solr version as of the update of this document is 8.11.4.
+This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current version as of the update of this document is 8.11.4.
 
 ## Installation
 
@@ -94,7 +94,7 @@ composer require 'drupal/search_api_pantheon:4.x-dev@dev'
 
 In version 8.3.x, the Pantheon Search server id was updated from 'pantheon_solr8' to 'pantheon_search', and the 'Basic Content Index' configuration (previously in config/optional) was replaced with a new 'Primary' index (in config/install).
 
-Version 4.0.0 continues this migration using update hooks that perform the migration unless it has been opted out (See Step 2 in [Step-by-Step Upgrade Process](#step-by-step-upgrade-process)):
+Version 4.0.0 continues this migration using update hooks that perform the following actions automatically when running database updates (`drush updb` or `/update.php`), unless opted out (see Step 2 in the [Step-by-Step Upgrade Process](#step-by-step-upgrade-process)):
 
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'
 - Migrate all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
@@ -212,7 +212,7 @@ Version 4.0.0 continues this migration using update hooks that perform the migra
 
 #### Solr versions and schemas
 
-- The version of Solr on Pantheon is Apache Solr 8.11.4. When you first create
+- The version of Solr on Pantheon is Apache Solr 8.8. When you first create
     your index or alter it significantly, you will need to update the SCHEMA
     on the server.
 
