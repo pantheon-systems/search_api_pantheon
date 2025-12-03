@@ -66,7 +66,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current version as of the update of this document is 8.11.4.
+This module provides [Drupal 10+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_11/). Pantheon's current solr version as of the update of this document is 8.11.4.
 
 ## Installation
 
@@ -212,7 +212,7 @@ Version 4.0.0 continues this migration using update hooks that perform the migra
 
 #### Solr versions and schemas
 
-- The version of Solr on Pantheon is Apache Solr 8.8. When you first create
+- The version of Solr on Pantheon is Apache Solr 8.11.4. When you first create
     your index or alter it significantly, you will need to update the SCHEMA
     on the server.
 
@@ -224,6 +224,16 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
+[path] is optional. Provide it only if you want to use a custom config-set directory.
+If omitted, the module will use the default config set that matches the installed Search API Solr version.
+When Pantheon provisions a new Solr container, the default schema is based on the 4.2.1 version of the Solr 8 jump-start config set provided by the Search API Solr module.
+
+To upgrade the Pantheon Search server to a 4.3.0+ compatible config set, run the command after upgrading the Search API Solr module. For example, to use the jump-start config set from the module:
+```bash
+drush search-api-pantheon:postSchema /code/web/modules/contrib/search_api_solr/jump-start/solr8/config-set/
+```
+
+Once you have enabled the Search API Pantheon module, when you reload the schema the Pantheon module will use the config-set for the version of the Search API Solr module installed in your codebase. See the [Search API Solr 4.3.0 release notes](https://www.drupal.org/project/search_api_solr/releases/4.3.0) for more information about upgrading to a 4.3.0+ compatible schema.
 
 ### Core Reloading
 
@@ -339,17 +349,6 @@ Starting from version 4.x, diagnostic commands automatically use the first serve
 | `drush search-api-pantheon:postSchema` | `sapps` | `[path]` (optional) | Uploads schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set. |
 | `drush search-api-pantheon:reload` | - | None | Manually reloads the Solr core (see [Core Reloading](#core-reloading) section). |
 | `drush search-api-pantheon:test-index-and-query` | `sap-tiq` | None | Connects to the search server, indexes a single item, and immediately queries it. |
-
-#### Schema Upgrade Example
-
-The current default schema on Pantheon when a new Solr container is provisioned is the 4.2.1 version of the solr8 jump-start config set provided by the Search API Solr module. To upgrade the default Pantheon Search server to a version 4.3.0+ compatible config set, run the following command after you've upgraded the Search API Solr module to your desired version.
-
-```bash
-drush search-api-pantheon:postSchema /code/web/modules/contrib/search_api_solr/jump-start/solr8/config-set/
-```
-
-Once you have enabled the Search API Pantheon module, when you reload the schema the Pantheon module will use the config-set for the version of the Search API Solr module installed in your codebase. See the [Search API Solr 4.3.0 release notes](https://www.drupal.org/project/search_api_solr/releases/4.3.0) for more information about upgrading to a 4.3.0+ compatible schema.
-
 
 ## Feedback and Collaboration
 
