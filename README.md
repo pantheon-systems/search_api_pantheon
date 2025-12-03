@@ -258,7 +258,7 @@ When you enable the Search API Pantheon module, a **Primary** index is automatic
     basic pages, and other node types you have configured.
   - Select "Pantheon" as the server
   - Save the index
-  - Configure fields to be searched by selecting the "Fields" tab. You may want
+- Configure fields to be searched by selecting the "Fields" tab. You may want
     to index many fields. "Title" is a good field to start with.
   - After adding fields to the configuration, make sure the index is full by clicking
     "Index now" or by running cron
