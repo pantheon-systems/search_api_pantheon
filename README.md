@@ -51,6 +51,7 @@ Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus 
 In version 8.3.x, the Pantheon Search server id was updated from 'pantheon_solr8' to 'pantheon_search', and the 'Basic Content Index' configuration (previously in config/optional) was replaced with a new 'Primary' index (in config/install).
 
 Version 4.0.0 continues this migration using update hooks that automatically:
+
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'
 - Migrate all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
 - Flag existing indexed items for reindexing
