@@ -8,19 +8,13 @@
 - [Important Notice](#-important-notice)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Upgrading from 8.x to 4.x](#upgrading-from-8x-to-4x)
+- [Upgrading from 8.x to 8.4.x](#upgrading-from-8.x-to-8.4x)
 - [Setup](#setup)
 - [Pantheon Environments](#pantheon-environments)
 - [Troubleshooting](#troubleshooting)
 - [Feedback and Collaboration](#feedback-and-collaboration)
 
-## 🚨 Important Notice
-
-Starting with version **4.0.0**, this module follows [semantic versioning](https://www.drupal.org/docs/develop/git/git-for-drupal-project-maintainers/release-naming-conventions) (MAJOR.MINOR.PATCH).
-
-Version 4.0.0 is the successor to 8.3.4 and includes all previous features plus new improvements.
-
-### Summary of Key Changes in 4.x
+### Summary of Key Changes in 8.4.x
 
 #### Code Refactoring
 
@@ -69,14 +63,12 @@ This module provides [Drupal 10+](https://drupal.org) integration with the [Apac
 
 ## Installation
 
-### Stable Release (4.x)
-
-Once the first stable version (4.0.0) is released, it can be installed via composer by running the following command in your drupal root:
+### Stable Release
 
 Install via Composer:
 
 ```bash
-composer require 'drupal/search_api_pantheon:^4'
+composer require 'drupal/search_api_pantheon:^8'
 ```
 
 ### Development Version
@@ -84,16 +76,16 @@ composer require 'drupal/search_api_pantheon:^4'
 To install the latest development version:
 
 ```bash
-composer require 'drupal/search_api_pantheon:4.x-dev@dev'
+composer require 'drupal/search_api_pantheon:8.4.x-dev@dev'
 ```
 
-## Upgrading from 8.x to 4.x
+## Upgrading from 8.x to 8.4.x
 
 ### Pantheon Search Server Migration
 
 In version 8.3.x, the Pantheon Search server id was updated from 'pantheon_solr8' to 'pantheon_search', and the 'Basic Content Index' configuration (previously in config/optional) was replaced with a new 'Primary' index (in config/install).
 
-Version 4.0.0 continues this migration using update hooks that perform the following actions automatically when running database updates (`drush updb` or `/update.php`), unless opted out (see Step 2 in the [Step-by-Step Upgrade Process](#step-by-step-upgrade-process)):
+Version 8.4.0 continues this migration using update hooks that perform the following actions automatically when running database updates (`drush updb` or `/update.php`), unless opted out (see Step 2 in the [Step-by-Step Upgrade Process](#step-by-step-upgrade-process)):
 
 - Update the search server id from 'pantheon_solr8' to 'pantheon_search'
 - Migrate all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
@@ -102,7 +94,7 @@ Version 4.0.0 continues this migration using update hooks that perform the follo
 ### ⚠️ Before You Upgrade
 
 1. **Backup your database** - The upgrade process may modify server and index configurations
-2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 4.x:
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
    ```bash
    drush pm:uninstall search_api_pantheon_admin
    ```
@@ -151,9 +143,10 @@ Version 4.0.0 continues this migration using update hooks that perform the follo
 
 | Source Version | Target Version | Server Migration         | Reindexing Required? | Notes                                                                 |
 |----------------|----------------|-------------------------|------------------|----------------------------------------------------------------------|
-| 8.2.x          | 4.x       | Yes (default)           | ✅ Yes           | Updates server Id from `pantheon_solr8` → `pantheon_search`, reassigns all indexes, and flags content for reindexing. |
-| 8.2.x/8.3.x    | 4.x         | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates. |
-| 8.3.x          | 4.x          | Already `pantheon_search` | ❌ No          | No search server migration needed; indexes already use `pantheon_search` search server.       |
+| 8.2.x          | 8.4.x       | Yes (default)           | ✅ Yes           | Updates server Id from `pantheon_solr8` → `pantheon_search`, reassigns all indexes, and flags content for reindexing. |
+| 8.2.x/8.3.x    | 8.4.x         | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates. |
+| 8.3.x          | 8.4.x          | Already `pantheon_search` | ❌ No          | No search server migration needed; indexes already use `pantheon_search` search server.       |
+
 
 ### Notes
 
@@ -163,8 +156,8 @@ Version 4.0.0 continues this migration using update hooks that perform the follo
 
 | Issue | Solution |
 |-------|----------|
-| Error: "Server pantheon_solr8 not found" | Verify migration completed: check admin/config/search/search-api |
-| Errors in custom modules referencing server | Update all 'pantheon_solr8' references to 'pantheon_search' |
+| Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
+| Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
 | Module warnings: search_api_pantheon_admin missing | Uninstall before upgrading: `drush pm:uninstall search_api_pantheon_admin` |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
@@ -222,7 +215,6 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
-  
 [path] is optional.
 
 Provide it only if you want to use a custom config-set directory.
@@ -340,11 +332,11 @@ If you experience schema reversion issues:
 
 ### Diagnostic Commands
 
-Starting from version 4.x, diagnostic commands automatically use the first server with the Pantheon connector. The `server_id` argument is no longer needed or accepted.
+Starting from version 8.4.x, diagnostic commands automatically use the first server with the Pantheon connector. The `server_id` argument is no longer needed or accepted.
 
 | Command | Alias | Arguments | Description |
 |---------|-------|-----------|-------------|
-| `drush search-api-pantheon:diagnose` | `sapd` | None | Checks the various pieces of the Search API install and throws errors on pieces that are not working. |
+| `drush search-api-pantheon:diagnose` | `sapd` | None | Checks the various pieces of the Search API install and throws errors on pieces that are not working. This command will develop further as the module nears general availability. |
 | `drush search-api-pantheon:select` | `saps` | `<query>` (required) | Runs the given query against Solr server. It's recommended to use `?debug=true` in any Solr page (having the right permissions) to get a good query to pass to this command to debug results. |
 | `drush search-api-pantheon:force-cleanup` | `sapfc` | None | Deletes all of the contents for the Solr server (no matter if hash or index_id have changed). |
 | `drush search-api-pantheon:postSchema` | `sapps` | `[path]` (optional) | Uploads schema files to the solr server. It can be used to reset a solr schema to the default Pantheon configuration, upgrade a schema, or to use a custom config set. |
