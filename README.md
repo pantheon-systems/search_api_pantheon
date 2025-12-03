@@ -256,7 +256,7 @@ When you enable the Search API Pantheon module, a **Primary** index is automatic
     first time using Search API, start by selecting "Content"
     as a data source. That option will index the articles,
     basic pages, and other node types you have configured.
-  - Select "Pantheon" as the server
+- Select "Pantheon Search" as the server
   - Save the index
 - Configure fields to be searched by selecting the "Fields" tab. You may want
     to index many fields. "Title" is a good field to start with.
