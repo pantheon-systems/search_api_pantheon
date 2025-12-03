@@ -242,20 +242,26 @@ drush search-api-pantheon:reload
 
 #### Use the server with an index
 
-  The following steps are not Pantheon-specific. This module only alters the configuration of Search API servers. To use a server, you next need to create an index.
+When you enable the Search API Pantheon module, a **Primary** index is automatically created and linked to the Pantheon search server. You can use this default index or create your own custom index.
 
-  - Go to `admin/config/search/search-api/add-index`.
+**To use the default 'Primary' index created  by the Search API Pantheon Module:**
+  - Go to `admin/config/search/search-api` and select the "Primary" index
+  - Configure fields to be indexed by selecting the "Fields" tab
+  - Add fields you want to search (e.g., "Title", "Body", etc.)
+  - Click "Save" and then "Index now" to populate the index
+
+**To create a custom index:**
+  - Go to `admin/config/search/search-api/add-index`
   - Name your index and choose a data source. If this is your
     first time using Search API, start by selecting "Content"
     as a data source. That option will index the articles,
     basic pages, and other node types you have configured.
-  - Select "Pantheon" as the server.
-  - Save the index.
-  - For this index to be usable, you will also need to configure fields to be searched.
-    Select the "fields" tab and `CHOOSE FIELDS TO BE INCLUDED IN THE INDEX`. You may want
+  - Select "Pantheon" as the server
+  - Save the index
+  - Configure fields to be searched by selecting the "Fields" tab. You may want
     to index many fields. "Title" is a good field to start with.
   - After adding fields to the configuration, make sure the index is full by clicking
-    "Index now" or by running cron.
+    "Index now" or by running cron
 
 #### Search the Index
 
