@@ -103,7 +103,7 @@ Version 8.4.0 continues this migration using update hooks that perform the follo
 
 1. **Update via Composer:**
    ```bash
-   composer require 'drupal/search_api_pantheon:^4'
+   composer require 'drupal/search_api_pantheon:^8'
    ```
 
 2. **(Optional) Skip search server migration:**
