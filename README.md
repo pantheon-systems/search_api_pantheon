@@ -5,7 +5,7 @@
 
 ## Table of Contents
 
-- [Important Notice](#important-notice)
+- [Important Notice](#-important-notice)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Upgrading from 8.x to 4.x](#upgrading-from-8x-to-4x)
