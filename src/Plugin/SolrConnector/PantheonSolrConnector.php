@@ -41,8 +41,6 @@ class PantheonSolrConnector extends StandardSolrConnector {
     // assert these overrides.
     if ($overrides = static::getEnvironmentVariables()) {
       $configuration = $overrides + $configuration;
-      // This is used by ::createClient() only.
-      $configuration['search_api_pantheon_cert'] = ($_SERVER['HOME'] ?? '') . '/certs/binding.pem';
       // This is used in Endpoint::getCollectionBaseUri() and similar. Usually
       // it's "solr" but the Pantheon endpoint does not have a /solr/ part in
       // their path.
@@ -120,13 +118,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * {@inheritdoc}
    */
   protected function createClient(array &$configuration) {
-    $client = parent::createClient($configuration);
-    if (extension_loaded('curl') && isset($this->configuration['search_api_pantheon_cert'])) {
-      $adapter = new PantheonCurl($this->configuration['search_api_pantheon_cert']);
-      // This line is copy-pasted from the parent method.
-      $adapter->setTimeout($configuration[self::QUERY_TIMEOUT]);
-      $client->setAdapter($adapter);
-    }
+    $$client = parent::createClient($configuration);
+    // mtlsproxy handles auth automatically
     return $client;
   }
 
