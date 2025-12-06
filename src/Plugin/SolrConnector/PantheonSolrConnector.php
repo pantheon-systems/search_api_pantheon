@@ -118,7 +118,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * {@inheritdoc}
    */
   protected function createClient(array &$configuration) {
-    $$client = parent::createClient($configuration);
+    $client = parent::createClient($configuration);
     // mtlsproxy handles auth automatically
     return $client;
   }
