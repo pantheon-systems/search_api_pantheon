@@ -119,7 +119,12 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   protected function createClient(array &$configuration) {
     $client = parent::createClient($configuration);
-    // mtlsproxy handles auth automatically
+    // mtlsproxy handles auth automatically but uses self-signed certificates.
+    if (extension_loaded('curl') && getenv('PANTHEON_ENVIRONMENT')) {
+      $adapter = new PantheonCurl();
+      $adapter->setTimeout($configuration[self::QUERY_TIMEOUT]);
+      $client->setAdapter($adapter);
+    }
     return $client;
   }
 
