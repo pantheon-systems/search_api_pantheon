@@ -12,10 +12,10 @@ use Drupal\Core\Site\Settings;
  * Implements hook_update_N().
  *
  * This update hook assists in the transition when upgrading the
- * module from earlier versions to 4.x
+ * module from earlier versions to 8.4.x
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
-function search_api_pantheon_update_10041() {
+function search_api_pantheon_update_10081() {
   $old_server_id          = 'pantheon_solr8';
   $new_server_id          = 'pantheon_search';
   $old_index_id           = 'content_index';

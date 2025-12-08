@@ -100,7 +100,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
     // Keep workarounds and advanced disabled on local too so when config is
     // exported then there's no chance of it messing with Pantheon.
     $form['workarounds']['#access'] = FALSE;
-    // @todo explore whether jts works.
+    // JTS is disabled.
     $form['advanced']['#access'] = FALSE;
     return $form;
   }
@@ -119,7 +119,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   protected function createClient(array &$configuration) {
     $client = parent::createClient($configuration);
-    // mtlsproxy handles auth automatically but uses self-signed certificates.
+    // mtlsproxy uses self-signed certificates and handles auth automatically.
     if (extension_loaded('curl') && getenv('PANTHEON_ENVIRONMENT')) {
       $adapter = new PantheonCurl();
       $adapter->setTimeout($configuration[self::QUERY_TIMEOUT]);

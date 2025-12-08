@@ -5,10 +5,9 @@
 
 ## Table of Contents
 
-- [Important Notice](#-important-notice)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Upgrading from 8.x to 8.4.x](#upgrading-from-8.x-to-8.4x)
+- [Upgrading from 8.x to 8.4.x](#upgrading-from-8x-to-84x)
 - [Setup](#setup)
 - [Pantheon Environments](#pantheon-environments)
 - [Troubleshooting](#troubleshooting)
@@ -147,7 +146,6 @@ Version 8.4.0 continues this migration using update hooks that perform the follo
 | 8.2.x/8.3.x    | 8.4.x         | No (opt-out)            | ❌ No            | To skip server migration add `$settings['default_search_server'] = 'pantheon_solr8';` before running database updates. |
 | 8.3.x          | 8.4.x          | Already `pantheon_search` | ❌ No          | No search server migration needed; indexes already use `pantheon_search` search server.       |
 
-
 ### Notes
 
 - If you're using the default `content_index` from earlier versions, no changes are required. It will continue to work as expected.
@@ -215,6 +213,7 @@ Schema updates can be performed using:
   ```bash
   drush search-api-pantheon:postSchema
   ```
+
 [path] is optional.
 
 Provide it only if you want to use a custom config-set directory.
