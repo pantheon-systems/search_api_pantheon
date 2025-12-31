@@ -28,7 +28,7 @@ class PantheonSolrCurl extends Curl {
    * Get SSL options from Pantheon infrastructure.
    *
    * @return array
-   *  CURL options.
+   *  SSL verification options.
    */
   protected static function getPantheonCurlOptions(): array {
     if (!function_exists('pantheon_curl_setup')) {
@@ -38,7 +38,15 @@ class PantheonSolrCurl extends Curl {
     list($ch, $opts) = pantheon_curl_setup('', NULL, $port, NULL);
     curl_close($ch);
 
-    // Return all curl options from pantheon_curl_setup.
-    return $opts;
+    // Return SSL verification options.
+    $ssl_options = [];
+    if (isset($opts[CURLOPT_SSL_VERIFYPEER])) {
+      $ssl_options[CURLOPT_SSL_VERIFYPEER] = $opts[CURLOPT_SSL_VERIFYPEER];
+    }
+    if (isset($opts[CURLOPT_SSL_VERIFYHOST])) {
+      $ssl_options[CURLOPT_SSL_VERIFYHOST] = $opts[CURLOPT_SSL_VERIFYHOST];
+    }
+
+    return $ssl_options;
   }
 }
