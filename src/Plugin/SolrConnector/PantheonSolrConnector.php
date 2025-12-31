@@ -2,7 +2,7 @@
 
 namespace Drupal\search_api_pantheon\Plugin\SolrConnector;
 
-use Drupal\search_api_pantheon\Solarium\PantheonCurl;
+use Drupal\search_api_pantheon\Solarium\PantheonSolrCurl;
 use Drupal\search_api_solr\Plugin\SolrConnector\StandardSolrConnector;
 use Drupal\Core\Form\FormStateInterface;
 use Solarium\Core\Client\Request;
@@ -94,7 +94,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
     foreach (array_keys(static::getEnvironmentVariables()) as $key) {
       if (isset($form[$key])) {
         $form[$key]['#disabled'] = TRUE;
-        $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure".');
+        $form[$key]['#description'] = t('These fields are populated by Pantheon infrastructure.');
       }
     }
     // Keep workarounds and advanced disabled on local too so when config is
@@ -119,9 +119,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   protected function createClient(array &$configuration) {
     $client = parent::createClient($configuration);
-    // mtlsproxy uses self-signed certificates and handles auth automatically.
+    //  When running on the Pantheon platform, use the pre-configured  curl options from Pantheon Preprend file.
     if (extension_loaded('curl') && getenv('PANTHEON_ENVIRONMENT')) {
-      $adapter = new PantheonCurl();
+      $adapter = new PantheonSolrCurl();
       $adapter->setTimeout($configuration[self::QUERY_TIMEOUT]);
       $client->setAdapter($adapter);
     }
