@@ -6,7 +6,7 @@ use Solarium\Core\Client\Adapter\Curl;
 
 /**
  * Custom Curl adapter for Pantheon Solr connectivity.
- * This adapter is only instantiated on Pantheon environments
+ * This adapter is only instantiated on Pantheon environments.
  */
 class PantheonSolrCurl extends Curl {
 
@@ -28,7 +28,7 @@ class PantheonSolrCurl extends Curl {
    * Get SSL options from Pantheon infrastructure.
    *
    * @return array
-   *  SSL verification options.
+   *   SSL verification options.
    */
   protected static function getPantheonCurlOptions(): array {
     if (!function_exists('pantheon_curl_setup')) {
@@ -49,4 +49,5 @@ class PantheonSolrCurl extends Curl {
 
     return $ssl_options;
   }
+
 }
