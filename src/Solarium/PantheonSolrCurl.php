@@ -35,8 +35,8 @@ class PantheonSolrCurl extends Curl {
       return [];
     }
     $port = getenv('PANTHEON_INDEX_PORT');
-    list($ch, $opts) = pantheon_curl_setup('', NULL, $port, NULL);
-    curl_close($ch);
+    list($curl_handle, $opts) = pantheon_curl_setup('', NULL, $port, NULL);
+    curl_close($curl_handle);
 
     // Return SSL verification options.
     $ssl_options = [];
