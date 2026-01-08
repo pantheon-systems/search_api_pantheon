@@ -62,7 +62,7 @@ This module provides [Drupal 10+](https://drupal.org) integration with the [Apac
 
 ## Installation
 
-### Stable Release
+### Stable Release (Coming Soon)
 
 Install via Composer:
 
@@ -75,7 +75,7 @@ composer require 'drupal/search_api_pantheon:^8'
 To install the latest development version:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.4.x-dev@dev'
+composer require 'drupal/search_api_pantheon:8.4.x-dev'
 ```
 
 ## Upgrading from 8.x to 8.4.x
@@ -102,7 +102,7 @@ Version 8.4.0 continues this migration using update hooks that perform the follo
 
 1. **Update via Composer:**
    ```bash
-   composer require 'drupal/search_api_pantheon:^8'
+   composer require 'drupal/search_api_pantheon:8.4.x-dev'
    ```
 
 2. **(Optional) Skip search server migration:**
