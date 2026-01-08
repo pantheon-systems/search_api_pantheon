@@ -5,38 +5,17 @@
  * Various hook implementations for installing the module.
  */
 
-use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
 use Drupal\search_api\Entity\Server;
 use Drupal\Core\Site\Settings;
-
-/**
- * Implements hook_requirements().
- */
-function search_api_pantheon_requirements($phase) {
-  $requirements = [];
-
-  if ($phase === 'runtime') {
-    if (!PantheonSolrConnector::isPlatformConfigPresent()) {
-      // The current site is not running on Pantheon.
-      $requirements['search_api_pantheon_hosting'] = [
-        'title' => t('Search API Pantheon'),
-        'description' => t('This module only works when it is on a Pantheon environment or the environment variables are correctly set as described in .envrc.dist'),
-        'severity' => REQUIREMENT_WARNING,
-      ];
-    }
-  }
-
-  return $requirements;
-}
 
 /**
  * Implements hook_update_N().
  *
  * This update hook assists in the transition when upgrading the
- * module from earlier versions to 8.3.x.
+ * module from earlier versions to 8.4.x
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
-function search_api_pantheon_update_8300() {
+function search_api_pantheon_update_10081() {
   $old_server_id          = 'pantheon_solr8';
   $new_server_id          = 'pantheon_search';
   $old_index_id           = 'content_index';

@@ -2,12 +2,10 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\search_api_pantheon\Services\Endpoint;
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\SolariumClient;
-use Drupal\search_api_solr\SolrConnectorInterface;
-use Drush\Commands\DrushCommands;
-use Solarium\Core\Query\Result\ResultInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Link;
+use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
+use Drupal\search_api_solr\Plugin\search_api\backend\SearchApiSolrBackend;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -21,207 +19,122 @@ use Symfony\Component\Yaml\Yaml;
  *   - http://cgit.drupalcode.org/devel/tree/src/Commands/DevelCommands.php
  *   - http://cgit.drupalcode.org/devel/tree/drush.services.yml
  */
-class Diagnose extends DrushCommands {
+class Diagnose extends PantheonCommandBase {
 
-  protected PantheonGuzzle $pantheonGuzzle;
-  protected Endpoint $endpoint;
-  protected SolariumClient $solr;
-
-  /**
-   * Class Constructor.
-   *
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
-   *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
-   *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\SolariumClient $solariumClient
-   *   Injected by container.
-   */
-  public function __construct(
-        PantheonGuzzle $pantheonGuzzle,
-        Endpoint $endpoint,
-        SolariumClient $solariumClient
-    ) {
-    $this->pantheonGuzzle = $pantheonGuzzle;
-    $this->endpoint = $endpoint;
-    $this->solr = $solariumClient;
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, protected string $drupalRoot) {
+    parent::__construct($entityTypeManager);
   }
 
   /**
    * Search_api_pantheon:diagnose.
    *
    * @usage search-api-pantheon:diagnose
-   *   Connect to the solr8 server.
+   *   Connect to the pantheon search server.
    *
    * @command search-api-pantheon:diagnose
    * @aliases sapd
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
-   * @throws \Exception
    */
-  public function diagnose() {
+  public function solrDiagnose(): void {
     try {
-      $drupal_root = \DRUPAL_ROOT;
-      $pantheon_yml_contents = '';
-      if (file_exists($drupal_root . '/pantheon.yml')) {
-        $pantheon_yml_contents = file_get_contents($drupal_root . '/pantheon.yml');
+      $this->verifyYamlFiles();
+      $backend = $this->getPantheonSolrServer()->getBackend();
+      assert($backend instanceof SearchApiSolrBackend);
+      $connector = $backend->getSolrConnector();
+      $this->logger->notice('Pantheon connector found {var}', [
+        'var' => $connector instanceof PantheonSolrConnector ? '✅' : '❌',
+      ]);
+      if (!$connector instanceof PantheonSolrConnector) {
+        return;
       }
-      elseif (file_exists($drupal_root . '/../pantheon.yml')) {
-        $pantheon_yml_contents = file_get_contents($drupal_root . '/../pantheon.yml');
-      }
-      $pantheon_upstream_yml_contents = '';
-      if (file_exists($drupal_root . '/pantheon.upstream.yml')) {
-        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/pantheon.upstream.yml');
-      }
-      elseif (file_exists($drupal_root . '/../pantheon.upstream.yml')) {
-        $pantheon_upstream_yml_contents = file_get_contents($drupal_root . '/../pantheon.upstream.yml');
-      }
-      if (!$pantheon_yml_contents && !$pantheon_upstream_yml_contents) {
-        throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
-      }
-      $pantheon_yml = Yaml::parse($pantheon_yml_contents);
-      $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
-      $found = FALSE;
-      if (empty($pantheon_yml['search']['version'])) {
-        // Merge from pantheon_upstream as fallback.
-        if (!empty($pantheon_upstream_yml['search']['version'])) {
-          $pantheon_yml['search']['version'] = $pantheon_upstream_yml['search']['version'];
-        }
-      }
-      if (empty($pantheon_yml['search']['version'])) {
-        // If still empty, throw an exception.
-        throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
-      }
-
-      if ($pantheon_yml['search']['version'] != '8') {
-        throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
-      }
-      $this->logger->notice('Pantheon.yml file looks ok ✅');
-
-      $this->logger->notice('Index SCHEME Value: {var}', [
-            'var' => $this->endpoint->getScheme(),
-        ]);
-      $this->logger->notice('Index HOST Value:   {var}', [
-            'var' => $this->endpoint->getHost(),
-        ]);
-      $this->logger->notice('Index PORT Value:   {var}', [
-            'var' => $this->endpoint->getPort(),
-        ]);
-      $this->logger->notice('Index CORE Value:   {var}', [
-            'var' => $this->endpoint->getCore(),
-        ]);
-      $this->logger->notice('Index PATH Value:   {var}', [
-            'var' => $this->endpoint->getPath(),
-        ]);
-      $this->logger->notice('Index RELOAD_PATH Value:   {var}', [
-           'var' => $this->endpoint->getReloadPath(),
-        ]);
-      $this->logger->notice('Testing bare Connection...');
-      $response = $this->pingSolrHost();
-      $this->logger->notice('Ping Received Response? {var}', [
-            'var' => $response instanceof ResultInterface ? '✅' : '❌',
-        ]);
-      $this->logger->notice('Response http status == 200? {var}', [
-            'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
-        ]);
-      if ($response->getResponse()->getStatusCode() !== 200) {
-        throw new \Exception('Cannot contact solr server.');
-      }
-      $this->logger->notice('Drupal Integration...');
-            // @codingStandardsIgnoreLine
-            $manager = \Drupal::getContainer()->get(
-            'plugin.manager.search_api_solr.connector'
-        );
-      $connectors = array_keys($manager->getDefinitions() ?? []);
-      $this->logger->notice('Pantheon Connector Plugin Exists? {var}', [
-            'var' => in_array('pantheon', $connectors) ? '✅' : '❌',
-        ]);
-      $connectorPlugin = $manager->createInstance('pantheon');
-      $this->logger->notice('Connector Plugin Instance created {var}', [
-            'var' => $connectorPlugin instanceof SolrConnectorInterface ? '✅' : '❌',
-        ]);
-      if (!$connectorPlugin instanceof SolrConnectorInterface) {
-        throw new \Exception('Cannot instantiate solr connector.');
-      }
-      $this->logger->notice('Adding Logger to connector...');
-      $connectorPlugin->setLogger($this->logger);
-      $this->logger->notice('Using connector plugin to get server Info...');
-      $info = $connectorPlugin->getServerInfo();
-      if ($this->output()->isVerbose()) {
-        $this->logger->notice(print_r($info, TRUE));
-      }
-      $this->logger->notice('Solr Server Version {var}', [
-            'var' => $info['lucene']['solr-spec-version'] ?? '❌',
-        ]);
-
-      $indexedStats = $this->pantheonGuzzle->getQueryResult('admin/luke', [
-            'query' => [
-                'stats' => 'true',
-                'wt' => 'json',
-            ],
-        ]);
-      if ($this->output()->isVerbose()) {
-        $this->logger->notice('Solr Index Stats: {stats}', [
-              'stats' => print_r($indexedStats['index'], TRUE),
-          ]);
-      }
-      else {
-        $this->logger->notice('We got Solr stats ✅');
-      }
-      $beans = $this->pantheonGuzzle->getQueryResult('admin/mbeans', [
-            'query' => [
-                'stats' => 'true',
-                'wt' => 'json',
-            ],
-        ]);
-      if ($this->output()->isVerbose()) {
-        $this->logger->notice('Mbeans Stats: {stats}', [
-              'stats' => print_r($beans['solr-mbeans'], TRUE),
-          ]);
-      }
-      else {
-        $this->logger->notice('We got Mbeans stats ✅');
-      }
-    }
-    catch (\Exception $e) {
-      \Kint::dump($e);
-      $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      $endpoint = $connector->getEndpoint();
+      $this->logger->notice('Index SCHEME Value: ' . $endpoint->getScheme());
+      $this->logger->notice('Index HOST Value: ' . $endpoint->getHost());
+      $this->logger->notice('Index PORT Value: ' . $endpoint->getPort());
+      $this->logger->notice('Index PATH Value: ' . $endpoint->getPath());
+      $this->logger->notice('Index CORE Value: ' . $endpoint->getCore());
+      $this->logPingStatus($connector);
+      $this->logBackendSettings($backend);
     }
     catch (\Throwable $t) {
-      \Kint::dump($t);
+      var_dump($t);
       $this->logger->emergency("There's a problem somewhere...");
       exit(1);
     }
-    $this->logger->notice(
-          "If there's an issue with the connection, it would have shown up here. You should be good to go!"
-      );
+    $this->logger->notice("If there's an issue with the connection, it would have shown up here. You should be good to go!");
   }
 
   /**
-   * Pings the Solr host.
-   *
-   * @usage search-api-pantheon:ping
-   *   Ping the solr server.
-   *
-   * @command search-api-pantheon:ping
-   * @aliases sapp
-   *
-   * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void
-   *   The result.
+   * Log ping status.
    */
-  public function pingSolrHost() {
-    try {
-      $ping = $this->solr->createPing();
-      return $this->solr->ping($ping);
+  private function logPingStatus(PantheonSolrConnector $connector): void {
+    $response = $connector->pingServer();
+    $this->logger->notice('Ping Received Response? {var}', [
+      'var' => $response !== FALSE ? '✅' : '❌',
+    ]);
+  }
+
+  /**
+   * Log backend settings.
+   */
+  private function logBackendSettings(SearchApiSolrBackend $backend): void {
+    foreach ($backend->viewSettings() as $setting) {
+      // Convert the Link object into its URL string.
+      if (isset($setting['info']) && $setting['info'] instanceof Link) {
+        $setting['info'] = $setting['info']->getUrl()->toString();
+      }
+      // Strip unwanted HTML tags from the label.
+      if (isset($setting['label'])) {
+        $setting['label'] = strip_tags((string) $setting['label']);
+      }
+      if (isset($setting['status'])) {
+        $setting['status'] = ['ok' => '✅', 'error' => '❌'][$setting['status']];
+        $this->logger->notice('{label}: {info} {status}', $setting);
+      }
+      else {
+        $this->logger->notice('{label}: {info}', $setting);
+      }
     }
-    catch (\Exception $e) {
-      exit($e->getMessage());
+  }
+
+  /**
+   * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+   * @SuppressWarnings(PHPMD.NPathComplexity)
+   */
+  public function verifyYamlFiles(): void {
+    $pantheon_yml_contents = '';
+    if (file_exists($this->drupalRoot . '/pantheon.yml')) {
+      $pantheon_yml_contents = file_get_contents($this->drupalRoot . '/pantheon.yml');
     }
-    catch (\Throwable $t) {
-      exit($t->getMessage());
+    elseif (file_exists($this->drupalRoot . '/../pantheon.yml')) {
+      $pantheon_yml_contents = file_get_contents($this->drupalRoot . '/../pantheon.yml');
     }
+    $pantheon_upstream_yml_contents = '';
+    if (file_exists($this->drupalRoot . '/pantheon.upstream.yml')) {
+      $pantheon_upstream_yml_contents = file_get_contents($this->drupalRoot . '/pantheon.upstream.yml');
+    }
+    elseif (file_exists($this->drupalRoot . '/../pantheon.upstream.yml')) {
+      $pantheon_upstream_yml_contents = file_get_contents($this->drupalRoot . '/../pantheon.upstream.yml');
+    }
+    if (!$pantheon_yml_contents && !$pantheon_upstream_yml_contents) {
+      throw new \Exception('Unable to find pantheon.yml or pantheon.upstream.yml');
+    }
+    $pantheon_yml = Yaml::parse($pantheon_yml_contents);
+    $pantheon_upstream_yml = Yaml::parse($pantheon_upstream_yml_contents);
+    if (empty($pantheon_yml['search']['version'])) {
+      // Merge from pantheon_upstream as fallback.
+      if (!empty($pantheon_upstream_yml['search']['version'])) {
+        $pantheon_yml['search']['version'] = $pantheon_upstream_yml['search']['version'];
+      }
+    }
+    if (empty($pantheon_yml['search']['version'])) {
+      // If still empty, throw an exception.
+      throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
+    }
+
+    if ($pantheon_yml['search']['version'] != '8') {
+      throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
+    }
+    $this->logger->notice('Pantheon.yml file looks ok ✅');
   }
 
 }
