@@ -8,7 +8,7 @@ terminus local:clone "$SITE"
 cd "$HOME/pantheon-local-copies/$SITE"
 echo "search:" >> pantheon.yml
 echo "  version: 8" >> pantheon.yml
-composer require "pantheon-systems/search_api_pantheon:$CONSTRAINT" drupal/devel
+composer require "pantheon-systems/search_api_pantheon:$CONSTRAINT" drupal/devel:~5.4
 terminus solr:enable "$SITE"
 git commit -am 'modules, search'
 git push
