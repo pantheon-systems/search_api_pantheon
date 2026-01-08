@@ -62,7 +62,7 @@ This module provides [Drupal 10+](https://drupal.org) integration with the [Apac
 
 ## Installation
 
-### Stable Release (Coming Soon)
+### Stable Release
 
 Install via Composer:
 
