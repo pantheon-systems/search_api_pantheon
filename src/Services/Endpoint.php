@@ -12,12 +12,12 @@ use Solarium\Core\Client\Endpoint as SolariumEndpoint;
  * Custom Endpoint class for Solarium.
  *
  * This class assembles environment variables into URL's for
- * the Pantheon Solr8 implementation.
+ * the Pantheon Solr implementation.
  *
- * URL Pattern for SOLR 8 QUERIES:
+ * URL Pattern for SOLR QUERIES:
  *  "$SCHEME://$HOST:$PORT/$PATH/$CORE"
  *
- * URL Pattern for SOLR 8 SCHEMA UPLOADS:
+ * URL Pattern for SOLR SCHEMA UPLOADS:
  *  "$SCHEME://$HOST:$PORT/$PATH/$SCHEMA"
  *
  * @package Drupal\search_api_pantheon

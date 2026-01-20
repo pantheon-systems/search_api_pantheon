@@ -1,3 +1,24 @@
+Search API Pantheon 8.4.0
+--------------------------------------------------
+This release adds support for Apache Solr 9 while maintaining backward compatibility with Solr 8.
+
+### What's New
+
+- Added support for Apache Solr 9.x
+- Updated version check in diagnose command to accept both Solr 8 and Solr 9
+- Updated documentation with Solr 9 upgrade instructions
+
+### Upgrading to Solr 9
+
+If you are upgrading from Solr 8 to Solr 9:
+
+1. Update your pantheon.yml to set `search.version: 9`
+2. Update your Search API server configuration to set solr_version to '9'
+3. Re-post the schema using `drush search-api-pantheon:postSchema`
+4. Reindex your content
+
+See README.md for detailed upgrade instructions.
+
 Search API Pantheon 8.3.4
 --------------------------------------------------
 This release addresses issues from version 8.3.3 and includes bug fix and improvements to Drush commands provided by the search_api_pantheon module:

@@ -1,4 +1,4 @@
-# Search API Pantheon: Solr 8 & Drupal 9.4+ Integration
+# Search API Pantheon: Solr 8/9 & Drupal 9.4+ Integration
 
 [![Search API Pantheon](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml/badge.svg?branch=8.x)](https://github.com/pantheon-systems/search_api_pantheon/actions/workflows/ci.yml)
 [![Actively Maintained](https://img.shields.io/badge/Pantheon-Actively_Maintained-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#actively-maintained-support)
@@ -35,7 +35,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 
 ## What it provides
 
-This module provides [Drupal 9.4+](https://drupal.org) integration with the [Apache Solr project](https://solr.apache.org/guide/8_8/). Pantheon's current version as of the update of this document is 8.11.4.
+This module provides [Drupal 9.4+](https://drupal.org) integration with [Apache Solr](https://solr.apache.org/). Supported Solr versions are 8.x and 9.x.
 
 ## Composer
 
@@ -78,13 +78,13 @@ To configure the connection with Pantheon, perform the following steps on your D
     This feature is available for sandbox sites as well as paid plans at the
     Professional level and above.
 
-#### Enable Solr 8 in your pantheon.yml file
+#### Enable Solr in your pantheon.yml file
 
   - Add or update the following in your `pantheon.yml` file:
 
     ```yaml
     search:
-      version: 8
+      version: 8  # or version: 9 for Solr 9
     ```
 
     As you promote the code, the `pantheon.yml` file will follow the code through environments
@@ -132,10 +132,9 @@ drush search-api-pantheon:reload
 
 #### Solr versions and schemas
 
-  - The version of Solr on Pantheon is Apache Solr 8.8. When you first create
-    your index or alter it significantly, you will need to update the SCHEMA
-    on the server. Do that either with a drush command or in the administration
-    for the Solr Server.
+  - When you first create your index or alter it significantly, you will need
+    to update the SCHEMA on the server. Do that either with a drush command or
+    in the administration for the Solr Server.
   - Navigate to `CONFIGURATION` => `SEARCH AND METADATA` => `SEARCH API`
     => `PANTHEON SEARCH` => `PANTHEON SEARCH ADMIN`
   - Choose the button labeled "Post Solr Schema".
@@ -239,9 +238,41 @@ The current default schema on Pantheon when a new Solr container is provisioned 
 
 `drush search-api-pantheon:postSchema pantheon_search /code/web/modules/contrib/search_api_solr/jump-start/solr8/config-set/`
 
+For Solr 9, use the solr9 config-set path:
+
+`drush search-api-pantheon:postSchema pantheon_search /code/web/modules/contrib/search_api_solr/jump-start/solr9/config-set/`
+
 Once you have enabled the Search API Pantheon module, when you reload the schema the Pantheon module will use the config-set for the version of the Search API Solr module installed in your codebase. See the [Search API Solr 4.3.0 release notes](https://www.drupal.org/project/search_api_solr/releases/4.3.0) for more information about upgrading to a 4.3.0+ compatible schema.
 
-- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command will connect to the solr8 server to index a single item and immediately query it.
+- `drush search-api-pantheon:test-index-and-query` (`sap-tiq`) This command will connect to the Solr server to index a single item and immediately query it.
+
+## Upgrading from Solr 8 to Solr 9
+
+If you are currently using Solr 8 and want to upgrade to Solr 9, follow these steps:
+
+1. **Update pantheon.yml**: Change the search version in your `pantheon.yml` file:
+   ```yaml
+   search:
+     version: 9
+   ```
+
+2. **Update server configuration**: In the Drupal admin UI, go to:
+   - Configuration → Search and metadata → Search API → Pantheon Search → Edit
+   - Update the "Solr version" setting to "9"
+   - Save the configuration
+
+3. **Re-post the schema**: Run the following drush command to upload the Solr 9 schema:
+   ```bash
+   drush search-api-pantheon:postSchema pantheon_search
+   ```
+
+4. **Reindex content**: After the schema is updated, reindex your content:
+   ```bash
+   drush search-api:reset-tracker
+   drush search-api:index
+   ```
+
+**Note**: Solr 9 introduces some breaking changes from Solr 8. Review the [Apache Solr 9 upgrade notes](https://solr.apache.org/guide/solr/latest/upgrade-notes/major-changes-in-solr-9.html) for details.
 
 ## Feedback and Collaboration
 

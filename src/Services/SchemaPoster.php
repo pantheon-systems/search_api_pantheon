@@ -262,7 +262,7 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function getSolrFiles(string $server_id = 'pantheon_solr8') {
+  public function getSolrFiles(string $server_id = 'pantheon_search') {
     /** @var \Drupal\search_api\ServerInterface $server */
     $server = $this->entityTypeManager
       ->getStorage('search_api_server')

@@ -51,7 +51,7 @@ class Diagnose extends DrushCommands {
    * Search_api_pantheon:diagnose.
    *
    * @usage search-api-pantheon:diagnose
-   *   Connect to the solr8 server.
+   *   Connect to the Solr server and diagnose the connection.
    *
    * @command search-api-pantheon:diagnose
    * @aliases sapd
@@ -94,8 +94,9 @@ class Diagnose extends DrushCommands {
         throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
       }
 
-      if ($pantheon_yml['search']['version'] != '8') {
-        throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
+      $supported_versions = ['8', '9'];
+      if (!in_array((string) $pantheon_yml['search']['version'], $supported_versions, true)) {
+        throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml. Supported versions: ' . implode(', ', $supported_versions));
       }
       $this->logger->notice('Pantheon.yml file looks ok ✅');
 
