@@ -117,13 +117,65 @@ export DRUPAL_VERSION
 export TERMINUS_ORG="$ORG"
 
 # Override CONSTRAINT for test branches to use 8.4.x-dev
-# The git-constraint-helper would return "search_ci-dev" which is invalid
+# We need to modify git-constraint-helper temporarily to respect our override
+HELPER_SCRIPT="$SCRIPT_DIR/../.github/workflows/git-constraint-helper"
+HELPER_BACKUP="$SCRIPT_DIR/../.github/workflows/git-constraint-helper.bak"
+
+# Backup original helper
+cp "$HELPER_SCRIPT" "$HELPER_BACKUP"
+
+# Modify helper to check for existing CONSTRAINT
+cat > "$HELPER_SCRIPT" <<'HELPER_EOF'
+get_current_constraint() {
+  # Check if CONSTRAINT is already set
+  if [ -n "$CONSTRAINT" ]; then
+    echo "$CONSTRAINT"
+    return
+  fi
+
+  branch=$(git rev-parse --abbrev-ref HEAD | tr -d '[:space:]')
+  if [ "$branch" != "HEAD" ]; then
+    echo "${branch}-dev"
+    return
+  fi
+
+  tag=$(git describe --exact-match --tags "$(git log -n1 --pretty='%h')" 2>/dev/null | tr -d '[:space:]')
+  if [ -n "$tag" ]; then
+    echo "$tag"
+    return
+  fi
+
+  if [ -n "$GITHUB_HEAD_REF" ]; then
+    IFS='/' read -ra parts <<< "$GITHUB_HEAD_REF"
+    branch="${parts[-1]}"
+    if [ -n "$branch" ]; then
+      echo "${branch}-dev"
+      return
+    fi
+  fi
+
+  echo "^8"
+}
+HELPER_EOF
+
+# Set CONSTRAINT for ci.sh to use
 export CONSTRAINT="8.4.x-dev"
 
+# Run ci.sh
+CI_RESULT=0
 if bash "$CI_SCRIPT" "$SITE" "$DRUPAL_VERSION" "$ORG"; then
+  CI_RESULT=0
   echo -e "${GREEN}✓ Base installation completed successfully${NC}"
 else
+  CI_RESULT=1
   echo -e "${RED}✗ Base installation failed${NC}"
+fi
+
+# Restore original helper
+mv "$HELPER_BACKUP" "$HELPER_SCRIPT"
+
+# Exit if ci.sh failed
+if [ $CI_RESULT -ne 0 ]; then
   exit 1
 fi
 
