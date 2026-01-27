@@ -7,13 +7,20 @@ and enhanced developer experience.
 - Simplified service architecture for better maintainability.
 - Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
 - Removed kint-php/kint dependency.
-- Removed the search_api_pantheon_admin submodule. It's sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
+- Removed the search_api_pantheon_admin submodule. Its sole functionality
+  (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
   - Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
     `drush pm:uninstall search_api_pantheon_admin`
-- Improved local development experience. Server connector configuration fields are now editable in local environments and automatically overridden when deployed to Pantheon.
-- Drush commands automatically use the first enabled server with the Pantheon connector. The `server_id` argument is no longer needed or accepted.
+- Improved local development experience. Server connector configuration fields
+  are now editable in local environments and automatically overridden when
+  deployed to Pantheon.
+- Drush commands automatically use the first enabled server with the Pantheon
+  connector. The server_id argument is no longer needed or accepted.
+  - For more details, see the diagnostic commands section:
+    https://github.com/pantheon-systems/search_api_pantheon/edit/8.4.x/README.md#diagnostic-commands
 
-Please refer to README.md for installation and upgrade instructions.
+Please refer to README.md for installation and upgrade instructions:
+https://github.com/pantheon-systems/search_api_pantheon/tree/8.x
 
 Search API Pantheon 8.3.4
 --------------------------------------------------
