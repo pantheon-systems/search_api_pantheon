@@ -6,14 +6,17 @@
 set -e
 
 if [ -z "$1" ]; then
-  echo "Usage: $0 SITE_NAME"
+  echo "Usage: $0 SITE_NAME [ENVIRONMENT]"
   echo "Example: $0 my-test-site"
+  echo "Example: $0 my-test-site test-abc12"
   echo ""
   echo "Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)"
+  echo "      Environment defaults to 'dev' if not specified"
   exit 1
 fi
 
 SITE="$1"
+ENV="${2:-dev}"
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
@@ -71,14 +74,14 @@ test_result() {
 echo "========================================"
 echo "Field Mapping Test Suite"
 echo "========================================"
-log_info "Site: $SITE.dev"
+log_info "Site: $SITE.$ENV"
 echo "========================================"
 
 # Step 1: Install required modules
 log_info "Step 1: Installing required modules"
 
 # Switch to git mode
-terminus connection:set "$SITE.dev" git
+terminus connection:set "$SITE.$ENV" git
 
 # Clone the site using terminus (creates proper local setup)
 log_info "Cloning site locally..."
@@ -113,18 +116,18 @@ git push
 
 # Wait for the workflow to complete
 log_info "Waiting for code deployment workflow..."
-terminus workflow:wait --max=300 "$SITE.dev"
+terminus workflow:wait --max=300 "$SITE.$ENV"
 
 # Enable the modules
 log_info "Enabling modules..."
-terminus drush "$SITE.dev" -- pm:enable search_api search_api_solr search_api_pantheon -y
+terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
 
 # Wait a moment for module installation to complete
 sleep 2
 
 # Clean up any existing test data
 log_info "Cleaning up any existing test data..."
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   // Delete existing field_test nodes
   \$nids = \Drupal::entityQuery('node')->condition('type', 'field_test')->accessCheck(FALSE)->execute();
   if (\$nids) {
@@ -156,7 +159,7 @@ terminus drush "$SITE.dev" -- ev "
 log_info "Step 2: Creating test content type 'field_test' with all field types"
 
 # Create the content type
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   \$type = \Drupal::entityTypeManager()->getStorage('node_type')->create([
     'type' => 'field_test',
     'name' => 'Field Test',
@@ -169,7 +172,7 @@ terminus drush "$SITE.dev" -- ev "
 log_info "Creating test fields..."
 
 # Text (plain)
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -189,7 +192,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Text (long)
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -209,7 +212,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Integer
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -229,7 +232,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Decimal
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -250,7 +253,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Boolean
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -270,7 +273,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Date
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -291,7 +294,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Datetime
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -312,7 +315,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # List (text options)
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -339,7 +342,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Email
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -359,7 +362,7 @@ terminus drush "$SITE.dev" -- ev "
 "
 
 # Link
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
   use Drupal\field\Entity\FieldConfig;
 
@@ -383,7 +386,7 @@ log_success "All test fields created"
 # Step 3: Configure Search API index with all fields
 log_info "Step 3: Configuring Search API index with test fields"
 
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   \$index = \Drupal::entityTypeManager()->getStorage('search_api_index')->load('primary');
   if (!\$index) {
     \$server = \Drupal::entityTypeManager()->getStorage('search_api_server')->load('pantheon_search');
@@ -479,7 +482,7 @@ terminus drush "$SITE.dev" -- ev "
 
 # Debug: Check Solr connector class and configuration
 log_info "Debugging Solr connector configuration..."
-terminus drush "$SITE.dev" -- ev "
+terminus drush "$SITE.$ENV" -- ev "
   \$server = \Drupal::entityTypeManager()->getStorage('search_api_server')->load('pantheon_search');
   \$backend = \$server->getBackend();
   \$connector = \$backend->getSolrConnector();
@@ -500,11 +503,11 @@ terminus drush "$SITE.dev" -- ev "
 
 # Fix http_method configuration for Pantheon Solr compatibility
 log_info "Configuring Solr connector for Pantheon compatibility..."
-terminus drush "$SITE.dev" -- config:set search_api.server.pantheon_search backend_config.connector_config.http_method POST -y
+terminus drush "$SITE.$ENV" -- config:set search_api.server.pantheon_search backend_config.connector_config.http_method POST -y
 
 # Post schema
 log_info "Posting schema to Solr..."
-SCHEMA_RESULT=$(terminus drush "$SITE.dev" -- search-api-pantheon:postSchema 2>&1)
+SCHEMA_RESULT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:postSchema 2>&1)
 echo "$SCHEMA_RESULT"
 
 if echo "$SCHEMA_RESULT" | grep -qi "error\|fail"; then
@@ -520,7 +523,7 @@ sleep 5
 # Step 4: Create test node with known values
 log_info "Step 4: Creating test node with known field values"
 
-NODE_ID=$(terminus drush "$SITE.dev" -- ev "
+NODE_ID=$(terminus drush "$SITE.$ENV" -- ev "
   use Drupal\node\Entity\Node;
 
   \$node = Node::create([
@@ -545,7 +548,7 @@ log_info "Created node ID: $NODE_ID"
 
 # Step 5: Index the content
 log_info "Step 5: Indexing content"
-terminus drush "$SITE.dev" -- search-api:index primary
+terminus drush "$SITE.$ENV" -- search-api:index primary
 
 # Wait for indexing to complete
 sleep 5
@@ -553,7 +556,7 @@ sleep 5
 # Step 6: Query Solr and verify field values
 log_info "Step 6: Querying Solr to verify field mappings"
 
-SOLR_RESPONSE=$(terminus drush "$SITE.dev" -- search-api-pantheon:select "*:*" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -c '.')
+SOLR_RESPONSE=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "*:*" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -c '.')
 
 echo ""
 log_info "=== Field Mapping Verification ==="
@@ -651,7 +654,7 @@ log_info "=== Testing Field Searchability ==="
 echo ""
 
 # Search for text in plain text field (use actual Solr field name)
-SEARCH_RESULT=$(terminus drush "$SITE.dev" -- search-api-pantheon:select "tm_X3b_en_field_text_plain:Plain" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
+SEARCH_RESULT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "tm_X3b_en_field_text_plain:Plain" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
 
 if [ "$SEARCH_RESULT" -gt 0 ] 2>/dev/null; then
   log_success "✓ Text field is searchable: PASS"
@@ -662,7 +665,7 @@ else
 fi
 
 # Search for integer value (use actual Solr field name)
-SEARCH_INTEGER=$(terminus drush "$SITE.dev" -- search-api-pantheon:select "its_field_integer:42" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
+SEARCH_INTEGER=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "its_field_integer:42" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
 
 if [ "$SEARCH_INTEGER" -gt 0 ] 2>/dev/null; then
   log_success "✓ Integer field is searchable: PASS"
@@ -679,11 +682,11 @@ echo ""
 
 # Repost schema to ensure consistency before adding more complex data
 log_info "Reposting schema before special characters test..."
-terminus drush "$SITE.dev" -- search-api-pantheon:postSchema -v 2>&1 | grep -E "uploaded|reload|Result" || true
+terminus drush "$SITE.$ENV" -- search-api-pantheon:postSchema -v 2>&1 | grep -E "uploaded|reload|Result" || true
 sleep 3
 
 # Create node with special characters
-SPECIAL_NODE_ID=$(terminus drush "$SITE.dev" -- ev "
+SPECIAL_NODE_ID=$(terminus drush "$SITE.$ENV" -- ev "
   use Drupal\node\Entity\Node;
 
   \$node = Node::create([
@@ -701,11 +704,11 @@ SPECIAL_NODE_ID=$(terminus drush "$SITE.dev" -- ev "
 log_info "Created special chars node ID: $SPECIAL_NODE_ID"
 
 # Reindex
-terminus drush "$SITE.dev" -- search-api:index primary
+terminus drush "$SITE.$ENV" -- search-api:index primary
 sleep 3
 
 # Query for the special node
-SPECIAL_DOC=$(terminus drush "$SITE.dev" -- search-api-pantheon:select "id:*entity:node/${SPECIAL_NODE_ID}*" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.docs[0]')
+SPECIAL_DOC=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "id:*entity:node/${SPECIAL_NODE_ID}*" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.docs[0]')
 
 # Test special characters in title
 SPECIAL_TITLE=$(echo "$SPECIAL_DOC" | jq -r '.tm_X3b_en_title[0] // empty')
