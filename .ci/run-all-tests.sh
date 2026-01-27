@@ -116,6 +116,10 @@ export SITE
 export DRUPAL_VERSION
 export TERMINUS_ORG="$ORG"
 
+# Override CONSTRAINT for test branches to use 8.4.x-dev
+# The git-constraint-helper would return "search_ci-dev" which is invalid
+export CONSTRAINT="8.4.x-dev"
+
 if bash "$CI_SCRIPT" "$SITE" "$DRUPAL_VERSION" "$ORG"; then
   echo -e "${GREEN}✓ Base installation completed successfully${NC}"
 else
