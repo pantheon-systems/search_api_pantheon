@@ -17,10 +17,10 @@ and enhanced developer experience.
 - Drush commands automatically use the first enabled server with the Pantheon
   connector. The server_id argument is no longer needed or accepted.
   - For more details, see the diagnostic commands section:
-    https://github.com/pantheon-systems/search_api_pantheon/edit/8.4.x/README.md#diagnostic-commands
+   https://github.com/pantheon-systems/search_api_pantheon/blob/8.4.x/README.md#diagnostic-commands
 
 Please refer to README.md for installation and upgrade instructions:
-https://github.com/pantheon-systems/search_api_pantheon/tree/8.x
+https://github.com/pantheon-systems/search_api_pantheon/blob/8.4.x/README.md
 
 Search API Pantheon 8.3.4
 --------------------------------------------------
