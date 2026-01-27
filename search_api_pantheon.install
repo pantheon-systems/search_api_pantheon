@@ -69,13 +69,3 @@ function search_api_pantheon_update_10081() {
     throw $e;
   }
 }
-
-/**
- * Uninstall Search API Pantheon Admin module if it's enabled.
- */
-function search_api_pantheon_update_10082() {
-  if (\Drupal::moduleHandler()->moduleExists('search_api_pantheon_admin')) {
-    \Drupal::service('module_installer')->uninstall(['search_api_pantheon_admin']);
-    \Drupal::messenger()->addWarning(t('The Search API Pantheon Admin module has been automatically uninstalled as it has been removed in version 8.4.x.'));
-  }
-}

@@ -190,7 +190,7 @@ drush search-api-pantheon:reload
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
-- The search_api_pantheon_admin submodule has been removed. Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command. If the module is enabled, running database updates will automatically uninstall the module.
+- The search_api_pantheon_admin submodule has been removed. Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
 
 #### Configuration and Local Development
 
@@ -209,6 +209,16 @@ drush search-api-pantheon:reload
 - The code now searches for the first server using the Pantheon connector to handle recent default server renames.
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
+
+### ⚠️ Before You Upgrade
+
+1. **Backup your database** - The upgrade process may modify server and index configurations
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
+    Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
+
+   ```bash
+   drush pm:uninstall search_api_pantheon_admin
+   ```
 
 ### Step-by-Step Upgrade Process
 
@@ -236,9 +246,6 @@ drush search-api-pantheon:reload
    - Updates the search server id from 'pantheon_solr8' to 'pantheon_search'
    - Migrates all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
    - Flags existing indexed items for reindexing
-
-   **Uninstalls the `search_api_pantheon_admin` submodule:**
-   - Uninstalls the `search_api_pantheon_admin` submodule if enabled (this submodule has been removed as its functionality is provided by the command `drush search-api-pantheon:postSchema`)
 
 4. **Reindex content (Required only if search server was migrated):**
 
@@ -276,7 +283,7 @@ drush search-api-pantheon:reload
 |-------|----------|
 | Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
 | Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
-| Module warnings: search_api_pantheon_admin missing | This submodule will be automatically uninstalled during database updates.|
+| Module warnings: search_api_pantheon_admin missing | Uninstall  search_api_pantheon_admin submodule before upgrading: `drush pm:uninstall search_api_pantheon_admin` |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
 
