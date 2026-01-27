@@ -16,9 +16,6 @@
         "drupal/coder": "@stable",
         "squizlabs/php_codesniffer": "@stable"
     },
-    "replace": {
-        "drupal/search_api_pantheon": "self.version"
-    },
     "scripts": {
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
