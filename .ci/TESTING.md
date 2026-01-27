@@ -7,8 +7,14 @@ Comprehensive testing scripts for validating search_api_pantheon functionality o
 Run all tests on a fresh Pantheon site:
 
 ```bash
+# With a specific site name
 ./.ci/run-all-tests.sh my-site-name
+
+# Or let it generate a random site name
+./.ci/run-all-tests.sh
 ```
+
+The script will automatically generate a site name like `test-sap-a1b2c3d4` if none is provided.
 
 ## Individual Test Suites
 
