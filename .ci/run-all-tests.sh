@@ -2,22 +2,28 @@
 # Comprehensive CI test suite for search_api_pantheon
 # Runs all test scripts in sequence
 #
-# Usage: ./run-all-tests.sh SITE_NAME
+# Usage: ./run-all-tests.sh [SITE_NAME]
 # Example: ./run-all-tests.sh my-test-site
 #
 # Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)
+#       If no site name provided, a random one will be generated
 
 set -e
 
-if [ -z "$1" ]; then
-  echo "Usage: $0 SITE_NAME"
-  echo "Example: $0 my-test-site"
-  echo ""
-  echo "Note: Use site name only, WITHOUT environment suffix"
-  exit 1
-fi
+# Generate random site name
+generate_site_name() {
+  local prefix="test-sap"
+  local random_suffix=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
+  echo "${prefix}-${random_suffix}"
+}
 
-SITE="$1"
+# Get site name from argument or generate random one
+if [ -z "$1" ]; then
+  SITE=$(generate_site_name)
+  echo "No site name provided, using: $SITE"
+else
+  SITE="$1"
+fi
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
