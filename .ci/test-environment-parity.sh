@@ -77,6 +77,7 @@ echo "========================================"
 declare -A ENV_HOSTS
 declare -A ENV_PORTS
 declare -A ENV_PATHS
+declare -A ENV_CORES_FULL
 declare -A ENV_TOKENS
 declare -A ENV_CORES
 
@@ -103,17 +104,20 @@ for ENV in dev test live; do
     echo 'HOST=' . getenv('PANTHEON_INDEX_HOST') . PHP_EOL;
     echo 'PORT=' . getenv('PANTHEON_INDEX_PORT') . PHP_EOL;
     echo 'PATH=' . getenv('PANTHEON_INDEX_PATH') . PHP_EOL;
+    echo 'CORE=' . getenv('PANTHEON_INDEX_CORE') . PHP_EOL;
     echo 'TOKEN_LEN=' . strlen(getenv('PANTHEON_INDEX_TOKEN')) . PHP_EOL;
   " 2>/dev/null | grep -v "\[" | grep -v "WARNING")
 
   ENV_HOSTS[$ENV]=$(echo "$ENV_VARS" | grep "^HOST=" | cut -d= -f2)
   ENV_PORTS[$ENV]=$(echo "$ENV_VARS" | grep "^PORT=" | cut -d= -f2)
   ENV_PATHS[$ENV]=$(echo "$ENV_VARS" | grep "^PATH=" | cut -d= -f2)
+  ENV_CORES_FULL[$ENV]=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
   ENV_TOKENS[$ENV]=$(echo "$ENV_VARS" | grep "^TOKEN_LEN=" | cut -d= -f2)
 
   log_info "Host: ${ENV_HOSTS[$ENV]}"
   log_info "Port: ${ENV_PORTS[$ENV]}"
   log_info "Path: ${ENV_PATHS[$ENV]}"
+  log_info "Core: ${ENV_CORES_FULL[$ENV]}"
   log_info "Token length: ${ENV_TOKENS[$ENV]} chars"
 
   # Validate environment variables are set
@@ -131,6 +135,12 @@ for ENV in dev test live; do
 
   if [ -z "${ENV_PATHS[$ENV]}" ] || [ "${ENV_PATHS[$ENV]}" = "false" ]; then
     log_error "PANTHEON_INDEX_PATH not set in $ENV environment"
+    ((TESTS_FAILED++))
+    continue
+  fi
+
+  if [ -z "${ENV_CORES_FULL[$ENV]}" ] || [ "${ENV_CORES_FULL[$ENV]}" = "false" ]; then
+    log_error "PANTHEON_INDEX_CORE not set in $ENV environment"
     ((TESTS_FAILED++))
     continue
   fi
@@ -171,9 +181,9 @@ for ENV in dev test live; do
     continue
   fi
 
-  # Step 5: Extract Solr core name from path
-  # Path format: v1/site/{SITE_ID}/environment/{ENV}/backend
-  CORE_NAME=$(echo "${ENV_PATHS[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
+  # Step 5: Extract Solr core name from CORE path
+  # Core format: /site/{SITE_ID}/environment/{ENV}/backend
+  CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
   ENV_CORES[$ENV]=$CORE_NAME
 
   log_info "Solr core: $CORE_NAME"
@@ -207,12 +217,12 @@ echo "========================================"
 log_info "Cross-Environment Validation"
 echo "========================================"
 
-# Test 1: Each environment should have different Solr paths
+# Test 1: Each environment should have different Solr core paths
 echo ""
 log_info "Test 1: Verifying environments use different Solr cores"
 
-if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[test]}" ]; then
-  if [ "${ENV_PATHS[dev]}" != "${ENV_PATHS[test]}" ]; then
+if [ -n "${ENV_CORES_FULL[dev]}" ] && [ -n "${ENV_CORES_FULL[test]}" ]; then
+  if [ "${ENV_CORES_FULL[dev]}" != "${ENV_CORES_FULL[test]}" ]; then
     log_success "✓ Dev and Test use different Solr cores"
     ((TESTS_PASSED++))
   else
@@ -221,8 +231,8 @@ if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[test]}" ]; then
   fi
 fi
 
-if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[live]}" ]; then
-  if [ "${ENV_PATHS[dev]}" != "${ENV_PATHS[live]}" ]; then
+if [ -n "${ENV_CORES_FULL[dev]}" ] && [ -n "${ENV_CORES_FULL[live]}" ]; then
+  if [ "${ENV_CORES_FULL[dev]}" != "${ENV_CORES_FULL[live]}" ]; then
     log_success "✓ Dev and Live use different Solr cores"
     ((TESTS_PASSED++))
   else
@@ -231,8 +241,8 @@ if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[live]}" ]; then
   fi
 fi
 
-if [ -n "${ENV_PATHS[test]}" ] && [ -n "${ENV_PATHS[live]}" ]; then
-  if [ "${ENV_PATHS[test]}" != "${ENV_PATHS[live]}" ]; then
+if [ -n "${ENV_CORES_FULL[test]}" ] && [ -n "${ENV_CORES_FULL[live]}" ]; then
+  if [ "${ENV_CORES_FULL[test]}" != "${ENV_CORES_FULL[live]}" ]; then
     log_success "✓ Test and Live use different Solr cores"
     ((TESTS_PASSED++))
   else
@@ -268,7 +278,7 @@ fi
 echo ""
 log_info "Test 3: Testing data isolation between environments"
 
-if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[test]}" ]; then
+if [ -n "${ENV_CORES_FULL[dev]}" ] && [ -n "${ENV_CORES_FULL[test]}" ]; then
   # Create a unique test node in dev
   log_info "Creating test content in dev environment..."
 
@@ -301,7 +311,7 @@ if [ -n "${ENV_PATHS[dev]}" ] && [ -n "${ENV_PATHS[test]}" ]; then
     fi
 
     # Search for it in test (should NOT find it)
-    if [ -n "${ENV_PATHS[test]}" ]; then
+    if [ -n "${ENV_CORES_FULL[test]}" ]; then
       TEST_SEARCH=$(terminus drush "$SITE.test" -- search-api-pantheon:select "title:$UNIQUE_TITLE" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound' || echo "0")
 
       if [ "$TEST_SEARCH" -eq 0 ]; then
@@ -333,8 +343,9 @@ for ENV in dev test live; do
     log_info "$ENV environment:"
     echo "  Host: ${ENV_HOSTS[$ENV]}"
     echo "  Port: ${ENV_PORTS[$ENV]}"
-    echo "  Core: ${ENV_CORES[$ENV]}"
     echo "  Path: ${ENV_PATHS[$ENV]}"
+    echo "  Core: ${ENV_CORES[$ENV]}"
+    echo "  Core Full Path: ${ENV_CORES_FULL[$ENV]}"
   fi
 done
 
