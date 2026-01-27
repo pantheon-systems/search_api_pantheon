@@ -2,8 +2,13 @@
 # Comprehensive CI test suite for search_api_pantheon
 # Runs all test scripts in sequence
 #
-# Usage: ./run-all-tests.sh [SITE_NAME]
-# Example: ./run-all-tests.sh my-test-site
+# Usage: ./run-all-tests.sh [SITE_NAME] [DRUPAL_VERSION] [TERMINUS_ORG]
+# Example: ./run-all-tests.sh my-test-site 11 my-org
+#
+# Arguments:
+#   SITE_NAME (optional): Name without environment suffix. Auto-generated if omitted.
+#   DRUPAL_VERSION (optional): 10 or 11. Default: 11
+#   TERMINUS_ORG (optional): Pantheon organization. Default: $TERMINUS_ORG env var
 #
 # Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)
 #       If no site name provided, a random one will be generated
@@ -25,11 +30,24 @@ else
   SITE="$1"
 fi
 
+# Get Drupal version (default to 11)
+DRUPAL_VERSION="${2:-11}"
+
+# Get Terminus org (use env var if not provided)
+ORG="${3:-${TERMINUS_ORG}}"
+
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
   echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
   echo "You provided: $SITE"
   echo "Use instead: ${SITE%.dev}"
+  exit 1
+fi
+
+# Validate required parameters
+if [ -z "$ORG" ]; then
+  echo "Error: TERMINUS_ORG must be set or provided as third argument"
+  echo "Usage: $0 [SITE_NAME] [DRUPAL_VERSION] [TERMINUS_ORG]"
   exit 1
 fi
 
@@ -82,8 +100,36 @@ echo "========================================"
 echo "search_api_pantheon CI Test Suite"
 echo "========================================"
 echo "Site: $SITE"
+echo "Drupal Version: $DRUPAL_VERSION"
+echo "Organization: $ORG"
 echo "Started: $(date)"
 echo "========================================"
+echo ""
+
+# Suite 0: Base Installation (via ci.sh)
+echo "========================================"
+echo -e "${CYAN}Suite 0: Base Installation${NC}"
+echo "========================================"
+echo "Running ci.sh to create site and install modules..."
+
+CI_SCRIPT="$SCRIPT_DIR/../.github/workflows/ci.sh"
+if [ ! -f "$CI_SCRIPT" ]; then
+  echo -e "${RED}✗ ERROR: ci.sh not found at $CI_SCRIPT${NC}"
+  exit 1
+fi
+
+# Export variables for ci.sh
+export SITE
+export DRUPAL_VERSION
+export TERMINUS_ORG="$ORG"
+
+if bash "$CI_SCRIPT" "$SITE" "$DRUPAL_VERSION" "$ORG"; then
+  echo -e "${GREEN}✓ Base installation completed successfully${NC}"
+else
+  echo -e "${RED}✗ Base installation failed${NC}"
+  exit 1
+fi
+
 echo ""
 
 # Suite 1: Field Mapping Tests
