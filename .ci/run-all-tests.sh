@@ -33,21 +33,14 @@ fi
 # Get Drupal version (default to 11)
 DRUPAL_VERSION="${2:-11}"
 
-# Get Terminus org (use env var if not provided)
-ORG="${3:-${TERMINUS_ORG}}"
+# Get Terminus org (use env var if not provided, default to "CMS Platform")
+ORG="${3:-${TERMINUS_ORG:-CMS Platform}}"
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
   echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
   echo "You provided: $SITE"
   echo "Use instead: ${SITE%.dev}"
-  exit 1
-fi
-
-# Validate required parameters
-if [ -z "$ORG" ]; then
-  echo "Error: TERMINUS_ORG must be set or provided as third argument"
-  echo "Usage: $0 [SITE_NAME] [DRUPAL_VERSION] [TERMINUS_ORG]"
   exit 1
 fi
 

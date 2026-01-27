@@ -7,11 +7,13 @@ Comprehensive testing scripts for validating search_api_pantheon functionality o
 Run all tests on a fresh Pantheon site:
 
 ```bash
-# With auto-generated site name
-export TERMINUS_ORG=my-org
+# Simplest - uses all defaults (random site name, Drupal 11, "CMS Platform" org)
 ./.ci/run-all-tests.sh
 
 # With specific site name
+./.ci/run-all-tests.sh my-site-name
+
+# With custom organization
 ./.ci/run-all-tests.sh my-site-name 11 my-org
 
 # Full syntax
@@ -21,7 +23,7 @@ export TERMINUS_ORG=my-org
 **Parameters:**
 - `SITE_NAME` (optional): Site name without environment suffix. Auto-generated as `test-sap-XXXXXXXX` if omitted.
 - `DRUPAL_VERSION` (optional): 10 or 11. Default: 11
-- `TERMINUS_ORG` (optional): Pantheon organization. Uses `$TERMINUS_ORG` environment variable if not provided.
+- `TERMINUS_ORG` (optional): Pantheon organization. Default: "CMS Platform" (uses `$TERMINUS_ORG` env var if set)
 
 **What it does:**
 1. Creates a fresh Drupal site via `ci.sh`
