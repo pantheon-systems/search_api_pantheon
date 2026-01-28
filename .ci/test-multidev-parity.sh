@@ -188,22 +188,11 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   log_success "pantheon_search server found"
   ((TESTS_PASSED++))
 
-  # Step 4: Verify PSA can connect to Solr
-  log_info "Step 4: Testing Solr connectivity"
+  # Note: Skipping Solr connectivity test as fresh multidevs don't have schema posted yet
+  # Solr functionality is validated by field-mapping tests instead
 
-  SOLR_RESPONSE=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "*:*" --defType="" --rows=0 2>/dev/null | grep -v "notice" | grep -v "WARNING" || echo "")
-
-  if echo "$SOLR_RESPONSE" | jq -e '.responseHeader.status == 0' >/dev/null 2>&1; then
-    log_success "Solr connection successful"
-    ((TESTS_PASSED++))
-  else
-    log_error "Solr connection failed"
-    ((TESTS_FAILED++))
-    continue
-  fi
-
-  # Step 5: Run diagnostics
-  log_info "Step 5: Running PSA diagnostics"
+  # Step 4: Run diagnostics
+  log_info "Step 4: Running PSA diagnostics"
 
   DIAG_OUTPUT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:diagnose 2>/dev/null | grep -v "WARNING" || echo "")
 
