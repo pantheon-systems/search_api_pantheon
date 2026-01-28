@@ -574,6 +574,9 @@ if [ "$DOC" = "null" ] || [ -z "$DOC" ]; then
   exit 1
 fi
 
+# Disable exit on error for test assertions so all tests run
+set +e
+
 # Test 1: Title (text field)
 TITLE=$(echo "$DOC" | jq -r '.tm_X3b_en_title[0] // empty')
 test_result "Title field" "Field Mapping Test Node" "$TITLE"
@@ -755,6 +758,9 @@ fi
 # Test false boolean
 FALSE_BOOL=$(echo "$SPECIAL_DOC" | jq -r '.bs_field_boolean // empty')
 test_result "Boolean false" "false" "$FALSE_BOOL"
+
+# Re-enable exit on error
+set -e
 
 # Summary
 echo ""
