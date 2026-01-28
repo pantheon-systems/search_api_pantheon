@@ -37,7 +37,11 @@ MULTIDEV2=$(generate_multidev_name)
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
   echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
   echo "You provided: $SITE"
-  echo "Use instead: ${SITE%.dev}"
+  # Remove any of the three possible suffixes
+  CLEAN_SITE="${SITE%.dev}"
+  CLEAN_SITE="${CLEAN_SITE%.test}"
+  CLEAN_SITE="${CLEAN_SITE%.live}"
+  echo "Use instead: $CLEAN_SITE"
   exit 1
 fi
 
