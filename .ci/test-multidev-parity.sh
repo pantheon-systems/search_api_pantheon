@@ -83,6 +83,9 @@ declare -A ENV_CORES_FULL
 declare -A ENV_TOKENS
 declare -A ENV_CORES
 
+# Disable exit on error for test assertions so all tests run
+set +e
+
 # Test each multidev environment
 for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   echo ""
@@ -155,9 +158,6 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
 
   log_success "All PANTHEON_INDEX_* variables are set"
   ((TESTS_PASSED++))
-
-  # Disable exit on error for test assertions so all tests run
-  set +e
 
   # Extract Solr core name from CORE path (do this early so it's available even if search_api not installed)
   # Core format: /site/{SITE_ID}/environment/{ENV}/backend
