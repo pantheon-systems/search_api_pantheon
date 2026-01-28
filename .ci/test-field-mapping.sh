@@ -687,10 +687,8 @@ echo ""
 log_info "=== Testing Special Characters ==="
 echo ""
 
-# Repost schema to ensure consistency before adding more complex data
-log_info "Reposting schema before special characters test..."
-terminus drush "$SITE.$ENV" -- search-api-pantheon:postSchema -v 2>&1 | grep -E "uploaded|reload|Result" || true
-sleep 3
+# Note: Schema was already posted earlier, no need to repost
+# Reposting can cause field definition conflicts in Solr
 
 # Create node with special characters
 SPECIAL_NODE_ID=$(terminus drush "$SITE.$ENV" -- ev "
