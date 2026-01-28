@@ -76,6 +76,36 @@ cleanup_multidevs() {
 # Set trap to cleanup on exit
 trap cleanup_multidevs EXIT
 
+# Multidev creation with retry logic
+create_multidev_with_retry() {
+  local site="$1"
+  local multidev_name="$2"
+  local max_attempts=3
+  local retry_delay=30
+  local attempt=1
+
+  while [ $attempt -le $max_attempts ]; do
+    echo "Creating multidev: $multidev_name (attempt $attempt/$max_attempts)"
+
+    if terminus multidev:create "$site.dev" "$multidev_name" 2>&1; then
+      echo -e "${GREEN}✓ Created $multidev_name${NC}"
+      return 0
+    else
+      if [ $attempt -lt $max_attempts ]; then
+        echo -e "${YELLOW}⚠ Failed to create $multidev_name (attempt $attempt/$max_attempts)${NC}"
+        echo "Waiting ${retry_delay} seconds before retry..."
+        sleep $retry_delay
+        ((attempt++))
+      else
+        echo -e "${RED}✗ Failed to create $multidev_name after $max_attempts attempts${NC}"
+        return 1
+      fi
+    fi
+  done
+
+  return 1
+}
+
 run_test_suite() {
   local suite_name="$1"
   local script_path="$2"
@@ -133,20 +163,15 @@ echo "========================================"
 echo -e "${CYAN}Step 1: Creating multidev environments${NC}"
 echo "========================================"
 
-echo "Creating multidev: $MULTIDEV1"
-if terminus multidev:create "$SITE.dev" "$MULTIDEV1"; then
-  echo -e "${GREEN}✓ Created $MULTIDEV1${NC}"
-else
-  echo -e "${RED}✗ Failed to create $MULTIDEV1${NC}"
+if ! create_multidev_with_retry "$SITE" "$MULTIDEV1"; then
+  echo -e "${RED}✗ Failed to create $MULTIDEV1 after multiple attempts${NC}"
   exit 1
 fi
 
 echo ""
-echo "Creating multidev: $MULTIDEV2"
-if terminus multidev:create "$SITE.dev" "$MULTIDEV2"; then
-  echo -e "${GREEN}✓ Created $MULTIDEV2${NC}"
-else
-  echo -e "${RED}✗ Failed to create $MULTIDEV2${NC}"
+
+if ! create_multidev_with_retry "$SITE" "$MULTIDEV2"; then
+  echo -e "${RED}✗ Failed to create $MULTIDEV2 after multiple attempts${NC}"
   exit 1
 fi
 
