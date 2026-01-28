@@ -295,11 +295,7 @@ To roll back from version 8.4.x to 8.3.4, restore your database from a backup ta
 
 Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
 
-### Single Server Per Environment
-
-When you enable the Search API Pantheon module, a Pantheon search server is automatically installed by default. Only this single server should be used per environment. Each environment provides one Solr core via environment variables (`PANTHEON_INDEX_HOST`, `PANTHEON_INDEX_CORE`, etc.). Creating additional servers with the Pantheon connector would result in all servers pointing to the same Solr core, providing no benefit and potentially causing schema conflicts.
-
-**To use multiple search configurations:** Create multiple Search API indexes on the single Pantheon server. Each index can have different field mappings and configurations while sharing the same Solr core.
+When you enable the Search API Pantheon module, a Pantheon search server is automatically installed by default. The Pantheon connector supports only a single Search API server per environment. Creating additional servers using the Pantheon connector will cause all servers to point to the same Solr core, which may result in schema conflicts or unexpected indexing behavior.
 
 ## Troubleshooting
 
@@ -321,7 +317,7 @@ If you experience schema reversion issues:
 
 ### Diagnostic Commands
 
-Starting from version 8.4.x, diagnostic commands automatically use the first server connected via Pantheon connector. The `server_id` argument is no longer needed or accepted.
+Starting from version 8.4.x, diagnostic commands automatically use the first server connected via Pantheon connector. The server_id argument, which was optional in previous versions, is no longer needed or accepted.
 
 | Command | Alias | Arguments | Description |
 |---------|-------|-----------|-------------|
