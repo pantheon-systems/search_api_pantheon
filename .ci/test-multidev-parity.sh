@@ -156,6 +156,21 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   log_success "All PANTHEON_INDEX_* variables are set"
   ((TESTS_PASSED++))
 
+  # Extract Solr core name from CORE path (do this early so it's available even if search_api not installed)
+  # Core format: /site/{SITE_ID}/environment/{ENV}/backend
+  CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
+  ENV_CORES[$ENV]=$CORE_NAME
+  log_info "Solr core: $CORE_NAME"
+
+  # Validate core name matches environment
+  if [ "$CORE_NAME" = "$ENV" ]; then
+    log_success "Solr core matches environment name"
+    ((TESTS_PASSED++))
+  else
+    log_error "Solr core ($CORE_NAME) doesn't match environment ($ENV)"
+    ((TESTS_FAILED++))
+  fi
+
   # Step 3: Check Search API server configuration
   log_info "Step 3: Checking Search API server configuration"
 
@@ -184,24 +199,8 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
     continue
   fi
 
-  # Step 5: Extract Solr core name from CORE path
-  # Core format: /site/{SITE_ID}/environment/{ENV}/backend
-  CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
-  ENV_CORES[$ENV]=$CORE_NAME
-
-  log_info "Solr core: $CORE_NAME"
-
-  # Validate core name matches environment
-  if [ "$CORE_NAME" = "$ENV" ]; then
-    log_success "Solr core matches environment name"
-    ((TESTS_PASSED++))
-  else
-    log_error "Solr core ($CORE_NAME) doesn't match environment ($ENV)"
-    ((TESTS_FAILED++))
-  fi
-
-  # Step 6: Run diagnostics
-  log_info "Step 6: Running PSA diagnostics"
+  # Step 5: Run diagnostics
+  log_info "Step 5: Running PSA diagnostics"
 
   DIAG_OUTPUT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:diagnose 2>/dev/null | grep -v "WARNING" || echo "")
 

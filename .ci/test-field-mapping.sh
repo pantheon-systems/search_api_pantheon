@@ -112,6 +112,10 @@ terminus solr:enable "$SITE"
 log_info "Committing and pushing changes..."
 git add -A
 git commit -m "Add search_api_pantheon module and Solr config for field mapping tests" || log_info "No changes to commit"
+
+# Pull to sync with remote before pushing
+log_info "Syncing with remote..."
+git pull --rebase origin master || git pull --rebase origin main || true
 git push
 
 # Wait for the workflow to complete
