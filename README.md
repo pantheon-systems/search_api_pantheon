@@ -50,7 +50,7 @@ composer require 'drupal/search_api_pantheon:^8'
 To install the latest development version:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.4.x-dev'
+composer require 'drupal/search_api_pantheon:8.4.x-dev@dev'
 ```
 
 ## Setup
@@ -206,13 +206,13 @@ drush search-api-pantheon:reload
 
 #### Drush Commands
 
-- The code now searches for the first server using the Pantheon connector to handle recent default server renames.
+- Search API Pantheon Drush commands now automatically use the first server connected via the Pantheon Connector, handling the recent server_id migration..
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
-### ⚠️ Before You Upgrade
+### ⚠️ Important Steps Before Upgrading to 8.4.0
 
-1. **Backup your database** - The upgrade process may modify server and index configurations
+1. **Backup your database** - The upgrade can make changes to your database and configuration.
 2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
     Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
 
@@ -287,9 +287,15 @@ drush search-api-pantheon:reload
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
 
+## Rolling Back After Upgrading to 8.4.0
+
+To roll back from version 8.4.x to 8.3.4, restore your database from a backup taken before upgrading to 8.4.x, then revert the Git commit that upgraded the module. After restoring the database and reverting the code, clear the cache using `drush cr` and verify that your search server and indexes at admin/config/search/search-api are properly configured. If applicable, reindex your content via the UI or by running `drush search-api:index [INDEX_NAME]`, then export your configuration.
+
 ## Pantheon Environments
 
 Each Pantheon environment (Dev, Test, Live, and Multidevs) has its own Solr server. Indexing and searching in one environment does not impact any other environment.
+
+When you enable the Search API Pantheon module,  'Pantheon Search' server is automatically installed by default. The Pantheon connector supports only a single Search API server per environment. Creating additional servers using the Pantheon connector will cause all servers to point to the same Solr core, which may result in schema conflicts or unexpected indexing behavior.
 
 ## Troubleshooting
 
@@ -311,7 +317,7 @@ If you experience schema reversion issues:
 
 ### Diagnostic Commands
 
-Starting from version 8.4.x, diagnostic commands automatically use the first server with the Pantheon connector. The `server_id` argument is no longer needed or accepted.
+Starting from version 8.4.x, diagnostic commands automatically use the first server connected via Pantheon connector. The server_id argument, which was optional in previous versions, is no longer needed or accepted.
 
 | Command | Alias | Arguments | Description |
 |---------|-------|-----------|-------------|
