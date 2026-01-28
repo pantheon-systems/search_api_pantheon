@@ -287,9 +287,9 @@ drush search-api-pantheon:reload
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
 
-## Rolling Back from 8.4.x to 8.3.4
+## Rolling Back After Upgrading to 8.4.0
 
-To rollback from version 8.4.x to 8.3.4, restore your database from a backup taken before upgrading to 8.4.x, then revert the Git commit that upgraded the module. After restoring the database and reverting the code, clear cache with `drush cr` and verify your search server and indexes at admin/config/search/search-api are properly configured. If applicable, reindex your content and export your configuration.
+To roll back from version 8.4.x to 8.3.4, restore your database from a backup taken before upgrading to 8.4.x, then revert the Git commit that upgraded the module. After restoring the database and reverting the code, clear the cache using drush cr and verify that your search server and indexes at admin/config/search/search-api are properly configured. If applicable, reindex your content via the UI or by running drush search-api:index [INDEX_NAME], then export your configuration.
 
 ## Pantheon Environments
 
