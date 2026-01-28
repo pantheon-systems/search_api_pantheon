@@ -50,7 +50,7 @@ composer require 'drupal/search_api_pantheon:^8'
 To install the latest development version:
 
 ```bash
-composer require 'drupal/search_api_pantheon:8.4.x-dev'
+composer require 'drupal/search_api_pantheon:8.4.x-dev@dev'
 ```
 
 ## Setup
@@ -210,9 +210,9 @@ drush search-api-pantheon:reload
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
-### ⚠️ Before You Upgrade
+### ⚠️ Important Steps Before Upgrading to 8.4.0
 
-1. **Backup your database** - The upgrade process may modify server and index configurations
+1. **Backup your database** - The upgrade can make changes to your database and configuration.
 2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
     Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
 
