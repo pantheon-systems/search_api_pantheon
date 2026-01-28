@@ -224,7 +224,7 @@ drush search-api-pantheon:reload
 
 1. **Update via Composer:**
    ```bash
-   composer require 'drupal/search_api_pantheon:^8'
+   composer require 'drupal/search_api_pantheon:^8.4'
    ```
 
 2. **(Optional) Skip search server migration:**
