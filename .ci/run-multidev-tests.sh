@@ -85,6 +85,12 @@ create_multidev_with_retry() {
   local attempt=1
 
   while [ $attempt -le $max_attempts ]; do
+    # Check if multidev already exists (from a previous failed attempt)
+    if terminus multidev:list "$site" --format=list 2>/dev/null | grep -q "^$multidev_name$"; then
+      echo -e "${GREEN}✓ Multidev $multidev_name already exists (from previous attempt)${NC}"
+      return 0
+    fi
+
     echo "Creating multidev: $multidev_name (attempt $attempt/$max_attempts)"
 
     if terminus multidev:create "$site.dev" "$multidev_name" 2>&1; then
