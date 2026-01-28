@@ -126,8 +126,12 @@ terminus workflow:wait --max=300 "$SITE.$ENV"
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
 
-# Wait a moment for module installation to complete
-sleep 2
+# Rebuild Drush cache to discover new commands
+log_info "Rebuilding Drush cache..."
+terminus drush "$SITE.$ENV" -- cache:rebuild
+
+# Wait a moment for cache rebuild to complete
+sleep 3
 
 # Clean up any existing test data
 log_info "Cleaning up any existing test data..."
