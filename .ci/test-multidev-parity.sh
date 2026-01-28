@@ -156,6 +156,9 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   log_success "All PANTHEON_INDEX_* variables are set"
   ((TESTS_PASSED++))
 
+  # Disable exit on error for test assertions so all tests run
+  set +e
+
   # Extract Solr core name from CORE path (do this early so it's available even if search_api not installed)
   # Core format: /site/{SITE_ID}/environment/{ENV}/backend
   CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
@@ -301,6 +304,9 @@ if [ -n "${ENV_CORES_FULL[$MULTIDEV1]}" ] && [ -n "${ENV_CORES_FULL[$MULTIDEV2]}
     fi
   fi
 fi
+
+# Re-enable exit on error
+set -e
 
 # Summary
 echo ""
