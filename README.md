@@ -213,7 +213,7 @@ drush search-api-pantheon:reload
 ### ⚠️ Important Steps Before Upgrading to 8.4.0
 
 1. **Backup your database** - The upgrade can make changes to your database and configuration.
-2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x.
     Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
 
    ```bash
@@ -291,6 +291,7 @@ drush search-api-pantheon:reload
 | Module warnings: search_api_pantheon_admin module missing | If you didn't uninstall search_api_pantheon_admin module before upgrading to 8.4.x, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
+| Errors related to hook or plugin discovery | Clear cache: `drush cr` |
 
 ## Rolling Back After Upgrading to 8.4.0
 
