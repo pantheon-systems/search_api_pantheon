@@ -272,7 +272,7 @@ drush search-api-pantheon:reload
    drush cex
    ```
 
-8. **Test search functionality** thoroughly on non-producion environments before deploying to live site.
+8. **Test search functionality** thoroughly on non-production environments before deploying to live site.
 
 ### Upgrade Scenarios
 
