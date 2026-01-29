@@ -104,10 +104,6 @@ fi
 log_info "Installing search_api_pantheon 8.4.x-dev via Composer..."
 composer require "pantheon-systems/search_api_pantheon:8.4.x-dev" -n
 
-# Enable Solr
-log_info "Enabling Solr..."
-terminus solr:enable "$SITE"
-
 # Commit and push changes
 log_info "Committing and pushing changes..."
 git add -A
@@ -121,6 +117,14 @@ git push
 # Wait for the workflow to complete
 log_info "Waiting for code deployment workflow..."
 terminus workflow:wait --max=300 "$SITE.$ENV"
+
+# Enable Solr AFTER code deployment so pantheon.yml is processed first
+log_info "Enabling Solr..."
+terminus solr:enable "$SITE"
+
+# Wait for Solr to be provisioned
+log_info "Waiting for Solr to be provisioned..."
+sleep 10
 
 # Enable the modules
 log_info "Enabling modules..."
