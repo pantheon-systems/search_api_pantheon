@@ -135,7 +135,23 @@ log_info "Rebuilding Drush cache..."
 terminus drush "$SITE.$ENV" -- cache:rebuild
 
 # Wait a moment for cache rebuild to complete
-sleep 3
+sleep 5
+
+# Verify search-api-pantheon commands are available
+log_info "Verifying Drush commands are available..."
+if ! terminus drush "$SITE.$ENV" -- list search-api-pantheon 2>&1 | grep -q "search-api-pantheon:"; then
+  log_error "search-api-pantheon Drush commands not found after cache rebuild!"
+  log_info "Attempting second cache rebuild..."
+  terminus drush "$SITE.$ENV" -- cache:rebuild
+  sleep 5
+
+  if ! terminus drush "$SITE.$ENV" -- list search-api-pantheon 2>&1 | grep -q "search-api-pantheon:"; then
+    log_error "search-api-pantheon Drush commands still not available. Listing all commands:"
+    terminus drush "$SITE.$ENV" -- list | grep -i search
+    exit 1
+  fi
+fi
+log_success "Drush commands verified"
 
 # Clean up any existing test data
 log_info "Cleaning up any existing test data..."
