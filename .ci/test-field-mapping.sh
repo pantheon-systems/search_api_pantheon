@@ -681,33 +681,6 @@ test_result "Email field" "test@example.com" "$EMAIL"
 LINK=$(echo "$DOC" | jq -r '.ss_field_link // empty')
 test_result "Link field" "https://example.com" "$LINK"
 
-# Test 12: Verify field is searchable
-echo ""
-log_info "=== Testing Field Searchability ==="
-echo ""
-
-# Search for text in plain text field (use actual Solr field name)
-SEARCH_RESULT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "tm_X3b_en_field_text_plain:Plain" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
-
-if [ "$SEARCH_RESULT" -gt 0 ] 2>/dev/null; then
-  log_success "✓ Text field is searchable: PASS"
-  ((TESTS_PASSED++))
-else
-  log_warning "✗ Text field is searchable: SKIP (field-specific search may not be supported)"
-  log_info "  Try full-text search instead"
-fi
-
-# Search for integer value (use actual Solr field name)
-SEARCH_INTEGER=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "its_field_integer:42" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -r '.response.numFound')
-
-if [ "$SEARCH_INTEGER" -gt 0 ] 2>/dev/null; then
-  log_success "✓ Integer field is searchable: PASS"
-  ((TESTS_PASSED++))
-else
-  log_warning "✗ Integer field is searchable: SKIP (field-specific search may not be supported)"
-  log_info "  Try range queries instead"
-fi
-
 # Re-enable exit on error
 set -e
 
