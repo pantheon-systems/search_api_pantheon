@@ -139,19 +139,21 @@ sleep 5
 
 # Verify search-api-pantheon commands are available
 log_info "Verifying Drush commands are available..."
-if ! terminus drush "$SITE.$ENV" -- list search-api-pantheon 2>&1 | grep -q "search-api-pantheon:"; then
+COMMAND_CHECK=$(terminus drush "$SITE.$ENV" -- list 2>&1 | grep -c "search-api-pantheon:" || true)
+if [ "$COMMAND_CHECK" -eq 0 ]; then
   log_error "search-api-pantheon Drush commands not found after cache rebuild!"
   log_info "Attempting second cache rebuild..."
   terminus drush "$SITE.$ENV" -- cache:rebuild
   sleep 5
 
-  if ! terminus drush "$SITE.$ENV" -- list search-api-pantheon 2>&1 | grep -q "search-api-pantheon:"; then
+  COMMAND_CHECK=$(terminus drush "$SITE.$ENV" -- list 2>&1 | grep -c "search-api-pantheon:" || true)
+  if [ "$COMMAND_CHECK" -eq 0 ]; then
     log_error "search-api-pantheon Drush commands still not available. Listing all commands:"
     terminus drush "$SITE.$ENV" -- list | grep -i search
     exit 1
   fi
 fi
-log_success "Drush commands verified"
+log_success "Drush commands verified ($COMMAND_CHECK commands found)"
 
 # Clean up any existing test data
 log_info "Cleaning up any existing test data..."
