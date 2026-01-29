@@ -180,7 +180,7 @@ drush search-api-pantheon:reload
   - Search API Spellcheck
   - Search API Ajax
 
-## Upgrading from 8.2.x/8.3.x to 8.4.x
+## Upgrading from 8.2.x / 8.3.x to 8.4.x
 
 ### Summary of Key Changes in 8.4.x
 
@@ -283,7 +283,7 @@ drush search-api-pantheon:reload
 |-------|----------|
 | Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
 | Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
-| Module warnings: search_api_pantheon_admin missing | If you didn't uninstall search_api_pantheon_admin module before upgrading, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
+| Module warnings: search_api_pantheon_admin module missing | If you didn't uninstall search_api_pantheon_admin module before upgrading to 8.4.x, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
 
