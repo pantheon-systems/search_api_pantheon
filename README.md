@@ -180,7 +180,7 @@ drush search-api-pantheon:reload
   - Search API Spellcheck
   - Search API Ajax
 
-## Upgrading from 8.2.x/8.3.x to 8.4.x
+## Upgrading from 8.2.x / 8.3.x to 8.4.x
 
 ### Summary of Key Changes in 8.4.x
 
@@ -206,14 +206,14 @@ drush search-api-pantheon:reload
 
 #### Drush Commands
 
-- Search API Pantheon Drush commands now automatically use the first server connected via the Pantheon Connector, handling the recent server_id migration..
+- Search API Pantheon Drush commands now automatically use the first server connected via the Pantheon Connector, handling the recent server_id migration.
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
 ### ⚠️ Important Steps Before Upgrading to 8.4.0
 
 1. **Backup your database** - The upgrade can make changes to your database and configuration.
-2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x:
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x.
     Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
 
    ```bash
@@ -247,7 +247,12 @@ drush search-api-pantheon:reload
    - Migrates all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
    - Flags existing indexed items for reindexing
 
-4. **Reindex content (Required only if search server was migrated):**
+4. **Clear cache:**
+   ```bash
+   drush cr
+   ```
+
+5. **Reindex content (Required only if search server was migrated):**
 
    **Admin UI:**
    - Go to admin/config/search/search-api
@@ -258,16 +263,16 @@ drush search-api-pantheon:reload
    drush search-api:index [INDEX_NAME]
    ```
 
-5. **Update custom code (if applicable):**
+6. **Update custom code (if applicable):**
 
    Update any custom code referencing the old 'pantheon_solr8' server to use 'pantheon_search' instead.
 
-6. **Export configuration:**
+7. **Export configuration:**
    ```bash
    drush cex
    ```
 
-7. **Test search functionality** thoroughly before deploying
+8. **Test search functionality** thoroughly on non-production environments before deploying to live site.
 
 ### Upgrade Scenarios
 
@@ -283,9 +288,10 @@ drush search-api-pantheon:reload
 |-------|----------|
 | Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
 | Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
-| Module warnings: search_api_pantheon_admin missing | Uninstall  search_api_pantheon_admin submodule before upgrading: `drush pm:uninstall search_api_pantheon_admin` |
+| Module warnings: search_api_pantheon_admin module missing | If you didn't uninstall search_api_pantheon_admin module before upgrading to 8.4.x, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
+| Errors related to hook or plugin discovery | Clear cache: `drush cr` |
 
 ## Rolling Back After Upgrading to 8.4.0
 

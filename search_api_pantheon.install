@@ -9,6 +9,41 @@ use Drupal\search_api\Entity\Server;
 use Drupal\Core\Site\Settings;
 
 /**
+ * Remove deprecated search_api_pantheon_admin submodule entries.
+ *
+ * This update hook cleans up orphaned configuration entries for the
+ * search_api_pantheon_admin submodule that is removed in 8.4.x.
+ * If the submodule was not properly uninstalled before upgrading,
+ * this will resolve "module missing" warnings for search_api_pantheon_admin submodule.
+ */
+function search_api_pantheon_update_10080() {
+  $config_factory = \Drupal::configFactory();
+
+  // Clean up module from core.extension.
+  $config = $config_factory->getEditable('core.extension');
+  $modules = $config->get('module') ?: [];
+
+  if (isset($modules['search_api_pantheon_admin'])) {
+    unset($modules['search_api_pantheon_admin']);
+    $config->set('module', $modules)->save(TRUE);
+  }
+
+  // Clean up system schema.
+  \Drupal::keyValue('system.schema')->delete('search_api_pantheon_admin');
+
+  // Clean up any configuration objects belonging to the submodule.
+  $config_storage = \Drupal::service('config.storage');
+  $config_names = $config_storage->listAll('search_api_pantheon_admin.');
+  foreach ($config_names as $config_name) {
+    $config_factory->getEditable($config_name)->delete();
+  }
+
+  // Clean up state entries.
+  \Drupal::state()->delete('search_api_pantheon_admin');
+  return t('Removed deprecated Search API Pantheon Admin submodule entries.');
+}
+
+/**
  * Implements hook_update_N().
  *
  * This update hook assists in the transition when upgrading the
