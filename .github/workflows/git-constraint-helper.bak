@@ -1,10 +1,4 @@
 get_current_constraint() {
-  # Check if CONSTRAINT is already set
-  if [ -n "$CONSTRAINT" ]; then
-    echo "$CONSTRAINT"
-    return
-  fi
-
   branch=$(git rev-parse --abbrev-ref HEAD | tr -d '[:space:]')
   if [ "$branch" != "HEAD" ]; then
     echo "${branch}-dev"
