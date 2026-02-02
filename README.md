@@ -206,7 +206,7 @@ drush search-api-pantheon:reload
 
 #### Drush Commands
 
-- Search API Pantheon Drush commands now automatically use the first server connected via the Pantheon Connector, handling the recent server_id migration..
+- Search API Pantheon Drush commands now automatically use the first server connected via the Pantheon Connector, handling the recent server_id migration.
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
