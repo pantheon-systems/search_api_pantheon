@@ -40,10 +40,6 @@ function search_api_pantheon_update_10080() {
 
   // Clean up state entries.
   \Drupal::state()->delete('search_api_pantheon_admin');
-
-  // Clear caches to ensure removed module doesn't appear anywhere.
-  drupal_flush_all_caches();
-
   return t('Removed deprecated Search API Pantheon Admin submodule entries.');
 }
 
