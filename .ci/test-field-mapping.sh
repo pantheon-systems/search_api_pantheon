@@ -7,8 +7,8 @@ set -e
 
 if [ -z "$1" ]; then
   echo "Usage: $0 SITE_NAME [ENVIRONMENT]"
-  echo "Example: $0 my-test-site"
-  echo "Example: $0 my-test-site test-abc12"
+  echo "Example: $0 my-test-site"   # defaults to dev
+  echo "Example: $0 my-test-site ci-abc12" # multidev
   echo ""
   echo "Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)"
   echo "      Environment defaults to 'dev' if not specified"
@@ -29,24 +29,18 @@ fi
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 NC='\033[0m'
 
 log_info() {
-  echo -e "${BLUE}[INFO]${NC} $1"
+  : # Silent - no output
 }
 
 log_success() {
-  echo -e "${GREEN}[SUCCESS]${NC} $1"
+  echo -e "${GREEN}$1${NC}"
 }
 
 log_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_warning() {
-  echo -e "${YELLOW}[WARNING]${NC} $1"
+  echo -e "${RED}$1${NC}"
 }
 
 # Test tracking
@@ -59,23 +53,17 @@ test_result() {
   local actual="$3"
 
   if [ "$expected" = "$actual" ]; then
-    log_success "✓ $test_name: PASS"
+    echo -e "${GREEN}PASS: $test_name${NC}"
     ((TESTS_PASSED++))
     return 0
   else
-    log_error "✗ $test_name: FAIL"
-    log_error "  Expected: $expected"
-    log_error "  Actual:   $actual"
+    echo -e "${RED}FAIL: $test_name (exp: $expected, got: $actual)${NC}"
     ((TESTS_FAILED++))
     return 1
   fi
 }
 
-echo "========================================"
-echo "Field Mapping Test Suite"
-echo "========================================"
-log_info "Site: $SITE.$ENV"
-echo "========================================"
+echo "Field Mapping: $SITE.$ENV"
 
 # Step 1: Install required modules
 log_info "Step 1: Installing required modules"
@@ -104,44 +92,36 @@ fi
 log_info "Installing search_api_pantheon 8.4.x-dev via Composer..."
 composer require "pantheon-systems/search_api_pantheon:8.4.x-dev" -n
 
-# Commit and push changes
 log_info "Committing and pushing changes..."
 git add -A
 git commit -m "Add search_api_pantheon module and Solr config for field mapping tests" || log_info "No changes to commit"
 
-# Pull to sync with remote before pushing
 log_info "Syncing with remote..."
 git pull --rebase origin master || git pull --rebase origin main || true
 git push
 
-# Wait for the workflow to complete
 log_info "Waiting for code deployment workflow..."
 terminus workflow:wait --max=300 "$SITE.$ENV"
 
-# Enable Solr AFTER code deployment so pantheon.yml is processed first
+# Enable Solr AFTER code deployment so pantheon.yml is processed first. Sleep needed to avoid race condition
 log_info "Enabling Solr..."
 terminus solr:enable "$SITE"
-
-# Wait for Solr to be provisioned
 log_info "Waiting for Solr to be provisioned..."
 sleep 10
 
-# Enable the modules
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
 
-# Rebuild Drush cache to discover new commands
+# Rebuild Drush cache to discover new commands. After enabling search_api_pantheon module, sometimes cache needs to be rebuilt so commands are available.
 log_info "Rebuilding Drush cache..."
 terminus drush "$SITE.$ENV" -- cache:rebuild
-
-# Wait a moment for cache rebuild to complete
 sleep 5
 
 # Verify search-api-pantheon commands are available
 log_info "Verifying Drush commands are available..."
 COMMAND_CHECK=$(terminus drush "$SITE.$ENV" -- list 2>&1 | grep -c "search-api-pantheon:" || true)
 if [ "$COMMAND_CHECK" -eq 0 ]; then
-  log_error "search-api-pantheon Drush commands not found after cache rebuild!"
+  log_error "search-api-pantheon Drush commands not found after cache rebuild"
   log_info "Attempting second cache rebuild..."
   terminus drush "$SITE.$ENV" -- cache:rebuild
   sleep 5
@@ -155,7 +135,6 @@ if [ "$COMMAND_CHECK" -eq 0 ]; then
 fi
 log_success "Drush commands verified ($COMMAND_CHECK commands found)"
 
-# Clean up any existing test data
 log_info "Cleaning up any existing test data..."
 terminus drush "$SITE.$ENV" -- ev "
   // Delete existing field_test nodes
@@ -185,10 +164,8 @@ terminus drush "$SITE.$ENV" -- ev "
   echo 'Cleanup complete\n';
 "
 
-# Step 2: Create a test content type with all field types
 log_info "Step 2: Creating test content type 'field_test' with all field types"
 
-# Create the content type
 terminus drush "$SITE.$ENV" -- ev "
   \$type = \Drupal::entityTypeManager()->getStorage('node_type')->create([
     'type' => 'field_test',
@@ -197,10 +174,7 @@ terminus drush "$SITE.$ENV" -- ev "
   \$type->save();
   echo 'Content type created\n';
 "
-
-# Create all test fields
 log_info "Creating test fields..."
-
 # Text (plain)
 terminus drush "$SITE.$ENV" -- ev "
   use Drupal\field\Entity\FieldStorageConfig;
@@ -510,27 +484,6 @@ terminus drush "$SITE.$ENV" -- ev "
   echo 'Index configured with all test fields\n';
 "
 
-# Debug: Check Solr connector class and configuration
-log_info "Debugging Solr connector configuration..."
-terminus drush "$SITE.$ENV" -- ev "
-  \$server = \Drupal::entityTypeManager()->getStorage('search_api_server')->load('pantheon_search');
-  \$backend = \$server->getBackend();
-  \$connector = \$backend->getSolrConnector();
-
-  echo '=== CONNECTOR DEBUG INFO ===\n';
-  echo 'Connector class: ' . get_class(\$connector) . \"\n\";
-  echo 'Connector methods: ' . implode(', ', get_class_methods(\$connector)) . \"\n\n\";
-
-  // Check configuration
-  \$config = \$connector->getConfiguration();
-  echo 'Connector configuration:\n';
-  echo print_r(\$config, TRUE) . \"\n\";
-
-  // Check parent classes
-  echo 'Parent class: ' . get_parent_class(\$connector) . \"\n\";
-  echo 'Implements: ' . implode(', ', class_implements(\$connector)) . \"\n\";
-"
-
 # Fix http_method configuration for Pantheon Solr compatibility
 log_info "Configuring Solr connector for Pantheon compatibility..."
 terminus drush "$SITE.$ENV" -- config:set search_api.server.pantheon_search backend_config.connector_config.http_method POST -y
@@ -543,14 +496,11 @@ echo "$SCHEMA_RESULT"
 if echo "$SCHEMA_RESULT" | grep -qi "error\|fail"; then
   log_error "Schema post may have failed. Output:"
   echo "$SCHEMA_RESULT"
-  log_warning "Continuing anyway..."
 fi
 
 # Wait for schema to be applied
-log_info "Waiting for schema to be applied..."
 sleep 5
 
-# Step 4: Create test node with known values
 log_info "Step 4: Creating test node with known field values"
 
 NODE_ID=$(terminus drush "$SITE.$ENV" -- ev "
@@ -576,11 +526,8 @@ NODE_ID=$(terminus drush "$SITE.$ENV" -- ev "
 
 log_info "Created node ID: $NODE_ID"
 
-# Step 5: Index the content
 log_info "Step 5: Indexing content"
 terminus drush "$SITE.$ENV" -- search-api:index primary
-
-# Wait for indexing to complete
 sleep 5
 
 # Step 6: Query Solr and verify field values
@@ -589,8 +536,7 @@ log_info "Step 6: Querying Solr to verify field mappings"
 SOLR_RESPONSE=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:select "*:*" --defType="" --rows=1 2>/dev/null | grep -v "notice" | grep -v "WARNING" | jq -c '.')
 
 echo ""
-log_info "=== Field Mapping Verification ==="
-echo ""
+echo "Testing fields:"
 
 # Extract the first document
 DOC=$(echo "$SOLR_RESPONSE" | jq -r '.response.docs[0]')
@@ -613,13 +559,11 @@ test_result "Text plain field" "Plain text value" "$TEXT_PLAIN"
 
 # Test 3: Long text (with special characters)
 TEXT_LONG=$(echo "$DOC" | jq -r '.tm_X3b_en_field_text_long[0] // empty')
-# HTML should be escaped/stripped
 if echo "$TEXT_LONG" | grep -q "special chars"; then
-  log_success "✓ Text long field: PASS (special chars preserved)"
+  echo -e "${GREEN}PASS: Text long field${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Text long field: FAIL (expected special chars)"
-  log_error "  Actual: $TEXT_LONG"
+  echo -e "${RED}FAIL: Text long field (got: $TEXT_LONG)${NC}"
   ((TESTS_FAILED++))
 fi
 
@@ -629,15 +573,11 @@ test_result "Integer field" "42" "$INTEGER"
 
 # Test 5: Decimal
 DECIMAL=$(echo "$DOC" | jq -r '.fs_field_decimal // .fts_field_decimal // empty')
-# Decimal might be stored as 3.14 or 3.140000, or might be in different field
 if [ -n "$DECIMAL" ] && echo "$DECIMAL" | grep -qE "^3\.14|^3\.1[0-9]"; then
-  log_success "✓ Decimal field: PASS ($DECIMAL)"
+  echo -e "${GREEN}PASS: Decimal field${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Decimal field: FAIL"
-  log_error "  Expected: 3.14*"
-  log_error "  Actual:   $DECIMAL"
-  log_warning "  Note: Decimal fields may have indexing issues"
+  echo -e "${RED}FAIL: Decimal field (got: $DECIMAL)${NC}"
   ((TESTS_FAILED++))
 fi
 
@@ -648,24 +588,20 @@ test_result "Boolean field" "true" "$BOOLEAN"
 # Test 7: Date
 DATE=$(echo "$DOC" | jq -r '.ds_field_date // empty')
 if echo "$DATE" | grep -q "2026-01-22"; then
-  log_success "✓ Date field: PASS"
+  echo -e "${GREEN}PASS: Date field${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Date field: FAIL"
-  log_error "  Expected: 2026-01-22*"
-  log_error "  Actual:   $DATE"
+  echo -e "${RED}FAIL: Date field (got: $DATE)${NC}"
   ((TESTS_FAILED++))
 fi
 
 # Test 8: Datetime
 DATETIME=$(echo "$DOC" | jq -r '.ds_field_datetime // empty')
 if echo "$DATETIME" | grep -q "2026-01-22T10:30"; then
-  log_success "✓ Datetime field: PASS"
+  echo -e "${GREEN}PASS: Datetime field${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Datetime field: FAIL"
-  log_error "  Expected: 2026-01-22T10:30*"
-  log_error "  Actual:   $DATETIME"
+  echo -e "${RED}FAIL: Datetime field (got: $DATETIME)${NC}"
   ((TESTS_FAILED++))
 fi
 
@@ -686,17 +622,12 @@ set -e
 
 # Summary
 echo ""
-echo "========================================"
-log_info "Test Summary"
-echo "========================================"
-log_info "Tests Passed: $TESTS_PASSED"
-log_info "Tests Failed: $TESTS_FAILED"
-echo "========================================"
+echo "Pass:$TESTS_PASSED Fail:$TESTS_FAILED"
 
 if [ $TESTS_FAILED -eq 0 ]; then
-  log_success "All field mapping tests passed!"
+  echo -e "${GREEN}PASS${NC}"
   exit 0
 else
-  log_error "Some tests failed. Please review the output above."
+  echo -e "${RED}FAIL${NC}"
   exit 1
 fi
