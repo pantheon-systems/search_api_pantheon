@@ -1,16 +1,12 @@
 #!/bin/bash
 # Test environment parity for search_api_pantheon using multidev environments
-# Validates that PSA correctly detects and uses different Solr cores
+# Validates that Pantheon Search API correctly detects and uses different Solr cores
 # for different multidev environments
 
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
   echo "Usage: $0 SITE_NAME MULTIDEV1 MULTIDEV2"
-  echo "Example: $0 my-site test-abc12 test-xyz89"
-  echo ""
-  echo "Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)"
-  echo "This script will test the two multidev environments provided"
   exit 1
 fi
 
@@ -18,62 +14,16 @@ SITE="$1"
 MULTIDEV1="$2"
 MULTIDEV2="$3"
 
-# Validate that SITE doesn't include environment suffix
-if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
-  echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
-  echo "You provided: $SITE"
-  echo "Use instead: ${SITE%.dev}"
-  exit 1
-fi
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 NC='\033[0m'
-
-log_info() {
-  echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-  echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_warning() {
-  echo -e "${YELLOW}[WARNING]${NC} $1"
-}
 
 # Test tracking
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-test_result() {
-  local test_name="$1"
-  local condition="$2"
-
-  if [ "$condition" = "true" ]; then
-    log_success "✓ $test_name: PASS"
-    ((TESTS_PASSED++))
-    return 0
-  else
-    log_error "✗ $test_name: FAIL"
-    ((TESTS_FAILED++))
-    return 1
-  fi
-}
-
-echo "========================================"
-echo "Multidev Environment Parity Test Suite"
-echo "========================================"
-log_info "Site: $SITE"
-log_info "Testing: $MULTIDEV1, $MULTIDEV2"
-echo "========================================"
+echo "Parity: $SITE ($MULTIDEV1, $MULTIDEV2)"
 
 # Arrays to store results
 declare -A ENV_HOSTS
@@ -83,29 +33,20 @@ declare -A ENV_CORES_FULL
 declare -A ENV_TOKENS
 declare -A ENV_CORES
 
-# Disable exit on error for test assertions so all tests run
+# Disable exit on error for test assertions
 set +e
 
-# Test each multidev environment
 for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
-  echo ""
-  log_info "=== Testing $SITE.$ENV ==="
-  echo ""
+  echo "Testing: $ENV"
 
-  # Step 1: Check if environment exists and is accessible
-  log_info "Step 1: Checking environment accessibility"
-
+  # Check if environment exists
   if ! terminus env:info "$SITE.$ENV" >/dev/null 2>&1; then
-    log_error "Environment $ENV not accessible or doesn't exist"
+    echo -e "${RED}$ENV not accessible${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
-  log_success "Environment $ENV is accessible"
-
-  # Step 2: Extract Pantheon environment variables
-  log_info "Step 2: Extracting PANTHEON_INDEX_* variables"
-
+  # Extract Pantheon environment variables
   ENV_VARS=$(terminus drush "$SITE.$ENV" -- ev "
     echo 'HOST=' . getenv('PANTHEON_INDEX_HOST') . PHP_EOL;
     echo 'PORT=' . getenv('PANTHEON_INDEX_PORT') . PHP_EOL;
@@ -120,156 +61,96 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   ENV_CORES_FULL[$ENV]=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
   ENV_TOKENS[$ENV]=$(echo "$ENV_VARS" | grep "^TOKEN_LEN=" | cut -d= -f2)
 
-  log_info "Host: ${ENV_HOSTS[$ENV]}"
-  log_info "Port: ${ENV_PORTS[$ENV]}"
-  log_info "Path: ${ENV_PATHS[$ENV]}"
-  log_info "Core: ${ENV_CORES_FULL[$ENV]}"
-  log_info "Token length: ${ENV_TOKENS[$ENV]} chars"
-
-  # Validate environment variables are set
+  # Validate environment variables
   if [ -z "${ENV_HOSTS[$ENV]}" ] || [ "${ENV_HOSTS[$ENV]}" = "false" ]; then
-    log_error "PANTHEON_INDEX_HOST not set in $ENV environment"
+    echo -e "${RED}PANTHEON_INDEX_HOST not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
   if [ -z "${ENV_PORTS[$ENV]}" ] || [ "${ENV_PORTS[$ENV]}" = "false" ]; then
-    log_error "PANTHEON_INDEX_PORT not set in $ENV environment"
+    echo -e "${RED}PANTHEON_INDEX_PORT not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
   if [ -z "${ENV_PATHS[$ENV]}" ] || [ "${ENV_PATHS[$ENV]}" = "false" ]; then
-    log_error "PANTHEON_INDEX_PATH not set in $ENV environment"
+    echo -e "${RED}PANTHEON_INDEX_PATH not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
   if [ -z "${ENV_CORES_FULL[$ENV]}" ] || [ "${ENV_CORES_FULL[$ENV]}" = "false" ]; then
-    log_error "PANTHEON_INDEX_CORE not set in $ENV environment"
+    echo -e "${RED}PANTHEON_INDEX_CORE not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
-  if [ -z "${ENV_TOKENS[$ENV]}" ] || [ "${ENV_TOKENS[$ENV]}" = "0" ]; then
-    log_warning "PANTHEON_INDEX_TOKEN not set in $ENV environment (may be optional)"
-    # Not failing the test as token appears to be unused in current implementation
-  fi
-
-  log_success "All PANTHEON_INDEX_* variables are set"
   ((TESTS_PASSED++))
 
-  # Extract Solr core name from CORE path (do this early so it's available even if search_api not installed)
-  # Core format: /site/{SITE_ID}/environment/{ENV}/backend
+  # Extract Solr core name from CORE path
   CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
   ENV_CORES[$ENV]=$CORE_NAME
-  log_info "Solr core: $CORE_NAME"
 
   # Validate core name matches environment
   if [ "$CORE_NAME" = "$ENV" ]; then
-    log_success "Solr core matches environment name"
     ((TESTS_PASSED++))
   else
-    log_error "Solr core ($CORE_NAME) doesn't match environment ($ENV)"
+    echo -e "${RED}Core ($CORE_NAME) != env ($ENV)${NC}"
     ((TESTS_FAILED++))
   fi
 
-  # Step 3: Check Search API server configuration
-  log_info "Step 3: Checking Search API server configuration"
-
-  # Check if pantheon_search server exists
+  # Check Search API server configuration
   SERVER_CONFIG=$(terminus drush "$SITE.$ENV" -- config:get search_api.server.pantheon_search backend_config 2>/dev/null | grep -v "\[" | grep -v "WARNING" || echo "")
 
-  if [ -z "$SERVER_CONFIG" ]; then
-    log_warning "pantheon_search server not configured in $ENV - skipping server config tests"
-    continue
+  if [ -n "$SERVER_CONFIG" ]; then
+    ((TESTS_PASSED++))
   fi
-
-  log_success "pantheon_search server found"
-  ((TESTS_PASSED++))
-
-  # Note: Skipping Solr connectivity test as fresh multidevs don't have schema posted yet
-  # Solr functionality is validated by field-mapping tests instead
-
 done
 
 # Cross-environment validation
 echo ""
-echo "========================================"
-log_info "Cross-Environment Validation"
-echo "========================================"
+echo "Cross-env:"
 
-# Test 1: Each multidev should have different Solr core paths
-echo ""
-log_info "Test 1: Verifying multidevs use different Solr cores"
-
+# Test 1: Different Solr cores
 if [ -n "${ENV_CORES_FULL[$MULTIDEV1]}" ] && [ -n "${ENV_CORES_FULL[$MULTIDEV2]}" ]; then
   if [ "${ENV_CORES_FULL[$MULTIDEV1]}" != "${ENV_CORES_FULL[$MULTIDEV2]}" ]; then
-    log_success "✓ $MULTIDEV1 and $MULTIDEV2 use different Solr cores"
+    echo -e "${GREEN}Different cores${NC}"
     ((TESTS_PASSED++))
   else
-    log_error "✗ $MULTIDEV1 and $MULTIDEV2 use same Solr core (they should be different)"
+    echo -e "${RED}Same cores (should differ)${NC}"
     ((TESTS_FAILED++))
   fi
 fi
 
-# Test 2: All environments should use same host and port
-echo ""
-log_info "Test 2: Verifying consistent Solr host/port across environments"
-
+# Test 2: Same host and port
 if [ "${ENV_HOSTS[$MULTIDEV1]}" = "${ENV_HOSTS[$MULTIDEV2]}" ]; then
-  log_success "✓ All multidevs use same Solr host"
+  echo -e "${GREEN}Same host${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Multidevs use different Solr hosts (expected same)"
+  echo -e "${RED}Different hosts${NC}"
   ((TESTS_FAILED++))
 fi
 
 if [ "${ENV_PORTS[$MULTIDEV1]}" = "${ENV_PORTS[$MULTIDEV2]}" ]; then
-  log_success "✓ All multidevs use same Solr port"
+  echo -e "${GREEN}Same port${NC}"
   ((TESTS_PASSED++))
 else
-  log_error "✗ Multidevs use different Solr ports (expected same)"
+  echo -e "${RED}Different ports${NC}"
   ((TESTS_FAILED++))
 fi
-
-# Note: Data isolation is proven by Test 1 (different cores per environment)
-# No need for additional search-based validation which is fragile and timing-dependent
 
 # Re-enable exit on error
 set -e
 
 # Summary
 echo ""
-echo "========================================"
-log_info "Test Summary"
-echo "========================================"
-log_info "Tests Passed: $TESTS_PASSED"
-log_info "Tests Failed: $TESTS_FAILED"
-echo "========================================"
-
-# Display environment details
-echo ""
-log_info "Environment Details:"
-for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
-  if [ -n "${ENV_HOSTS[$ENV]}" ]; then
-    echo ""
-    log_info "$ENV environment:"
-    echo "  Host: ${ENV_HOSTS[$ENV]}"
-    echo "  Port: ${ENV_PORTS[$ENV]}"
-    echo "  Path: ${ENV_PATHS[$ENV]}"
-    echo "  Core: ${ENV_CORES[$ENV]}"
-    echo "  Core Full Path: ${ENV_CORES_FULL[$ENV]}"
-  fi
-done
-
-echo ""
-echo "========================================"
+echo "Pass:$TESTS_PASSED Fail:$TESTS_FAILED"
 
 if [ $TESTS_FAILED -eq 0 ]; then
-  log_success "All multidev parity tests passed!"
+  echo -e "${GREEN}PASS${NC}"
   exit 0
 else
-  log_error "Some tests failed. Please review the output above."
+  echo -e "${RED}FAIL${NC}"
   exit 1
 fi
