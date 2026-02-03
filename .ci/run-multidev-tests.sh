@@ -26,6 +26,7 @@ MULTIDEV_PREFIX="ci"
 
 generate_multidev_name() {
   local suffix=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 5 | head -n 1)
+  echo "${MULTIDEV_PREFIX}-${suffix}"
 }
 
 MULTIDEV1=$(generate_multidev_name)
