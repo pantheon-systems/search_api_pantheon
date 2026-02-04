@@ -1,9 +1,9 @@
-name: 'Search API Pantheon Admin (Deprecated)'
+name: 'Search API Pantheon Admin'
 type: module
 description: 'This module is deprecated in 8.4.x'
 core_version_requirement: ^10 || ^11
 package: Search
 dependencies:
-  - search_api_pantheon:search_api_pantheon
+  - search_api_solr:search_api_solr
 lifecycle: deprecated
 lifecycle_link: 'https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.4.x/CHANGELOG.txt'
