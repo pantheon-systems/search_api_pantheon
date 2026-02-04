@@ -247,12 +247,17 @@ drush search-api-pantheon:reload
    - Migrates all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
    - Flags existing indexed items for reindexing
 
-4. **Clear cache:**
+4. **Export configuration:**
+   ```bash
+   drush cex
+   ```
+
+5. **Clear cache:**
    ```bash
    drush cr
    ```
 
-5. **Reindex content (Required only if search server was migrated):**
+6. **Reindex content (Required only if search server was migrated):**
 
    **Admin UI:**
    - Go to admin/config/search/search-api
@@ -263,14 +268,9 @@ drush search-api-pantheon:reload
    drush search-api:index [INDEX_NAME]
    ```
 
-6. **Update custom code (if applicable):**
+7. **Update custom code (if applicable):**
 
    Update any custom code referencing the old 'pantheon_solr8' server to use 'pantheon_search' instead.
-
-7. **Export configuration:**
-   ```bash
-   drush cex
-   ```
 
 8. **Test search functionality** thoroughly on non-production environments before deploying to live site.
 
