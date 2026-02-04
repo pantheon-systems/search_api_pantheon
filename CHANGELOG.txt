@@ -5,12 +5,11 @@ Search API Pantheon 8.4.1
 
 - The search_api_pantheon_admin submodule has been restored as an empty,
   deprecated module to prevent 'missing module' warnings during upgrades.
-  Sites that had this submodule installed prior to 8.4.0 will no longer see warnings.
-
+  An update hook will automatically uninstall the search_api_pantheon_admin submodule
+  if it was not manually uninstalled.
 
 ### Upgrade Instructions
 
-**From 8.3.x to 8.4.x:**
 1. Back up database
 
 2. Uninstall search_api_pantheon_admin submodule (if installed):
