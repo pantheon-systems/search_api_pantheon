@@ -101,13 +101,13 @@ git pull --rebase origin master || git pull --rebase origin main || true
 git push
 
 log_info "Waiting for code deployment workflow..."
-terminus workflow:wait --max=300 "$SITE.$ENV"
+terminus workflow:wait --max=60 "$SITE.$ENV"
 
 # Enable Solr AFTER code deployment so pantheon.yml is processed first. Sleep needed to avoid race condition
 log_info "Enabling Solr..."
 terminus solr:enable "$SITE"
 log_info "Waiting for Solr to be provisioned..."
-sleep 10
+sleep 5
 
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
@@ -115,7 +115,7 @@ terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_p
 # Rebuild Drush cache to discover new commands. After enabling search_api_pantheon module, sometimes cache needs to be rebuilt so commands are available.
 log_info "Rebuilding Drush cache..."
 terminus drush "$SITE.$ENV" -- cache:rebuild
-sleep 5
+sleep 3
 
 # Verify search-api-pantheon commands are available
 log_info "Verifying Drush commands are available..."
