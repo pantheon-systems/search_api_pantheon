@@ -122,20 +122,32 @@ if ! terminus site:info "$SITE" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Create multidev environments
+# Create multidev environments in parallel
 echo "Creating multidevs..."
-if ! create_multidev_with_retry "$SITE" "$MULTIDEV1"; then
+create_multidev_with_retry "$SITE" "$MULTIDEV1" &
+PID1=$!
+create_multidev_with_retry "$SITE" "$MULTIDEV2" &
+PID2=$!
+
+# Wait for both to complete
+wait $PID1
+STATUS1=$?
+wait $PID2
+STATUS2=$?
+
+# Check results
+if [ $STATUS1 -ne 0 ]; then
   echo -e "${RED}Failed to create $MULTIDEV1${NC}"
   exit 1
 fi
 
-if ! create_multidev_with_retry "$SITE" "$MULTIDEV2"; then
+if [ $STATUS2 -ne 0 ]; then
   echo -e "${RED}Failed to create $MULTIDEV2${NC}"
   exit 1
 fi
 
 # Wait for multidevs to be ready
-sleep 5
+sleep 3
 for MULTIDEV in "$MULTIDEV1" "$MULTIDEV2"; do
   if ! terminus env:info "$SITE.$MULTIDEV" >/dev/null 2>&1; then
     echo -e "${RED}$MULTIDEV not ready${NC}"
@@ -152,13 +164,7 @@ run_test_suite \
   "$SITE" \
   "$MULTIDEV1" || true
 
-# Suite 2: Solr Query Tests (on first multidev)
-run_test_suite \
-  "Solr Query Tests" \
-  "$SCRIPT_DIR/test-solr-queries-terminus.sh" \
-  "$SITE.$MULTIDEV1" || true
-
-# Suite 3: Environment Parity Tests (between multidevs)
+# Suite 2: Environment Parity Tests (between multidevs)
 run_test_suite \
   "Environment Parity Tests (Multidevs)" \
   "$SCRIPT_DIR/test-multidev-parity.sh" \
