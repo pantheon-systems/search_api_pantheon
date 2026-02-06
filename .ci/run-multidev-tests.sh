@@ -25,7 +25,7 @@ SITE="$TEST_SITE"
 MULTIDEV_PREFIX="ci"
 
 generate_multidev_name() {
-  local suffix=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 5 | head -n 1)
+  local suffix=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 5)
   echo "${MULTIDEV_PREFIX}-${suffix}"
 }
 
@@ -92,7 +92,6 @@ run_test_suite() {
   local suite_name="$1"
   local script_path="$2"
   shift 2
-  local args="$@"
 
   echo ""
   echo "Running: $suite_name"
@@ -103,7 +102,7 @@ run_test_suite() {
     return 0
   fi
 
-  if bash "$script_path" $args; then
+  if bash "$script_path" "$@"; then
     echo -e "${GREEN}PASS: $suite_name${NC}"
     ((SUITES_PASSED++))
     return 0

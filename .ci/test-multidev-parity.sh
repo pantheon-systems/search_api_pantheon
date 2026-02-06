@@ -30,8 +30,6 @@ declare -A ENV_HOSTS
 declare -A ENV_PORTS
 declare -A ENV_PATHS
 declare -A ENV_CORES_FULL
-declare -A ENV_TOKENS
-declare -A ENV_CORES
 
 # Disable exit on error for test assertions
 set +e
@@ -52,14 +50,12 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
     echo 'PORT=' . getenv('PANTHEON_INDEX_PORT') . PHP_EOL;
     echo 'PATH=' . getenv('PANTHEON_INDEX_PATH') . PHP_EOL;
     echo 'CORE=' . getenv('PANTHEON_INDEX_CORE') . PHP_EOL;
-    echo 'TOKEN_LEN=' . strlen(getenv('PANTHEON_INDEX_TOKEN')) . PHP_EOL;
   " 2>/dev/null | grep -v "\[" | grep -v "WARNING")
 
   ENV_HOSTS[$ENV]=$(echo "$ENV_VARS" | grep "^HOST=" | cut -d= -f2)
   ENV_PORTS[$ENV]=$(echo "$ENV_VARS" | grep "^PORT=" | cut -d= -f2)
   ENV_PATHS[$ENV]=$(echo "$ENV_VARS" | grep "^PATH=" | cut -d= -f2)
   ENV_CORES_FULL[$ENV]=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
-  ENV_TOKENS[$ENV]=$(echo "$ENV_VARS" | grep "^TOKEN_LEN=" | cut -d= -f2)
 
   # Validate environment variables
   if [ -z "${ENV_HOSTS[$ENV]}" ] || [ "${ENV_HOSTS[$ENV]}" = "false" ]; then
@@ -90,7 +86,6 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
 
   # Extract Solr core name from CORE path
   CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
-  ENV_CORES[$ENV]=$CORE_NAME
 
   # Validate core name matches environment
   if [ "$CORE_NAME" = "$ENV" ]; then
