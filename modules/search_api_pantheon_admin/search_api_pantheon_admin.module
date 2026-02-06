@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * @file
+ * Deprecated module - functionality moved to drush commands.
+ *
+ * This module is deprecated and will be removed in a future version.
+ * Use the drush search-api-pantheon:postSchema command instead.
+ *
+ * To uninstall: drush pm:uninstall search_api_pantheon_admin
+ */

@@ -9,12 +9,10 @@ use Drupal\search_api\Entity\Server;
 use Drupal\Core\Site\Settings;
 
 /**
- * Remove deprecated search_api_pantheon_admin submodule entries.
+ * Uninstall deprecated search_api_pantheon_admin submodule.
  *
  * This update hook cleans up orphaned configuration entries for the
- * search_api_pantheon_admin submodule that is removed in 8.4.x.
- * If the submodule was not properly uninstalled before upgrading,
- * this will resolve "module missing" warnings for search_api_pantheon_admin submodule.
+ * search_api_pantheon_admin submodule that is deprecated in 8.4.x.
  */
 function search_api_pantheon_update_10080() {
   $config_factory = \Drupal::configFactory();

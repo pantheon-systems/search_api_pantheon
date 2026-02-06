@@ -190,7 +190,7 @@ drush search-api-pantheon:reload
 
 - Pantheon-specific endpoint functionality is moved into the connector, resulting in a 60% reduction in code length.
 
-- The search_api_pantheon_admin submodule has been removed. Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
+- The search_api_pantheon_admin submodule is now obsolete. Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
 
 #### Configuration and Local Development
 
@@ -210,21 +210,29 @@ drush search-api-pantheon:reload
 
 - Avoid passing server_id in drush [diagnostic commands](#diagnostic-commands) as it is no longer needed or accepted.
 
-### ⚠️ Important Steps Before Upgrading to 8.4.0
+### ⚠️ Important Steps Before Upgrading to 8.4.x
 
 1. **Backup your database** - The upgrade can make changes to your database and configuration.
-2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule has been removed in 8.4.x.
+2. **Uninstall search_api_pantheon_admin (if installed)** - This submodule is obsolete as of 8.4.x.
     Before updating the module to 8.4.x, uninstall the search_api_pantheon_admin submodule by running:
 
    ```bash
-   drush pm:uninstall search_api_pantheon_admin
+   drush pm:uninstall search_api_pantheon_admin   # Uninstall the Admin Sub module
+   drush cex                                      # Export configuration
    ```
+
+Its sole functionality (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
 
 ### Step-by-Step Upgrade Process
 
 1. **Update via Composer:**
    ```bash
    composer require 'drupal/search_api_pantheon:^8.4'
+   ```
+
+   If you encounter errors related to removed hooks or classes, clear the cache:
+   ```bash
+   drush cr
    ```
 
 2. **(Optional) Skip search server migration:**
@@ -247,12 +255,17 @@ drush search-api-pantheon:reload
    - Migrates all indexes previously linked to 'pantheon_solr8' to use the new 'pantheon_search' server
    - Flags existing indexed items for reindexing
 
-4. **Clear cache:**
+4. **Export configuration:**
+   ```bash
+   drush cex
+   ```
+
+5. **Clear cache:**
    ```bash
    drush cr
    ```
 
-5. **Reindex content (Required only if search server was migrated):**
+6. **Reindex content (Required only if search server was migrated):**
 
    **Admin UI:**
    - Go to admin/config/search/search-api
@@ -263,14 +276,9 @@ drush search-api-pantheon:reload
    drush search-api:index [INDEX_NAME]
    ```
 
-6. **Update custom code (if applicable):**
+7. **Update custom code (if applicable):**
 
    Update any custom code referencing the old 'pantheon_solr8' server to use 'pantheon_search' instead.
-
-7. **Export configuration:**
-   ```bash
-   drush cex
-   ```
 
 8. **Test search functionality** thoroughly on non-production environments before deploying to live site.
 
