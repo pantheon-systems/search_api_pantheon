@@ -1,11 +1,9 @@
 Search API Pantheon 8.4.1
 --------------------------------------------------
 
-This is a patch release. All features and changes from 8.4.0 remain in effect.
-
-⚠️ IMPORTANT: If upgrading from 8.2.x or 8.3.x, please review the 8.4.0 section
-below for major architectural changes and breaking changes. All features, changes and
-requirements from 8.4.0 still apply.
+This is a patch release for 8.4.0. If upgrading from 8.2.x or 8.3.x,
+please review the 8.4.0 section below for major architectural changes and breaking
+changes. All features, changes and requirements from 8.4.0 still apply.
 
 ### What's Changed
 
