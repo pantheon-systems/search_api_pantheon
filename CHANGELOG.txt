@@ -1,12 +1,18 @@
 Search API Pantheon 8.4.1
 --------------------------------------------------
 
+This is a patch release. All features and changes from 8.4.0 remain in effect.
+
+⚠️ IMPORTANT: If upgrading from 8.2.x or 8.3.x, please review the 8.4.0 section
+below for major architectural changes and breaking changes. All features, changes and
+requirements from 8.4.0 still apply.
+
 ### What's Changed
 
-- The search_api_pantheon_admin submodule has been restored as an empty,
-  deprecated module to prevent 'missing module' warnings during upgrades.
-  An update hook will automatically uninstall the search_api_pantheon_admin submodule
-  if it was not manually uninstalled.
+- The search_api_pantheon_admin submodule (removed in 8.4.0) has been restored
+  as an empty, obsolete module to ensure smooth upgrades from 8.3.x.
+  An update hook will automatically uninstall it if not manually uninstalled
+  beforehand.
 
 ### Upgrade Instructions
 
