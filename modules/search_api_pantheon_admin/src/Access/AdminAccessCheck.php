@@ -12,10 +12,9 @@ use Drupal\Core\Session\AccountInterface;
  * This class exists only to prevent errors when old cached routes
  * reference the access checker. It always denies access.
  *
- * @deprecated in drupal:8.4.0. This module
+ * @deprecated in drupal:8.4.0 and is removed from future version. This module
  *   is obsolete and no longer needed.
- *
- * @see https://www.drupal.org/project/search_api_pantheon
+ * @see https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.4.x/README.md?ref_type=heads#summary-of-key-changes-in-84x
  */
 class AdminAccessCheck implements AccessInterface {
 
