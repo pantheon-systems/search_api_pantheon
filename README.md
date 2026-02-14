@@ -9,7 +9,7 @@
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Setup](#setup)
-- [Upgrading from 8.2.x/8.3.x to 8.4.x](#upgrading-from-82x83x-to-84x)
+- [Upgrading from 8.2.x / 8.3.x to 8.4.x](#upgrading-from-82x--83x-to-84x)
 - [Pantheon Environments](#pantheon-environments)
 - [Troubleshooting](#troubleshooting)
 - [Solr Jargon](#solr-jargon)
@@ -202,7 +202,7 @@ drush search-api-pantheon:reload
 
 - Starting in version 8.3.x, the Pantheon Search server id was updated from 'pantheon_solr8' to 'pantheon_search', and the 'Basic Content Index' configuration (previously in config/optional) was replaced with a new 'Primary' index (in config/install).
 
-- Versions 8.3.x and 8.4.x include update hooks that automatically handle server migration when running database updates (drush updb or /update.php). The migration updates the server id, reassigns all indexes to the new server, and flags content for reindexing. You can opt out of this migration if needed (see Step 2 in the [Step-by-Step Upgrade Process](#upgrading-from-82x83x-to-84x) below).
+- Versions 8.3.x and 8.4.x include update hooks that automatically handle server migration when running database updates (drush updb or /update.php). The migration updates the server id, reassigns all indexes to the new server, and flags content for reindexing. You can opt out of this migration if needed (see Step 2 in the [Step-by-Step Upgrade Process](#step-by-step-upgrade-process) below).
 
 #### Drush Commands
 
