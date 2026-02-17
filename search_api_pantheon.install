@@ -65,7 +65,7 @@ function search_api_pantheon_update_10081() {
     return t('Migration skipped: default_search_server set in settings.php.');
   }
 
-  // Check stored config for indexes, not runtime entities (ignores config overrides).
+  // Check stored config for indexes.
   $config_storage = \Drupal::service('config.storage');
   $index_config_names = $config_storage->listAll('search_api.index.');
   $indexes_to_migrate = [];
@@ -100,7 +100,7 @@ function search_api_pantheon_update_10081() {
       ]);
     }
 
-    // Migrate indexes by updating stored config directly (bypasses config overrides).
+    // Migrate indexes by updating stored config directly..
     foreach ($indexes_to_migrate as $index_id) {
       $config_name = "search_api.index.{$index_id}";
       $index_config = $config_factory->getEditable($config_name);
