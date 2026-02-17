@@ -295,7 +295,7 @@ Its sole functionality (posting the schema) is already provided by the `drush se
 | Issue | Solution |
 |-------|----------|
 | Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
-| Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
+| Errors in custom modules referencing to old server after server migration | After migration of search server, update all 'pantheon_solr8' references to 'pantheon_search' |
 | Module warnings: search_api_pantheon_admin module missing | If you didn't uninstall search_api_pantheon_admin module before upgrading to 8.4.x, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
