@@ -9,7 +9,7 @@
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Setup](#setup)
-- [Upgrading from 8.2.x/8.3.x to 8.4.x](#upgrading-from-82x83x-to-84x)
+- [Upgrading from 8.2.x / 8.3.x to 8.4.x](#upgrading-from-82x--83x-to-84x)
 - [Pantheon Environments](#pantheon-environments)
 - [Troubleshooting](#troubleshooting)
 - [Solr Jargon](#solr-jargon)
@@ -202,7 +202,7 @@ drush search-api-pantheon:reload
 
 - Starting in version 8.3.x, the Pantheon Search server id was updated from 'pantheon_solr8' to 'pantheon_search', and the 'Basic Content Index' configuration (previously in config/optional) was replaced with a new 'Primary' index (in config/install).
 
-- Versions 8.3.x and 8.4.x include update hooks that automatically handle server migration when running database updates (drush updb or /update.php). The migration updates the server id, reassigns all indexes to the new server, and flags content for reindexing. You can opt out of this migration if needed (see Step 2 in the [Step-by-Step Upgrade Process](#upgrading-from-82x83x-to-84x) below).
+- Versions 8.3.x and 8.4.x include update hooks that automatically handle server migration when running database updates (drush updb or /update.php). The migration updates the server id, reassigns all indexes to the new server, and flags content for reindexing. You can opt out of this migration if needed (see Step 2 in the [Step-by-Step Upgrade Process](#step-by-step-upgrade-process) below).
 
 #### Drush Commands
 
@@ -295,7 +295,7 @@ Its sole functionality (posting the schema) is already provided by the `drush se
 | Issue | Solution |
 |-------|----------|
 | Server pantheon_solr8 not found | Verify migration completed successfully by visiting admin/config/search/search-api and checking log messages |
-| Errors in custom modules referencing to old server | Update all 'pantheon_solr8' references to 'pantheon_search' |
+| Errors in custom modules referencing to old server after server migration | After migration of search server, update all 'pantheon_solr8' references to 'pantheon_search' |
 | Module warnings: search_api_pantheon_admin module missing | If you didn't uninstall search_api_pantheon_admin module before upgrading to 8.4.x, the update hook `search_api_pantheon_update_10080()` will automatically remove orphaned entries when you run `drush updb`. |
 | Search returns no results | Reindex content: `drush search-api:index [INDEX_NAME]` |
 | Configuration export/import errors | Clear cache, run updb again, then export config |
