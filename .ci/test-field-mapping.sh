@@ -494,8 +494,9 @@ SCHEMA_RESULT=$(terminus drush "$SITE.$ENV" -- search-api-pantheon:postSchema 2>
 echo "$SCHEMA_RESULT"
 
 if echo "$SCHEMA_RESULT" | grep -qi "error\|fail"; then
-  log_error "Schema post may have failed. Output:"
+  log_error "Schema post failed. Cannot continue with field mapping tests."
   echo "$SCHEMA_RESULT"
+  exit 1
 fi
 
 # Wait for schema to be applied
