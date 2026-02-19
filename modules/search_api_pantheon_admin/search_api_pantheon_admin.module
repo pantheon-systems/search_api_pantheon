@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * @file
+ * Obsolete module - functionality is already provided by drush command.
+ *
+ * Use the drush search-api-pantheon:postSchema command instead.
+ *
+ * To uninstall: drush pm:uninstall search_api_pantheon_admin
+ */

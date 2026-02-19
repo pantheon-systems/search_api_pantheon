@@ -2,13 +2,10 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\search_api_pantheon\Services\Endpoint;
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
-use Drupal\search_api_pantheon\Services\SolariumClient;
-use Drush\Commands\DrushCommands;
+use Drupal\Core\Config\ConfigInstallerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Update\Query\Document as UpdateDocument;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 use Symfony\Component\Yaml\Yaml;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Config\FileStorage;
@@ -24,62 +21,37 @@ use Drupal\search_api\Entity\Index;
  * See these files for an example of injecting Drupal services:
  *   - http://cgit.drupalcode.org/devel/tree/src/Commands/DevelCommands.php
  *   - http://cgit.drupalcode.org/devel/tree/drush.services.yml
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class TestIndexAndQuery extends DrushCommands {
-
-  protected PantheonGuzzle $pantheonGuzzle;
-  protected Endpoint $endpoint;
-  protected SolariumClient $solr;
+class TestIndexAndQuery extends PantheonCommandBase {
 
   /**
    * Class Constructor.
-   *
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
-   *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\Endpoint $endpoint
-   *   Injected by container.
-   * @param \Drupal\search_api_pantheon\Services\SolariumClient $solariumClient
-   *   Injected by container.
    */
   public function __construct(
-    PantheonGuzzle $pantheonGuzzle,
-    Endpoint $endpoint,
-    SolariumClient $solariumClient
+    EntityTypeManagerInterface $entityTypeManager,
+    protected FileSystemInterface $fileSystem,
+    protected ConfigInstallerInterface $configInstaller,
   ) {
-    $this->pantheonGuzzle = $pantheonGuzzle;
-    $this->endpoint = $endpoint;
-    $this->solr = $solariumClient;
+    parent::__construct($entityTypeManager);
   }
 
   /**
    * Search_api_pantheon:test-index-and-query.
    *
    * @usage search-api-pantheon:test-index-and-query
-   *   Connect to the solr8 server to index a single item and immediately query it.
+   *   Connect to the pantheon search server to index a single item and immediately query it.
    *
    * @command search-api-pantheon:test-index-and-query
    * @aliases sap-tiq
-   *
-   * @throws \Drupal\search_api_solr\SearchApiSolrException
-   * @throws \JsonException
-   * @throws \Exception
    */
-  public function testIndexAndQuery() {
-    $index = NULL;
+  public function testIndexAndQuery(): int {
     try {
-      $drupal_root = \DRUPAL_ROOT;
-
       $response = $this->pingSolrHost();
       $this->logger->notice('Ping Received Response? {var}', [
-        'var' => $response instanceof ResultInterface ? '✅' : '❌',
+        'var' => $response ? '✅' : '❌',
       ]);
-      $this->logger->notice('Response http status == 200? {var}', [
-        'var' => $response->getResponse()->getStatusCode() === 200 ? '✅' : '❌',
-      ]);
-      if ($response->getResponse()->getStatusCode() !== 200) {
-        throw new \Exception('Cannot contact solr server.');
-      }
-
       // Create a new random index.
       $this->logger->notice("Creating temporary index...");
       $module_root = \Drupal::service('extension.list.module')->getPath('search_api_pantheon');
@@ -99,22 +71,18 @@ class TestIndexAndQuery extends DrushCommands {
       ];
       $index_id = $value['id'] . '_' . uniqid();
       $value['id'] = $index_id;
-
-      // if default search server is set us 'pantheon_sol8' in settings.php,
-      // use  pantheon_solr 8 , otherwise  use  pantheon_search
-      $value['server'] = $this->endpoint->getDefaultSearchServer();
+      $value['server'] = $this->getPantheonSolrServer()->id();
       $value['dependencies']['config'] = [
         'search_api.server.' . $value['server'],
       ];
       $this->logger->notice("Creating temporary index using server: " . $value['server']);
-
       $filesystem = \Drupal::service('file_system');
       $directory = 'temporary://' . $index_id;
-      $filesystem = $filesystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+      $this->fileSystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
       $yaml = Yaml::dump($value);
       file_put_contents($directory . '/search_api.index.' . $index_id . '.yml', $yaml);
       $config_source = new FileStorage($directory);
-      \Drupal::service('config.installer')->installOptionalConfig($config_source);
+      $this->configInstaller->installOptionalConfig($config_source);
       $index = Index::load($index_id);
       $index->save();
       $this->logger->notice("Temporary index created.");
@@ -130,31 +98,32 @@ class TestIndexAndQuery extends DrushCommands {
       }
 
       $this->logger->notice("Querying Solr for the indexed item...");
-      $result = $this->pantheonGuzzle->getQueryResult('select', [
-        'query' => [
-          'q' => 'index_id:' . $index->id(),
-          'fields' => ['id', 'index_id', 'name'],
-          'wt' => 'json',
-        ],
-      ]);
-      if ($result['response']['numFound'] === 1) {
+      $data = $this->getPantheonSolrConnector()->getLuke();
+      $numDocs = $data['index']['numDocs'] ?? -1;
+      if ($numDocs === 1) {
         $this->logger->notice('We got exactly 1 result ✅');
       }
       else {
-        $this->logger->notice('We did not get exactly 1 result ❌ (numFound = {numFound})', [
-          'numFound' => $result['response']['numFound'],
+        $this->logger->notice('We did not get exactly 1 result ❌ (numDocs = {numDocs})', [
+          'numDocs' => $numDocs,
         ]);
       }
     }
     catch (\Exception $e) {
-      \Kint::dump($e);
-      $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      var_dump($e);
+      $this->logger->emergency('An exception occurred: {message}', [
+        'message' => $e->getMessage(),
+        'exception' => $e,
+      ]);
+      return self::EXIT_FAILURE;
     }
     catch (\Throwable $t) {
-      \Kint::dump($t);
-      $this->logger->emergency("There's a problem somewhere...");
-      exit(1);
+      var_dump($t);
+      $this->logger->emergency('An error occurred: {message}', [
+        'message' => $t->getMessage(),
+        'exception' => $t,
+      ]);
+      return self::EXIT_FAILURE;
     }
     finally {
       if ($index) {
@@ -169,6 +138,7 @@ class TestIndexAndQuery extends DrushCommands {
     $this->logger->notice(
       "If there's an issue with Solr, it would have shown up here. You should be good to go!"
     );
+    return self::EXIT_SUCCESS;
   }
 
   /**
@@ -180,20 +150,20 @@ class TestIndexAndQuery extends DrushCommands {
    * @command search-api-pantheon:ping
    * @aliases sapp
    *
-   * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Ping\Result|void
-   *   The result.
+   * @return bool
+   *   TRUE on success, FALSE on failure.
    */
-  public function pingSolrHost() {
+  public function pingSolrHost(): bool {
     try {
-      $ping = $this->solr->createPing();
-      return $this->solr->ping($ping);
+      if ($this->getPantheonSolrConnector()->pingServer()['responseHeader']['status'] === '0') {
+        return self::EXIT_SUCCESS;
+      }
     }
     catch (\Exception $e) {
-      exit($e->getMessage());
     }
     catch (\Throwable $t) {
-      exit($t->getMessage());
     }
+    return self::EXIT_FAILURE;
   }
 
   /**
@@ -241,12 +211,14 @@ class TestIndexAndQuery extends DrushCommands {
     $document->setFieldBoost('population', 4.5);
 
     // Add it to the update query and also add a commit.
-    $query = new UpdateQuery();
+    $connector = $this->getPantheonSolrConnector();
+    $query = $connector->getUpdateQuery();
     $query->addDocument($document);
     // Make a hard commit.
     $query->addCommit();
+
     // Run it, the result should be a new document in the Solr index.
-    return $this->solr->update($query);
+    return $connector->update($query);
   }
 
   /**
@@ -255,17 +227,18 @@ class TestIndexAndQuery extends DrushCommands {
    * @param string $item_id
    *   ID of the item to delete.
    *
-   * @return \Solarium\Core\Query\Result\ResultInterface|\Solarium\QueryType\Update\Result
+   * @return \Solarium\Core\Query\Result\ResultInterface
    *   The result.
    */
-  protected function deleteSingleItem(string $item_id) {
+  protected function deleteSingleItem(string $item_id): ResultInterface {
     // Add it to the update query and also add a commit.
-    $query = new UpdateQuery();
+    $connector = $this->getPantheonSolrConnector();
+    $query = $connector->getUpdateQuery();
     $query->addDeleteQuery('id:' . $item_id);
     // Make a hard commit.
     $query->addCommit();
     // Run it, the result should be a new document in the Solr index.
-    return $this->solr->update($query);
+    return $connector->update($query);
   }
 
 }

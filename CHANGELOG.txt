@@ -1,3 +1,123 @@
+Search API Pantheon 8.4.1
+--------------------------------------------------
+
+This is a patch release for 8.4.0. If upgrading from 8.2.x or 8.3.x,
+please review the 8.4.0 section below for major architectural changes and breaking
+changes. All features, changes and requirements from 8.4.0 still apply.
+
+### What's Changed
+
+- The search_api_pantheon_admin submodule (removed in 8.4.0) has been restored
+  as an empty, obsolete module to ensure smooth upgrades from 8.3.x.
+  An update hook will automatically uninstall it if not manually uninstalled
+  beforehand.
+- Improved the search_api_pantheon_update_10081() for better debugging and safe deletion of old search server after migration.
+
+### Upgrade Instructions
+
+1. Back up database
+
+2. Uninstall search_api_pantheon_admin submodule (if installed):
+   drush pm:uninstall search_api_pantheon_admin
+
+3. Update the module:
+   composer require 'drupal/search_api_pantheon:^8.4'
+
+4. (Optional) Skip search server migration (available since 8.3.x):
+   To keep using 'pantheon_solr8' search server, add the following to settings.php
+   before running database updates:
+   $settings['default_search_server'] = 'pantheon_solr8';
+
+5. Run database updates:
+   drush updb
+
+6. Export configuration:
+   drush cex
+
+7. Clear cache:
+   drush cr
+
+8. Reindex content (Required only if search server was migrated):
+   Admin UI: admin/config/search/search-api → select index → "Index now"
+   Drush: drush search-api:index <INDEX_NAME>
+
+9. Update custom code (if applicable):
+   Update any custom code referencing 'pantheon_solr8' to use 'pantheon_search'
+
+10. Test search functionality thoroughly before deploying to live site
+
+Please read README.md before proceeding with installation or upgrade:
+https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.4.x/README.md
+
+Search API Pantheon 8.4.0
+--------------------------------------------------
+
+This is a major cleanup release with significant architectural improvements
+and enhanced developer experience.
+
+### What's Changed
+
+- License updated from MIT to GNU General Public License v2.0 or later (GPL-2.0+)
+- Major code refactoring resulting in a 60% reduction in code length.
+- Simplified service architecture for better maintainability.
+- Removed unnecessary overrides for Guzzle, Endpoint, and the Solarium client.
+
+**Dependency Updates:**
+- Removed direct dependencies on guzzlehttp/guzzle, symfony/finder, symfony/yaml,
+  and other packages now provided transitively through search_api_solr
+  (these dependencies are still available but come through search_api_solr instead).
+  **Impact:** No action required unless custom code directly uses these services
+- Removed kint-php/kint dependency.
+
+**Feature Changes:**
+- Removed the search_api_pantheon_admin submodule. Its sole functionality
+  (posting the schema) is already provided by the `drush search-api-pantheon:postSchema` command.
+  - Before updating the module to 8.4.0, uninstall the search_api_pantheon_admin submodule by running:
+    `drush pm:uninstall search_api_pantheon_admin`
+- Improved local development experience. Server connector configuration fields
+  are now editable in local environments and automatically overridden when
+  deployed to Pantheon.
+- Drush commands automatically use the first enabled server with the Pantheon
+  connector. The server_id argument is no longer needed or accepted.
+  - For more details, see the diagnostic commands section in README.md:
+     https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.4.x/README.md#diagnostic-commands
+
+### Upgrade Instructions
+
+1. Back up database
+
+2. Uninstall search_api_pantheon_admin submodule (if installed):
+   drush pm:uninstall search_api_pantheon_admin
+
+3. Update the module:
+   composer require 'drupal/search_api_pantheon:^8.4'
+
+4. (Optional) Skip search server migration (available since 8.3.x):
+   To keep using 'pantheon_solr8' search server, add the following to settings.php
+   before running database updates:
+   $settings['default_search_server'] = 'pantheon_solr8';
+
+5. Run database updates:
+   drush updb
+
+6. Clear cache:
+   drush cr
+
+7. Reindex content (Required only if search server was migrated):
+   Admin UI: admin/config/search/search-api → select index → "Index now"
+   Drush: drush search-api:index <INDEX_NAME>
+
+8. Update custom code (if applicable):
+   Update any custom code referencing 'pantheon_solr8' to use 'pantheon_search'
+
+9. Export configuration:
+   drush cex
+
+10. Test search functionality thoroughly before deploying to live site
+
+Please read README.md before proceeding with installation or upgrade:
+https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.4.x/README.md
+
 Search API Pantheon 8.3.4
 --------------------------------------------------
 This release addresses issues from version 8.3.3 and includes bug fix and improvements to Drush commands provided by the search_api_pantheon module:

@@ -23,7 +23,7 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_EMAIL: "test@pantheon.com"
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -66,7 +66,7 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
       TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_EMAIL: "test@pantheon.com"
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
       COMMIT_SHA: ${{ github.sha }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -74,9 +74,6 @@ jobs:
       BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
     steps:
-
-      - name: Checkout
-        uses: actions/checkout@v2
 
       - name: Login
         run: |
@@ -95,22 +92,23 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
 
-      - name: Composer install
-        run: composer install --ignore-platform-req=php
+      - name: Prepare environment variables
+        id: prepare_env_vars
+        run: |
+          # dsapip is short for Drupal Search API Pantheon.
+          echo "SITE=dsapip-$DRUPAL_VERSION-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
 
-      - name: Setup tmate session
-        if: ${{ github.event.inputs.tmate_enabled == 1 }}
-        uses: mxschmitt/action-tmate@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Run tests
         run: |
-          export TERMINUS_ORG=$TERMINUS_ORG
-          ./vendor/bin/robo test:full $DRUPAL_VERSION $TERMINUS_SITE
+          ./.github/workflows/ci.sh
 
       - name: Cleanup sites
         if: ${{ always() }}
         run: |
-          ./vendor/bin/robo test:delete-sites
+          terminus -y site:delete $SITE
 
   mirror_do:
     runs-on: ubuntu-latest

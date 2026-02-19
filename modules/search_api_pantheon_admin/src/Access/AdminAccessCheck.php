@@ -2,30 +2,46 @@
 
 namespace Drupal\search_api_pantheon_admin\Access;
 
-use Drupal\search_api_solr\SolrBackendInterface;
-use Drupal\search_api\ServerInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 
 /**
- * Provides an access check for the "Solr Admin" routes.
+ * Stub access checker for backwards compatibility during module deprecation.
+ *
+ * This class exists only to prevent errors when old cached routes
+ * reference the access checker. It always denies access.
+ *
+ * This module is obsolete and no longer needed. See the README.md for more
+ * information about changes in 8.4.x.
  */
 class AdminAccessCheck implements AccessInterface {
 
   /**
-   * A custom access check.
+   * The current user.
    *
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   Run access checks for this account.
-   * @param \Drupal\search_api\ServerInterface|null $search_api_server
-   *   (optional) The Search API server entity.
+   * @var \Drupal\Core\Session\AccountInterface
    */
-  public function access(AccountInterface $account, ?ServerInterface $search_api_server = NULL) {
-    if ($search_api_server && $search_api_server->getBackend() instanceof SolrBackendInterface) {
-      return AccessResult::allowed();
-    }
-    return AccessResult::forbidden();
+  protected $currentUser;
+
+  /**
+   * Constructs an AdminAccessCheck object.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   *   The current user.
+   */
+  public function __construct(AccountInterface $current_user) {
+    $this->currentUser = $current_user;
+  }
+
+  /**
+   * Checks access - always denies.
+   *
+   * @return \Drupal\Core\Access\AccessResultInterface
+   *   Always returns forbidden.
+   */
+  public function access() {
+    return AccessResult::forbidden('This module is obsolete.');
   }
 
 }

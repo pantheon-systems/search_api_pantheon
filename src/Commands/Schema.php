@@ -2,8 +2,6 @@
 
 namespace Drupal\search_api_pantheon\Commands;
 
-use Drupal\search_api_pantheon\Plugin\SolrConnector\PantheonSolrConnector;
-use Drupal\search_api_pantheon\Services\PantheonGuzzle;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\Finder\Finder;
@@ -14,56 +12,29 @@ use Symfony\Component\Finder\Finder;
 class Schema extends DrushCommands {
 
   /**
-   * Configured pantheon-solr-specific guzzle client.
-   *
-   * @var \Drupal\search_api_pantheon\Services\PantheonGuzzle
-   */
-  private PantheonGuzzle $pantheonGuzzle;
-
-  /**
-   * Configured pantheon-solr-specific schema poster class.
-   *
-   * @var \Drupal\search_api_pantheon\Services\SchemaPoster
-   */
-  private SchemaPoster $schemaPoster;
-
-  /**
    * Class constructor.
    *
-   * @param \Drupal\search_api_pantheon\Services\PantheonGuzzle $pantheonGuzzle
-   *   Injected by container.
    * @param \Drupal\search_api_pantheon\Services\SchemaPoster $schemaPoster
    *   Injected by Container.
    */
-  public function __construct(
-        PantheonGuzzle $pantheonGuzzle,
-        SchemaPoster $schemaPoster
-    ) {
-    $this->pantheonGuzzle = $pantheonGuzzle;
-    $this->schemaPoster = $schemaPoster;
+  public function __construct(protected SchemaPoster $schemaPoster) {
+    parent::__construct();
   }
 
   /**
    * Search_api_pantheon:postSchema.
    *
-   * @usage search-api-pantheon:postSchema [server_id] [path]
-   *   Post the latest schema to the given Server.
-   *   Default server ID = pantheon_search.
-   *   Default path = empty (build files using search_api_solr mechanism).
-   *
-   * @command search-api-pantheon:postSchema
-   *
-   * @param $server_id
-   *   Server id to post schema for.
    * @param $path
    *   Path to schema files (Leave empty to use default schema).
    *
+   * @command search-api-pantheon:postSchema
    * @aliases sapps
+   *
+   * @usage search-api-pantheon:postSchema [path]
+   *   Post the latest schema to the Solr server.
+   *   Default path = empty (build files using the search_api_solr mechanism).
    */
-  public function postSchema(?string $server_id = NULL, ?string $path = NULL) {
-    if (!$server_id) {
-      $server_id = PantheonSolrConnector::getDefaultEndpoint();
-    }
+  public function postSchema(string $path = ''): int {
     try {
       $files = [];
       if ($path) {
@@ -82,11 +53,16 @@ class Schema extends DrushCommands {
         }
       }
 
-      $this->schemaPoster->postSchema($server_id, $files);
+      $result = $this->schemaPoster->postSchema(files: $files);
+      $this->logger->{$result[0]}($result[1]);
+      if ($result[0] === 'info') {
+        return self::EXIT_SUCCESS;
+      }
     }
     catch (\Exception $e) {
       $this->logger->error((string) $e);
     }
+    return self::EXIT_FAILURE;
   }
 
   /**
@@ -103,7 +79,7 @@ class Schema extends DrushCommands {
    * @throws \Exception
    * @throws \Psr\Http\Client\ClientExceptionInterface
    */
-  public function viewSchema(string $filename = 'schema.xml') {
+  public function viewSchema(string $filename = 'schema.xml'): void {
     $currentSchema = $this->schemaPoster->viewSchema($filename);
     $this->logger->notice($currentSchema);
   }
