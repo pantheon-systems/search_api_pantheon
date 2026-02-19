@@ -97,7 +97,7 @@ git add -A
 git commit -m "Add search_api_pantheon module and Solr config for field mapping tests" || log_info "No changes to commit"
 
 log_info "Syncing with remote..."
-git pull --rebase origin master || git pull --rebase origin main || true
+git pull --rebase origin 8.x || git pull --rebase origin 8.x || true
 git push
 
 log_info "Waiting for code deployment workflow..."
