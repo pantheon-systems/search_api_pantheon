@@ -22,7 +22,11 @@ ENV="${2:-dev}"
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
   echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
   echo "You provided: $SITE"
-  echo "Use instead: ${SITE%.dev}"
+  # Remove any of the three possible suffixes
+  SUGGESTED_SITE="${SITE%.dev}"
+  SUGGESTED_SITE="${SUGGESTED_SITE%.test}"
+  SUGGESTED_SITE="${SUGGESTED_SITE%.live}"
+  echo "Use instead: $SUGGESTED_SITE"
   exit 1
 fi
 
