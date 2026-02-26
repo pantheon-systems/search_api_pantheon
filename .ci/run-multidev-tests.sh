@@ -14,14 +14,19 @@ if [ -z "$TEST_SITE" ]; then
   exit 1
 fi
 
+SITE="$TEST_SITE"
+
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" =~ \.(dev|test|live)$ ]]; then
   echo "Error: Site name should NOT include environment suffix (.dev/.test/.live)"
   echo "You provided: $SITE"
+  # Remove any of the three possible suffixes
+  SUGGESTED_SITE="${SITE%.dev}"
+  SUGGESTED_SITE="${SUGGESTED_SITE%.test}"
+  SUGGESTED_SITE="${SUGGESTED_SITE%.live}"
+  echo "Use instead: $SUGGESTED_SITE"
   exit 1
 fi
-
-SITE="$TEST_SITE"
 MULTIDEV_PREFIX="ci"
 
 generate_multidev_name() {
