@@ -180,7 +180,7 @@ drush search-api-pantheon:reload
   - Search API Spellcheck
   - Search API Ajax
 
-## Upgrading from 8.2.x / 8.3.x to 8.4.x
+## Upgrading from 8.2.x/8.3.x to 8.4.x
 
 ### Summary of Key Changes in 8.4.x
 
