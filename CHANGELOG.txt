@@ -11,7 +11,6 @@ changes. All features, changes and requirements from 8.4.0 still apply.
   as an empty, obsolete module to ensure smooth upgrades from 8.3.x.
   An update hook will automatically uninstall it if not manually uninstalled
   beforehand.
-- Improved the search_api_pantheon_update_10081() for better debugging and safe deletion of old search server after migration.
 
 ### Upgrade Instructions
 
