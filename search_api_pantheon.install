@@ -49,113 +49,54 @@ function search_api_pantheon_update_10080() {
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
 function search_api_pantheon_update_10081() {
-  $old_server_id = 'pantheon_solr8';
-  $new_server_id = 'pantheon_search';
-  $config_factory = \Drupal::configFactory();
-  $pantheon_solr8_config = $config_factory->getEditable("search_api.server.pantheon_solr8");
+  $old_server_id          = 'pantheon_solr8';
+  $new_server_id          = 'pantheon_search';
+  $old_index_id           = 'content_index';
+  $config_factory         = \Drupal::configFactory();
+  $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
   $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
-  $logger = \Drupal::logger('search_api_pantheon');
-  $default_search_server = Settings::get('default_search_server', NULL);
+  $logger                 = \Drupal::logger('search_api_pantheon');
+  $default_search_server  = Settings::get('default_search_server', NULL);
 
-  // Skip if explicitly configured to use old server in settings.php.
-  if ($default_search_server === 'pantheon_solr8') {
-    $logger->warning('Migration skipped: default_search_server is set to "@old_server_id" in settings.php.', [
-      '@old_server_id' => $old_server_id,
-    ]);
-    return t('Migration skipped: default_search_server set in settings.php.');
-  }
-
-  // Check stored config for indexes.
-  $config_storage = \Drupal::service('config.storage');
-  $index_config_names = $config_storage->listAll('search_api.index.');
-  $indexes_to_migrate = [];
-
-  foreach ($index_config_names as $config_name) {
-    $config_data = $config_storage->read($config_name);
-    if (isset($config_data['server']) && $config_data['server'] === $old_server_id) {
-      $indexes_to_migrate[] = str_replace('search_api.index.', '', $config_name);
-    }
-  }
-
-  // Skip if old server doesn't exist and no indexes need migration.
-  if ($pantheon_solr8_config->isNew() && empty($indexes_to_migrate)) {
-    return t('Migration of search server not needed.');
-  }
-
-  // Skip if new server exists and no indexes need migration (already complete).
-  if (!$pantheon_search_config->isNew() && empty($indexes_to_migrate)) {
-    return t('Migration already complete.');
+  // Skip migration if :
+  // - 'pantheon_solr8' search server doesn't exists,
+  // - or the 'pantheon_search' server already exists.
+  // - Default search server is set as 'pantheon_solr8' in settings.php
+  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) || $default_search_server === 'pantheon_solr8') {
+    return;
   }
 
   try {
-    $updated_indexes = [];
-
-    // Create new server if it doesn't exist yet.
+    // Update the search server id 'pantheon_solr8' to  'pantheon_search' server
     if ($pantheon_search_config->isNew()) {
       $data = $pantheon_solr8_config->getRawData();
       $data['id'] = $new_server_id;
       $pantheon_search_config->setData($data)->save();
-      $logger->info("Created search server '@new_server_id'.", [
-        '@new_server_id' => $new_server_id,
-      ]);
+      $logger->info("Search server ID changed from '$old_server_id' to '$new_server_id'.");
     }
-
-    // Migrate indexes by updating stored config directly..
-    foreach ($indexes_to_migrate as $index_id) {
-      $config_name = "search_api.index.{$index_id}";
-      $index_config = $config_factory->getEditable($config_name);
-      $index_config->set('server', $new_server_id);
-      $index_config->save();
-      $updated_indexes[] = $index_id;
-      $logger->info('Migrated index "@index" to "@new_server_id".', [
-        '@index' => $index_id,
-        '@new_server_id' => $new_server_id,
-      ]);
-    }
-
-    // Delete old server only after all indexes are migrated.
-    if (!$pantheon_solr8_config->isNew()) {
-      // Verify no stored configs still reference the old server before deletion.
-      $remaining_indexes = [];
-      foreach ($index_config_names as $config_name) {
-        $config_data = $config_storage->read($config_name);
-        if (isset($config_data['server']) && $config_data['server'] === $old_server_id) {
-          $remaining_indexes[] = str_replace('search_api.index.', '', $config_name);
-        }
-      }
-
-      if (empty($remaining_indexes)) {
-        $old_server = Server::load($old_server_id);
-        if ($old_server) {
-          $old_server->delete();
-          $logger->info("Deleted old search server '@old_server_id'.", [
-            '@old_server_id' => $old_server_id,
-          ]);
-        }
-      }
-      else {
-        $logger->warning('Skipped deletion of @old_server_id: @count index(es) still reference it in stored config: @list', [
-          '@old_server_id' => $old_server_id,
-          '@count' => count($remaining_indexes),
-          '@list' => implode(', ', $remaining_indexes),
+    // Update all search indexes with 'pantheon_solr8' as search server to 'pantheon_search'
+    $indexes = \Drupal::entityTypeManager()->getStorage('search_api_index')->loadMultiple();
+    foreach ($indexes as $index) {
+      if ($index->get('server') === $old_server_id) {
+        $index->set('server', $new_server_id);
+        $index->save();
+        $logger->info('Updated server for index "@index" to "@new_server_id".', [
+          '@index' => $index->id(),
+          '@new_server_id' => $new_server_id,
         ]);
       }
     }
 
-    // Build return message.
-    if (!empty($updated_indexes)) {
-      return t('Successfully migrated @count index(es) from @old to @new: @list', [
-        '@count' => count($updated_indexes),
-        '@old' => $old_server_id,
-        '@new' => $new_server_id,
-        '@list' => implode(', ', $updated_indexes),
-      ]);
+    // Delete the old search server, if it exists.
+    $old_server = Server::load($old_server_id);
+    if ($old_server) {
+      $old_server->delete();
+      $logger->info("Deleted old search server '$old_server_id'.");
     }
 
-    return t('Migration completed.');
   }
   catch (\Exception $e) {
-    $logger->error('Migration failed: @message. Update can be safely re-run.', [
+    $logger->error('Error occurred during Search API Pantheon migration: @message. Please re-run database updates.', [
       '@message' => $e->getMessage(),
     ]);
     throw $e;
