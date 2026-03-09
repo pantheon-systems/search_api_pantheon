@@ -82,15 +82,24 @@ terminus local:clone "$SITE"
 # Navigate to the local copy
 cd "$HOME/pantheon-local-copies/$SITE"
 
-# Add Solr configuration to pantheon.yml if not present
+# Checkout the multidev branch
+log_info "Checking out multidev branch: $ENV..."
+git fetch origin
+git checkout "$ENV" || git checkout -b "$ENV" "origin/$ENV"
+echo "Current branch: $(git branch --show-current)"
+
+# Add Solr configuration to pantheon.yml
 log_info "Configuring Solr in pantheon.yml..."
-if ! grep -q "^search:" pantheon.yml 2>/dev/null; then
-  echo "search:" >> pantheon.yml
-  echo "  version: 8" >> pantheon.yml
-  log_info "Added Solr search configuration to pantheon.yml"
-else
-  log_info "Solr already configured in pantheon.yml"
-fi
+echo "Before modification:"
+cat pantheon.yml
+
+cat >> pantheon.yml <<EOF
+search:
+  version: 8
+EOF
+
+echo "After modification:"
+cat pantheon.yml
 
 # Install modules via Composer
 log_info "Installing search_api_pantheon 8.4.x-dev via Composer..."
@@ -101,8 +110,26 @@ git add -A
 git commit -m "Add search_api_pantheon module and Solr config for field mapping tests" || log_info "No changes to commit"
 
 log_info "Syncing with remote..."
-git pull --rebase origin 8.x || git pull --rebase origin 8.x || true
-git push
+# Detect current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "Current branch: $CURRENT_BRANCH"
+
+# Pull latest changes from remote (split remote and branch)
+echo "Pulling from origin ${CURRENT_BRANCH}..."
+git pull --rebase origin "$CURRENT_BRANCH" || {
+  echo "Pull failed, checking status..."
+  git status
+  exit 1
+}
+
+# Push to current branch
+echo "Pushing to origin/${CURRENT_BRANCH}..."
+git push origin "$CURRENT_BRANCH" || {
+  echo "Push failed, remote state:"
+  git fetch origin
+  git log HEAD..origin/${CURRENT_BRANCH} --oneline || true
+  exit 1
+}
 
 log_info "Waiting for code deployment workflow..."
 terminus workflow:wait --max=60 "$SITE.$ENV"
