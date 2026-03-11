@@ -127,7 +127,7 @@ echo "Pushing to origin/${CURRENT_BRANCH}..."
 git push origin "$CURRENT_BRANCH" || {
   echo "Push failed, remote state:"
   git fetch origin
-  git log HEAD..origin/${CURRENT_BRANCH} --oneline || true
+  git log "HEAD..origin/${CURRENT_BRANCH}" --oneline || true
   exit 1
 }
 
