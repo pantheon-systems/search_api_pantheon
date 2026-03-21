@@ -2,7 +2,7 @@
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
-    "description": "Connection module for Pantheon Search (solr 8)",
+    "description": "Connection module for Pantheon Search (Solr 8 & 9)",
     "repositories": [
         {
             "type": "composer",
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "drupal/search_api_solr": "^4.2"
+        "drupal/search_api_solr": "^4.3"
     },
     "require-dev": {
         "drupal/coder": "@stable",

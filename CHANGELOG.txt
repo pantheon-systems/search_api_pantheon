@@ -1,3 +1,41 @@
+Search API Pantheon 8.5.0
+--------------------------------------------------
+
+### What's New
+
+- Added support for Apache Solr 9
+
+### New Installation with Solr 9
+
+1. Update your pantheon.yml:
+   search:
+     version: 9
+
+2. Install the module:
+   composer require 'drupal/search_api_pantheon:^8.5'
+
+3. Post the schema:
+   drush search-api-pantheon:postSchema
+
+4. Index content:
+   drush search-api:index
+
+### Upgrading from 8.4.x to Solr 9
+
+1. Update the module first:
+   composer require 'drupal/search_api_pantheon:^8.5'
+
+2. Then update your pantheon.yml:
+   search:
+     version: 9
+
+3. Post the schema for the new Solr version:
+   drush search-api-pantheon:postSchema
+
+4. Reindex content:
+   drush search-api:index
+
+
 Search API Pantheon 8.4.1
 --------------------------------------------------
 
