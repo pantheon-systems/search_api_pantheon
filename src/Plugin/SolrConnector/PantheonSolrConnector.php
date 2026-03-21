@@ -76,7 +76,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is set to "/site/{site-uuid}/environment/{env}/backend" and
       // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
-      'solr_version' => static::getSolrVersion(),
+      'solr_version' => static::detectSolrVersion(),
       // This is set to "/site/{site-uuid}/environment/{env}/configs",
       // very similar to core and so also can't start with a slash. It is used
       // by ::postSchema().
@@ -93,7 +93,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * @return int
    *   The Solr version (8 or 9). Defaults to 8 for backward compatibility.
    */
-  protected static function getSolrVersion(): int {
+  protected static function detectSolrVersion(): int {
     static $version;
     if (isset($version)) {
       return $version;
