@@ -13,7 +13,7 @@
         "drupal/search_api_solr": "^4.3"
     },
     "require-dev": {
-        "drupal/coder": "@stable",
+        "drupal/coder": "^8.3",
         "squizlabs/php_codesniffer": "@stable"
     },
     "scripts": {
