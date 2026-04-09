@@ -55,7 +55,7 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
 
 ### Rolling Back to Solr 8
 
-To revert to Solr 8 after upgrading:
+If for some reason you need to revert to Solr 8 after upgrading:
 
 1. Change `pantheon.yml` back to `version: 8`.
 2. Re-post the Solr 8 schema:
