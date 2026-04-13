@@ -1,0 +1,12 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: search_api_pantheon
+  description: Apache Solr on Pantheon for Drupal 9.4+ via Search API
+  annotations:
+    github.com/project-slug: pantheon-systems/search_api_pantheon
+spec:
+  type: service
+  lifecycle: production
+  owner: site-experience
