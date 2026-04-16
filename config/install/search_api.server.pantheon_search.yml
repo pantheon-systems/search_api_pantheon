@@ -24,7 +24,7 @@ backend_config:
     index_timeout: 5
     optimize_timeout: 10
     finalize_timeout: 30
-    solr_version: '8'
+    solr_version: '9'
     http_method: AUTO
     commit_within: 1000
     jmx: false
