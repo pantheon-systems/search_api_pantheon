@@ -9,7 +9,6 @@ use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Response;
 use Solarium\QueryType\Select\Query\Query;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * Standard Solr connector.
@@ -76,7 +75,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is set to "/site/{site-uuid}/environment/{env}/backend" and
       // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
-      'solr_version' => static::detectSolrVersion(),
+      'solr_version' => getenv('PANTHEON_SEARCH_VERSION'),
       // This is set to "/site/{site-uuid}/environment/{env}/configs",
       // very similar to core and so also can't start with a slash. It is used
       // by ::postSchema().
@@ -85,46 +84,6 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // ::reloadCore().
       'search_api_pantheon_reload_endpoint' => trim(getenv('PANTHEON_INDEX_RELOAD_PATH'), '/'),
     ];
-  }
-
-  /**
-   * Detects the Solr version from pantheon.yml or pantheon.upstream.yml.
-   *
-   * @return int
-   *   The Solr version (8 or 9). Defaults to 8 for backward compatibility.
-   */
-  protected static function detectSolrVersion(): int {
-    static $version;
-    if (isset($version)) {
-      return $version;
-    }
-    $paths = [];
-    if (defined('DRUPAL_ROOT')) {
-      $paths[] = DRUPAL_ROOT . '/../pantheon.yml';
-      $paths[] = DRUPAL_ROOT . '/pantheon.yml';
-    }
-    $upstream_paths = [];
-    if (defined('DRUPAL_ROOT')) {
-      $upstream_paths[] = DRUPAL_ROOT . '/../pantheon.upstream.yml';
-      $upstream_paths[] = DRUPAL_ROOT . '/pantheon.upstream.yml';
-    }
-    // Check pantheon.yml first, then fall back to pantheon.upstream.yml.
-    foreach ([$paths, $upstream_paths] as $file_paths) {
-      foreach ($file_paths as $path) {
-        if (file_exists($path)) {
-          $yml = Yaml::parse(file_get_contents($path));
-          if (!empty($yml['search']['version'])) {
-            $detected = (int) $yml['search']['version'];
-            if (in_array($detected, [8, 9])) {
-              $version = $detected;
-              return $version;
-            }
-          }
-        }
-      }
-    }
-    $version = 8;
-    return $version;
   }
 
   /**
