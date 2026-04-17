@@ -2,7 +2,7 @@
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
-    "description": "Connection module for Pantheon Search (Solr 8 & 9)",
+    "description": "Connection module for Pantheon Search",
     "repositories": [
         {
             "type": "composer",
@@ -33,7 +33,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "drupal/core-composer-scaffold": true
         }
     },
     "extra": {
