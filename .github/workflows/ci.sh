@@ -33,4 +33,18 @@ if [ "$FOUND" != "5" ]; then
   exit 1
 fi
 echo "Testing schema post"
-terminus drush "$SITE.dev" -- search-api-pantheon:postSchema "/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VERSION}/config-set"
+MAX_RETRIES=3
+RETRY_DELAY=60
+for i in $(seq 1 $MAX_RETRIES); do
+  echo "Schema post attempt $i of $MAX_RETRIES"
+  if terminus drush "$SITE.dev" -- search-api-pantheon:postSchema "/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VERSION}/config-set"; then
+    echo "Schema post succeeded"
+    break
+  fi
+  if [ "$i" -eq "$MAX_RETRIES" ]; then
+    echo "Schema post failed after $MAX_RETRIES attempts"
+    exit 1
+  fi
+  echo "Schema post failed, retrying in ${RETRY_DELAY}s..."
+  sleep $RETRY_DELAY
+done
