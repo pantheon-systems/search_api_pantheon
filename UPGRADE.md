@@ -121,3 +121,5 @@ You can find your `<server_id>` with `drush search-api:server-list`.
    ```
 
 7. **Verify** search functionality is working as expected.
+
+For general schema management, see [Schema Updates](README.md#schema-updates) in the README.
