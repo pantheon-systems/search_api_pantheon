@@ -6,8 +6,9 @@ terminus site:create "$SITE" "$SITE" "drupal-$DRUPAL_VERSION-composer-managed" -
 terminus connection:set "$SITE.dev" git
 terminus local:clone "$SITE"
 cd "$HOME/pantheon-local-copies/$SITE"
+SOLR_VERSION="${SOLR_VERSION:-8}"
 echo "search:" >> pantheon.yml
-echo "  version: 8" >> pantheon.yml
+echo "  version: $SOLR_VERSION" >> pantheon.yml
 composer require "pantheon-systems/search_api_pantheon:$CONSTRAINT" drupal/devel:~5.4
 terminus solr:enable "$SITE"
 git commit -am 'modules, search'
@@ -32,4 +33,18 @@ if [ "$FOUND" != "5" ]; then
   exit 1
 fi
 echo "Testing schema post"
-terminus drush "$SITE.dev" -- search-api-pantheon:postSchema /code/web/modules/contrib/search_api_solr/jump-start/solr8/config-set
+MAX_RETRIES=3
+RETRY_DELAY=60
+for i in $(seq 1 $MAX_RETRIES); do
+  echo "Schema post attempt $i of $MAX_RETRIES"
+  if terminus drush "$SITE.dev" -- search-api-pantheon:postSchema "/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VERSION}/config-set"; then
+    echo "Schema post succeeded"
+    break
+  fi
+  if [ "$i" -eq "$MAX_RETRIES" ]; then
+    echo "Schema post failed after $MAX_RETRIES attempts"
+    exit 1
+  fi
+  echo "Schema post failed, retrying in ${RETRY_DELAY}s..."
+  sleep $RETRY_DELAY
+done

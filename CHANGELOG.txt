@@ -1,3 +1,18 @@
+Search API Pantheon 8.5.0-beta1
+--------------------------------------------------
+
+### What's New
+
+- Added support for Apache Solr 9
+- Default server configuration updated to Solr 9 for new installations
+- search_api_solr module dependency updated from ^4.2 to ^4.3
+
+### Install
+
+  composer require 'drupal/search_api_pantheon:^8.5@beta'
+
+See README.md for installation and UPGRADE.md for upgrade instructions.
+
 Search API Pantheon 8.4.1
 --------------------------------------------------
 

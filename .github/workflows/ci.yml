@@ -54,12 +54,13 @@ jobs:
     strategy:
       matrix:
         drupal-version: [ 10, 11 ]
+        solr-version: [ 8, 9 ]
       fail-fast: false
     runs-on: ubuntu-latest
     container:
       image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
       options: --user root
-    name: Build and test (Drupal ${{ matrix.drupal-version }})
+    name: Build and test (Drupal ${{ matrix.drupal-version }}, Solr ${{ matrix.solr-version }})
     env:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -73,6 +74,7 @@ jobs:
       SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
+      SOLR_VERSION: ${{ matrix.solr-version }}
     steps:
 
       - name: Login
