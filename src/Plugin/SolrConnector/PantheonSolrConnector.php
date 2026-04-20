@@ -174,7 +174,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function reloadCore(): bool {
     if (!isset($this->configuration['search_api_pantheon_reload_endpoint'])) {
-      parent::reloadCore();
+      return parent::reloadCore();
     }
     $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
