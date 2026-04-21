@@ -30,7 +30,8 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 ### Upgrading from Solr 8 to Solr 9
 
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
-> **Note:** Switching from Solr 8 to Solr 9 provisions a new Solr core. You must post the schema, clear the index tracker, and reindex all content.
+
+> **⚠️ Search downtime expected:** Switching Solr versions provisions a new Solr core. **Search will be unavailable** until you do a full reindex.
 
 1. **Update the module** and commit and deploy the changes to your Pantheon environment:
 
