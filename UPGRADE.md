@@ -16,7 +16,9 @@ Version 8.5.x requires [Search API Solr](https://www.drupal.org/project/search_a
    composer require 'drupal/search_api_pantheon:^8.5@beta'
    ```
 
-2. **Clear the cache:**
+2. **Commit and deploy** the `composer.json` and `composer.lock` changes to your Pantheon environment.
+
+3. **Clear the cache:**
 
    ```bash
    terminus drush <site>.<env> -- cr
@@ -28,7 +30,7 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`. This order ensures the correct Solr 9 schema and connector are in place before Pantheon provisions the new Solr 9 server.
 
-> **Note:** Switching from Solr 8 to Solr 9 provisions a new Solr core. Existing indexed data will not carry over. A full reindex is required after the switch.
+> **Note:** Switching from Solr 8 to Solr 9 provisions a new Solr core. You must post the schema, clear the index tracker, and reindex all content.
 
 1. **Update the module:**
 
@@ -43,11 +45,7 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
      version: 9
    ```
 
-3. **Post the schema for the new Solr version:**
-
-   ```bash
-   terminus drush <site>.<env> -- search-api-pantheon:postSchema
-   ```
+3. **Commit and deploy** the `composer.json`, `composer.lock`, and `pantheon.yml` changes to your Pantheon environment.
 
 4. **Clear the cache:**
 
@@ -55,13 +53,20 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
    terminus drush <site>.<env> -- cr
    ```
 
-5. **Reindex content:**
+5. **Post the schema for the new Solr version:**
 
    ```bash
+   terminus drush <site>.<env> -- search-api-pantheon:postSchema
+   ```
+
+6. **Clear the index and reindex content:**
+
+   ```bash
+   terminus drush <site>.<env> -- search-api:clear
    terminus drush <site>.<env> -- search-api:index
    ```
 
-6. **Test search functionality** thoroughly on non-production environments before deploying to live. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
+7. **Test search functionality** thoroughly on non-production environments before deploying to live. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
 
 ### Rolling Back to Solr 8
 
@@ -69,11 +74,7 @@ If for some reason you need to revert to Solr 8 after upgrading:
 
 1. Change `pantheon.yml` back to `version: 8`.
 
-2. Re-post the Solr 8 schema:
-
-   ```bash
-   terminus drush <site>.<env> -- search-api-pantheon:postSchema
-   ```
+2. **Commit and deploy** the `pantheon.yml` change to your Pantheon environment.
 
 3. Clear the cache:
 
@@ -81,9 +82,16 @@ If for some reason you need to revert to Solr 8 after upgrading:
    terminus drush <site>.<env> -- cr
    ```
 
-4. Reindex all content:
+4. Re-post the Solr 8 schema:
 
    ```bash
+   terminus drush <site>.<env> -- search-api-pantheon:postSchema
+   ```
+
+5. Clear the index and reindex content:
+
+   ```bash
+   terminus drush <site>.<env> -- search-api:clear
    terminus drush <site>.<env> -- search-api:index
    ```
 
@@ -93,7 +101,9 @@ The module (8.5.x) supports both Solr 8 and Solr 9, so you do not need to downgr
 
 #### Schema incompatibility with Search API Solr 4.3.x
 
-Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. This can affect any site that upgrades Search API Solr from 4.2.x to 4.3.x. Note that 8.5.x requires `^4.3`, so sites still on 4.2.x will be upgraded automatically by Composer. After upgrading, if you encounter the following error:
+> **Note:** If you are upgrading to Solr 9, you can skip this section. A new Solr 9 core is provisioned with no existing data, so there is no schema conflict.
+
+Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. This affects sites upgrading Search API Solr from 4.2.x to 4.3.x while staying on Solr 8. After upgrading, if you encounter the following error:
 
 ```text
 cannot change field "xyz" from index options=DOCS_AND_FREQS_AND_POSITIONS
