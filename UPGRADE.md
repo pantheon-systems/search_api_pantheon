@@ -28,8 +28,7 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 ### Upgrading from Solr 8 to Solr 9
 
-If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`. This order ensures the correct Solr 9 schema and connector are in place before Pantheon provisions the new Solr 9 server.
-
+If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 > **Note:** Switching from Solr 8 to Solr 9 provisions a new Solr core. You must post the schema, clear the index tracker, and reindex all content.
 
 1. **Update the module:**
@@ -101,14 +100,13 @@ The module (8.5.x) supports both Solr 8 and Solr 9, so you do not need to downgr
 
 #### Schema incompatibility with Search API Solr 4.3.x
 
-> **Note:** If you are upgrading to Solr 9, you can skip this section. A new Solr 9 core is provisioned with no existing data, so there is no schema conflict.
-
-Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. This affects sites upgrading Search API Solr from 4.2.x to 4.3.x while staying on Solr 8. After upgrading, if you encounter the following error:
+Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. After upgrading, if you encounter the following error:
 
 ```text
 cannot change field "xyz" from index options=DOCS_AND_FREQS_AND_POSITIONS
 to inconsistent index options=DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS
 ```
+ If you are upgrading to Solr 9, you can skip the below section.
 
 > **Note:** Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.
 
