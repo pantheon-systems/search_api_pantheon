@@ -10,15 +10,16 @@ Version 8.5.x adds support for Apache Solr 9. Existing Solr 8 installations cont
 
 Version 8.5.x requires [Search API Solr](https://www.drupal.org/project/search_api_solr) 4.3.x.
 
-1. **Update the module:**
+1. **Update the module** and commit and deploy the changes to your Pantheon environment:
 
    ```bash
    composer require 'drupal/search_api_pantheon:^8.5@beta'
+   git add composer.json composer.lock
+   git commit -m "Update search_api_pantheon to 8.5.x"
+   git push
    ```
 
-2. **Commit and deploy** the `composer.json` and `composer.lock` changes to your Pantheon environment.
-
-3. **Clear the cache:**
+2. **Clear the cache:**
 
    ```bash
    terminus drush <site>.<env> -- cr
@@ -31,43 +32,48 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 > **Note:** Switching from Solr 8 to Solr 9 provisions a new Solr core. You must post the schema, clear the index tracker, and reindex all content.
 
-1. **Update the module:**
+1. **Update the module** and commit and deploy the changes to your Pantheon environment:
 
    ```bash
    composer require 'drupal/search_api_pantheon:^8.5@beta'
+   git add composer.json composer.lock
+   git commit -m "Update search_api_pantheon to 8.5.x"
+   git push
    ```
 
-2. **Commit and deploy** the `composer.json` and `composer.lock` changes to your Pantheon environment.
-
-3. **Update your `pantheon.yml`:**
+2. **Update your `pantheon.yml`** and commit and deploy the changes to your Pantheon environment:
 
    ```yaml
    search:
      version: 9
    ```
 
-4. **Commit and deploy** the `pantheon.yml` changes to your Pantheon environment.
+   ```bash
+   git add pantheon.yml
+   git commit -m "Switch to Solr 9"
+   git push
+   ```
 
-5. **Clear the cache:**
+3. **Clear the cache:**
 
    ```bash
    terminus drush <site>.<env> -- cr
    ```
 
-6. **Post the schema for the new Solr version:**
+4. **Post the schema for the new Solr version:**
 
    ```bash
    terminus drush <site>.<env> -- search-api-pantheon:postSchema
    ```
 
-7. **Clear the index and reindex content:**
+5. **Clear the index and reindex content:**
 
    ```bash
    terminus drush <site>.<env> -- search-api:clear
    terminus drush <site>.<env> -- search-api:index
    ```
 
-8. **Test search functionality** thoroughly on non-production environments. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
+6. **Test search functionality** thoroughly on non-production environments. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
 
 ### Rolling Back to Solr 8
 
