@@ -8,13 +8,13 @@
 - [Overview](#overview)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Upgrading](#upgrading)
 - [Setup](#setup)
 - [Schema Updates](#schema-updates)
 - [Core Reloading](#core-reloading)
 - [Pantheon Environments](#pantheon-environments)
 - [Diagnostic Commands](#diagnostic-commands)
 - [Troubleshooting](#troubleshooting)
-- [Upgrading](#upgrading)
 - [Solr Jargon](#solr-jargon)
 - [Feedback and Collaboration](#feedback-and-collaboration)
 
@@ -59,6 +59,14 @@ composer require 'drupal/search_api_pantheon:^8.5@beta'
 ```bash
 composer require 'drupal/search_api_pantheon:8.5.x-dev@dev'
 ```
+
+## Upgrading
+
+Upgrading from an earlier version? See [UPGRADE.md](UPGRADE.md) for detailed migration guides:
+
+- [Upgrading from 8.4.x to 8.5.x](UPGRADE.md#upgrading-from-84x-to-85x)
+- [Upgrading from Solr 8 to Solr 9](UPGRADE.md#upgrading-from-solr-8-to-solr-9)
+- [Schema incompatibility with Search API Solr 4.3.x](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x)
 
 ## Setup
 
@@ -163,15 +171,22 @@ Once you have enabled the Search API Pantheon module, when you reload the schema
 
 ### Examples
 
-```bash
-# Auto-generated config (recommended for most sites)
-terminus drush <site>.<env> -- search-api-pantheon:postSchema
+**Auto-generated config:** Generates schema files based on your Solr version, Search API Solr version, and index configuration.
 
-# Jump-start config-set from Search API Solr
+```bash
+terminus drush <site>.<env> -- search-api-pantheon:postSchema
+```
+
+**Jump-start config-set from Search API Solr:** Uses the pre-built config-set bundled with the Search API Solr module. Useful if you want a known baseline without any site-specific customizations.
+
+```bash
 terminus drush <site>.<env> -- search-api-pantheon:postSchema /code/web/modules/contrib/search_api_solr/jump-start/solr9/config-set/
 terminus drush <site>.<env> -- search-api-pantheon:postSchema /code/web/modules/contrib/search_api_solr/jump-start/solr8/config-set/
+```
 
-# Custom config-set directory
+**Custom config-set directory:** Uses your own schema files. For advanced use cases where you need custom analyzers, tokenizers, or field types beyond what the module generates.
+
+```bash
 terminus drush <site>.<env> -- search-api-pantheon:postSchema /code/solr/config
 ```
 
@@ -219,14 +234,6 @@ Diagnostic commands automatically use the first server connected via Pantheon co
 | Search index corruption     | Try reposting schema and reindexing content   |
 | Core reload failures        | Check Solr logs and connection status         |
 | Error after Search API Solr upgrade | Schema incompatibility from 4.2.x → 4.3.x. See [UPGRADE.md](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x) |
-
-## Upgrading
-
-Upgrading from an earlier version? See [UPGRADE.md](UPGRADE.md) for detailed migration guides:
-
-- [Upgrading from 8.4.x to 8.5.x](UPGRADE.md#upgrading-from-84x-to-85x)
-- [Upgrading from Solr 8 to Solr 9](UPGRADE.md#upgrading-from-solr-8-to-solr-9)
-- [Schema incompatibility with Search API Solr 4.3.x](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x)
 
 ## Solr Jargon
 
