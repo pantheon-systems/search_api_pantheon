@@ -37,35 +37,37 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
    composer require 'drupal/search_api_pantheon:^8.5@beta'
    ```
 
-2. **Update your `pantheon.yml`:**
+2. **Commit and deploy** the `composer.json` and `composer.lock` changes to your Pantheon environment.
+
+3. **Update your `pantheon.yml`:**
 
    ```yaml
    search:
      version: 9
    ```
 
-3. **Commit and deploy** the `composer.json`, `composer.lock`, and `pantheon.yml` changes to your Pantheon environment.
+4. **Commit and deploy** the `pantheon.yml` changes to your Pantheon environment.
 
-4. **Clear the cache:**
+5. **Clear the cache:**
 
    ```bash
    terminus drush <site>.<env> -- cr
    ```
 
-5. **Post the schema for the new Solr version:**
+6. **Post the schema for the new Solr version:**
 
    ```bash
    terminus drush <site>.<env> -- search-api-pantheon:postSchema
    ```
 
-6. **Clear the index and reindex content:**
+7. **Clear the index and reindex content:**
 
    ```bash
    terminus drush <site>.<env> -- search-api:clear
    terminus drush <site>.<env> -- search-api:index
    ```
 
-7. **Test search functionality** thoroughly on non-production environments before deploying to live. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
+8. **Test search functionality** thoroughly on non-production environments. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
 
 ### Rolling Back to Solr 8
 
