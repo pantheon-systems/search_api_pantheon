@@ -2,7 +2,8 @@
 
 ## Upgrading to 8.5.x
 
-> **Beta Release:** Version 8.5.x is currently in beta. Test thoroughly on non-production environments and report issues in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All).
+> [!NOTE]
+>**Beta Release: Version 8.5.x is currently in beta. Test thoroughly on non-production environments and report issues in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All).**
 
 Version 8.5.x adds support for Apache Solr 9. Existing Solr 8 installations continue to work without changes.
 
@@ -29,8 +30,8 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 ### Upgrading from Solr 8 to Solr 9
 
-> [!IMPORTANT]
-> Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.
+> [!NOTE]
+>**Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.**
 
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 
@@ -143,7 +144,7 @@ to inconsistent index options=DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS
 ```
 
 > [!NOTE]
-> Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.
+>**Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.**
 
 Follow these steps to resolve on Pantheon:
 
