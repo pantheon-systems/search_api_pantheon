@@ -2,7 +2,8 @@
 
 ## Upgrading to 8.5.x
 
-> **Beta Release:** Version 8.5.x is currently in beta. Test thoroughly on non-production environments and report issues in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All).
+> [!NOTE]
+>**Beta Release: Version 8.5.x is currently in beta. Test thoroughly on non-production environments and report issues in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All).**
 
 Version 8.5.x adds support for Apache Solr 9. Existing Solr 8 installations continue to work without changes.
 
@@ -29,11 +30,12 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 ### Upgrading from Solr 8 to Solr 9
 
+> [!NOTE]
+>**Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.**
+
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 
-> **⚠️ Search downtime expected:** Switching Solr versions provisions a new Solr core. **Search will be unavailable** until you do a full reindex.
-
-1. **Update the module** and commit and deploy the changes to your Pantheon environment:
+1. If you are not on Search API Pantheon 8.5.x, update the module to 8.5.x and commit and deploy the changes to your Pantheon environment:
 
    ```bash
    composer require 'drupal/search_api_pantheon:^8.5@beta'
@@ -55,34 +57,59 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
    git push
    ```
 
-3. **Clear the cache:**
+3. **Wait a few minutes** for the platform to provision the new Solr 9 core. Verify the core is ready and confirm the Solr version is 9 by running the diagnose command or checking the server status page (`admin/config/search/search-api` > Pantheon Search):
+
+   ```bash
+   terminus drush <site>.<env> -- search-api-pantheon:diagnose
+   ```
+
+4. **Clear the cache:**
 
    ```bash
    terminus drush <site>.<env> -- cr
    ```
 
-4. **Post the schema for the new Solr version:**
+5. **Post the schema for the new Solr version:**
 
    ```bash
    terminus drush <site>.<env> -- search-api-pantheon:postSchema
    ```
 
-5. **Clear the index and reindex content:**
+6. **Clear the index and reindex content:**
 
    ```bash
    terminus drush <site>.<env> -- search-api:clear
    terminus drush <site>.<env> -- search-api:index
    ```
 
-6. **Test search functionality** thoroughly on non-production environments. Use `terminus drush <site>.<env> -- search-api-pantheon:diagnose` to verify the configuration.
+   Run `search-api:clear` before `search-api:index`. The new Solr core is empty, but Drupal still has your content marked as indexed from the old core. Without clearing first, `search-api:index` assumes everything is already indexed and skips it.
+
+7. **Verify the Solr configuration:**
+
+   ```bash
+   terminus drush <site>.<env> -- search-api-pantheon:diagnose
+   ```
+
+8. **Test search functionality** thoroughly on non-production environments.
 
 ### Rolling Back to Solr 8
 
-If for some reason you need to revert to Solr 8 after upgrading:
+- If for some reason you need to revert to Solr 8 after upgrading, the search_api_pantheon 8.5.x module supports both Solr 8 and Solr 9, so you do not need to downgrade the module version. However, be aware that rolling back to Solr 8 from Solr 9 also requires reposting the schema and reindexing the content again.
 
-1. Change `pantheon.yml` back to `version: 8`.
+1. Change `pantheon.yml` back to `version: 8`:
 
-2. **Commit and deploy** the `pantheon.yml` change to your Pantheon environment.
+   ```yaml
+   search:
+     version: 8
+   ```
+
+2. Commit and deploy the change to your Pantheon environment:
+
+   ```bash
+   git add pantheon.yml
+   git commit -m "Revert to Solr 8"
+   git push
+   ```
 
 3. Clear the cache:
 
@@ -103,11 +130,11 @@ If for some reason you need to revert to Solr 8 after upgrading:
    terminus drush <site>.<env> -- search-api:index
    ```
 
-The module (8.5.x) supports both Solr 8 and Solr 9, so you do not need to downgrade the module version.
-
 ### Known Issues
 
 #### Schema incompatibility with Search API Solr 4.3.x
+
+If you are upgrading to Solr 9, you can skip the below section. The Solr 9 upgrade process already requires a full reindex, which resolves this incompatibility.
 
 Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. After upgrading, if you encounter the following error:
 
@@ -115,9 +142,9 @@ Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, 
 cannot change field "xyz" from index options=DOCS_AND_FREQS_AND_POSITIONS
 to inconsistent index options=DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS
 ```
- If you are upgrading to Solr 9, you can skip the below section.
 
-> **Note:** Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.
+> [!NOTE]
+>**Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.**
 
 Follow these steps to resolve on Pantheon:
 
