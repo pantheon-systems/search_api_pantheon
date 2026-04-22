@@ -29,7 +29,8 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 ### Upgrading from Solr 8 to Solr 9
 
-> **⚠️ Search downtime:** Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.
+> [!IMPORTANT]
+> Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.
 
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 
@@ -141,7 +142,8 @@ cannot change field "xyz" from index options=DOCS_AND_FREQS_AND_POSITIONS
 to inconsistent index options=DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS
 ```
 
-> **Note:** Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.
+> [!NOTE]
+> Resolving this requires clearing all indexed data and performing a full reindex. Plan for temporary search downtime.
 
 Follow these steps to resolve on Pantheon:
 
