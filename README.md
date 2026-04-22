@@ -90,7 +90,7 @@ search:
   version: 8
 ```
 
-As you promote the code, the `pantheon.yml` file will follow the code through environments enabling the Solr server. However you will need to create an index for each environment and ensure the content is indexed after creation. Solr indices are environment-specific and cannot be exported or moved once created.
+As you deploy code, the `pantheon.yml` file will follow the code through environments enabling the Solr server. However you will need to create an index for each environment and ensure the content is indexed after creation. Solr indices are environment-specific and cannot be exported or moved once created.
 
 ### Enable the Modules
 
