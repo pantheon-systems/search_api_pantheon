@@ -33,7 +33,7 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
 
-1. **Update the module** (if you haven't already done so in [Upgrading from 8.4.x to 8.5.x](#upgrading-from-84x-to-85x)) and commit and deploy the changes to your Pantheon environment:
+1. If you are not on Search API Pantheon 8.5.x, update the module to 8.5.x and commit and deploy the changes to your Pantheon environment:
 
    ```bash
    composer require 'drupal/search_api_pantheon:^8.5@beta'
