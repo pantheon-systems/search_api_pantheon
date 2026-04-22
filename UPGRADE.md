@@ -31,6 +31,8 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 > **⚠️ Search downtime:** Switching to Solr 9 provisions a new, empty core. A full reindex is required — search will be unavailable or return incomplete results until reindexing completes.
 
+If you are upgrading from an existing Solr 8 installation, upgrade the module first, then switch `pantheon.yml`.
+
 1. **Update the module** (if you haven't already done so in [Upgrading from 8.4.x to 8.5.x](#upgrading-from-84x-to-85x)) and commit and deploy the changes to your Pantheon environment:
 
    ```bash
@@ -53,7 +55,7 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
    git push
    ```
 
-3. **Wait a few minutes** for the platform to provision the new Solr 9 core. Verify the core is ready and confirm the Solr version is 9 by running the diagnose command or checking the server status page (`admin/config/search/search-api` > your Pantheon connector server):
+3. **Wait a few minutes** for the platform to provision the new Solr 9 core. Verify the core is ready and confirm the Solr version is 9 by running the diagnose command or checking the server status page (`admin/config/search/search-api` > Pantheon Search):
 
    ```bash
    terminus drush <site>.<env> -- search-api-pantheon:diagnose
@@ -130,7 +132,7 @@ If you were previously running Search API Solr 4.2.x or earlier, you must also r
 
 #### Schema incompatibility with Search API Solr 4.3.x
 
-> **Note for Solr 8 → 9 upgraders:** This section does not apply to you. Switching to Solr 9 provisions a fresh core, so schema incompatibilities from earlier Search API Solr versions are not carried over. You can skip ahead.
+If you are upgrading to Solr 9, you can skip the below section. The Solr 9 upgrade process already requires a full reindex, which resolves this incompatibility.
 
 Search API Solr 4.3.x introduced fundamental schema changes (StandardTokenizer, `storeOffsetsWithPositions`) that are incompatible with indexes created by 4.2.x or earlier. After upgrading, if you encounter the following error:
 
