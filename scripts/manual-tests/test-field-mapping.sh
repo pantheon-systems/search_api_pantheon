@@ -143,13 +143,6 @@ git push origin "$CURRENT_BRANCH" || {
 log_info "Waiting for code deployment workflow..."
 terminus workflow:wait --max=120 "$SITE.$ENV"
 
-# pantheon.yml with search.version triggers Solr provisioning automatically on push.
-# Calling solr:enable on top of that causes a hang because the upgrade is already in progress.
-# Instead, wait for the provisioning workflow to complete.
-log_info "Waiting for Solr provisioning to complete..."
-terminus workflow:wait --max=120 "$SITE.$ENV"
-sleep 10
-
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
 
