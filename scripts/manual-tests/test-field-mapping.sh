@@ -141,7 +141,7 @@ git push origin "$CURRENT_BRANCH" || {
 }
 
 log_info "Waiting for code deployment workflow..."
-terminus workflow:wait --max=120 "$SITE.$ENV"
+terminus workflow:wait --max=300 "$SITE.$ENV"
 
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
