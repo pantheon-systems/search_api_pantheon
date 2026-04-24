@@ -91,12 +91,6 @@ terminus local:clone "$SITE"
 # Navigate to the local copy
 cd "$HOME/pantheon-local-copies/$SITE"
 
-# Reset any leftover changes from previous test runs (staged, unstaged, or in-progress operations)
-git revert --abort 2>/dev/null || true
-git merge --abort 2>/dev/null || true
-git reset --hard HEAD
-git clean -fd
-
 # Checkout the multidev branch
 log_info "Checking out multidev branch: $ENV..."
 git fetch origin
