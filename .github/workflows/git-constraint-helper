@@ -1,7 +1,19 @@
+# Convert a branch name to a Composer dev constraint.
+# Version-like branches (e.g. 8.x, 9.x, 1.0.x) use "<branch>-dev" format.
+# All other branches (e.g. solr-9-test, my-feature) use "dev-<branch>" format.
+_branch_to_constraint() {
+  local branch="$1"
+  if echo "$branch" | grep -qE '^v?[0-9]+(\.[0-9x]+)*$'; then
+    echo "${branch}-dev"
+  else
+    echo "dev-${branch}"
+  fi
+}
+
 get_current_constraint() {
   branch=$(git rev-parse --abbrev-ref HEAD | tr -d '[:space:]')
   if [ "$branch" != "HEAD" ]; then
-    echo "${branch}-dev"
+    _branch_to_constraint "$branch"
     return
   fi
 
@@ -15,7 +27,7 @@ get_current_constraint() {
     IFS='/' read -ra parts <<< "$GITHUB_HEAD_REF"
     branch="${parts[-1]}"
     if [ -n "$branch" ]; then
-      echo "${branch}-dev"
+      _branch_to_constraint "$branch"
       return
     fi
   fi

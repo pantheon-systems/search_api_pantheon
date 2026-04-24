@@ -3,8 +3,10 @@
 # Uses a stable site and creates temporary multidev environments for testing
 # Environment variables:
 #   TEST_SITE (required): Base site name without environment suffix
-# Example:
+#   SOLR_VERSION (optional): Solr version to test against (default: 8)
+# Examples:
 #   TEST_SITE=my-stable-site ./run-multidev-tests.sh
+#   TEST_SITE=my-stable-site SOLR_VERSION=9 ./run-multidev-tests.sh
 
 set -e
 
@@ -15,6 +17,7 @@ if [ -z "$TEST_SITE" ]; then
 fi
 
 SITE="$TEST_SITE"
+SOLR_VERSION="${SOLR_VERSION:-8}"
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" =~ \.(dev|test|live)$ ]]; then
@@ -118,7 +121,7 @@ run_test_suite() {
   fi
 }
 
-echo "Test: $SITE ($MULTIDEV1, $MULTIDEV2) - $(date +%H:%M:%S)"
+echo "Test: $SITE ($MULTIDEV1, $MULTIDEV2) Solr $SOLR_VERSION - $(date +%H:%M:%S)"
 
 # Verify site exists
 if ! terminus site:info "$SITE" >/dev/null 2>&1; then
@@ -163,10 +166,11 @@ echo ""
 
 # Suite 1: Field Mapping Tests (on first multidev)
 run_test_suite \
-  "Field Mapping Tests" \
+  "Field Mapping Tests (Solr $SOLR_VERSION)" \
   "$SCRIPT_DIR/test-field-mapping.sh" \
   "$SITE" \
-  "$MULTIDEV1" || true
+  "$MULTIDEV1" \
+  "$SOLR_VERSION" || true
 
 # Suite 2: Environment Parity Tests (between multidevs)
 run_test_suite \

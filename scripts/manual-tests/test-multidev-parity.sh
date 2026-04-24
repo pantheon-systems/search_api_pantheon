@@ -25,16 +25,18 @@ TESTS_FAILED=0
 
 echo "Parity: $SITE ($MULTIDEV1, $MULTIDEV2)"
 
-# Arrays to store results
-declare -A ENV_HOSTS
-declare -A ENV_PORTS
-declare -A ENV_PATHS
-declare -A ENV_CORES_FULL
+# Portable variables (no associative arrays - bash 3 compatible)
+HOST_1="" HOST_2=""
+PORT_1="" PORT_2=""
+PATH_1="" PATH_2=""
+CORE_1="" CORE_2=""
 
 # Disable exit on error for test assertions
 set +e
 
+ENV_INDEX=0
 for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
+  ((ENV_INDEX++))
   echo "Testing: $ENV"
 
   # Check if environment exists
@@ -52,31 +54,37 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
     echo 'CORE=' . getenv('PANTHEON_INDEX_CORE') . PHP_EOL;
   " 2>/dev/null | grep -v "\[" | grep -v "WARNING")
 
-  ENV_HOSTS[$ENV]=$(echo "$ENV_VARS" | grep "^HOST=" | cut -d= -f2)
-  ENV_PORTS[$ENV]=$(echo "$ENV_VARS" | grep "^PORT=" | cut -d= -f2)
-  ENV_PATHS[$ENV]=$(echo "$ENV_VARS" | grep "^PATH=" | cut -d= -f2)
-  ENV_CORES_FULL[$ENV]=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
+  CUR_HOST=$(echo "$ENV_VARS" | grep "^HOST=" | cut -d= -f2)
+  CUR_PORT=$(echo "$ENV_VARS" | grep "^PORT=" | cut -d= -f2)
+  CUR_PATH=$(echo "$ENV_VARS" | grep "^PATH=" | cut -d= -f2)
+  CUR_CORE=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
+
+  if [ "$ENV_INDEX" -eq 1 ]; then
+    HOST_1="$CUR_HOST"; PORT_1="$CUR_PORT"; PATH_1="$CUR_PATH"; CORE_1="$CUR_CORE"
+  else
+    HOST_2="$CUR_HOST"; PORT_2="$CUR_PORT"; PATH_2="$CUR_PATH"; CORE_2="$CUR_CORE"
+  fi
 
   # Validate environment variables
-  if [ -z "${ENV_HOSTS[$ENV]}" ] || [ "${ENV_HOSTS[$ENV]}" = "false" ]; then
+  if [ -z "$CUR_HOST" ] || [ "$CUR_HOST" = "false" ]; then
     echo -e "${RED}PANTHEON_INDEX_HOST not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
-  if [ -z "${ENV_PORTS[$ENV]}" ] || [ "${ENV_PORTS[$ENV]}" = "false" ]; then
+  if [ -z "$CUR_PORT" ] || [ "$CUR_PORT" = "false" ]; then
     echo -e "${RED}PANTHEON_INDEX_PORT not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
-  if [ -z "${ENV_PATHS[$ENV]}" ] || [ "${ENV_PATHS[$ENV]}" = "false" ]; then
+  if [ -z "$CUR_PATH" ] || [ "$CUR_PATH" = "false" ]; then
     echo -e "${RED}PANTHEON_INDEX_PATH not set${NC}"
     ((TESTS_FAILED++))
     continue
   fi
 
-  if [ -z "${ENV_CORES_FULL[$ENV]}" ] || [ "${ENV_CORES_FULL[$ENV]}" = "false" ]; then
+  if [ -z "$CUR_CORE" ] || [ "$CUR_CORE" = "false" ]; then
     echo -e "${RED}PANTHEON_INDEX_CORE not set${NC}"
     ((TESTS_FAILED++))
     continue
@@ -85,7 +93,7 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   ((TESTS_PASSED++))
 
   # Extract Solr core name from CORE path
-  CORE_NAME=$(echo "${ENV_CORES_FULL[$ENV]}" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
+  CORE_NAME=$(echo "$CUR_CORE" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
 
   # Validate core name matches environment
   if [ "$CORE_NAME" = "$ENV" ]; then
@@ -108,8 +116,8 @@ echo ""
 echo "Cross-env:"
 
 # Test 1: Different Solr cores
-if [ -n "${ENV_CORES_FULL[$MULTIDEV1]}" ] && [ -n "${ENV_CORES_FULL[$MULTIDEV2]}" ]; then
-  if [ "${ENV_CORES_FULL[$MULTIDEV1]}" != "${ENV_CORES_FULL[$MULTIDEV2]}" ]; then
+if [ -n "$CORE_1" ] && [ -n "$CORE_2" ]; then
+  if [ "$CORE_1" != "$CORE_2" ]; then
     echo -e "${GREEN}Different cores${NC}"
     ((TESTS_PASSED++))
   else
@@ -119,7 +127,7 @@ if [ -n "${ENV_CORES_FULL[$MULTIDEV1]}" ] && [ -n "${ENV_CORES_FULL[$MULTIDEV2]}
 fi
 
 # Test 2: Same host and port
-if [ "${ENV_HOSTS[$MULTIDEV1]}" = "${ENV_HOSTS[$MULTIDEV2]}" ]; then
+if [ "$HOST_1" = "$HOST_2" ]; then
   echo -e "${GREEN}Same host${NC}"
   ((TESTS_PASSED++))
 else
@@ -127,7 +135,7 @@ else
   ((TESTS_FAILED++))
 fi
 
-if [ "${ENV_PORTS[$MULTIDEV1]}" = "${ENV_PORTS[$MULTIDEV2]}" ]; then
+if [ "$PORT_1" = "$PORT_2" ]; then
   echo -e "${GREEN}Same port${NC}"
   ((TESTS_PASSED++))
 else

@@ -6,17 +6,26 @@
 set -e
 
 if [ -z "$1" ]; then
-  echo "Usage: $0 SITE_NAME [ENVIRONMENT]"
-  echo "Example: $0 my-test-site"   # defaults to dev
-  echo "Example: $0 my-test-site ci-abc12" # multidev
+  echo "Usage: $0 SITE_NAME [ENVIRONMENT] [SOLR_VERSION]"
+  echo "Example: $0 my-test-site"              # defaults to dev, Solr 8
+  echo "Example: $0 my-test-site dev 9"        # Solr 9
+  echo "Example: $0 my-test-site ci-abc12 9"   # multidev, Solr 9
   echo ""
   echo "Note: Use site name only, WITHOUT environment suffix (.dev/.test/.live)"
   echo "      Environment defaults to 'dev' if not specified"
+  echo "      Solr version defaults to SOLR_VERSION env var, or 8"
   exit 1
 fi
 
 SITE="$1"
 ENV="${2:-dev}"
+SOLR_VERSION="${3:-${SOLR_VERSION:-8}}"
+
+# Resolve composer constraint from current branch/tag
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+. "$REPO_ROOT/.github/workflows/git-constraint-helper"
+CONSTRAINT=$(get_current_constraint)
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
@@ -67,7 +76,7 @@ test_result() {
   fi
 }
 
-echo "Field Mapping: $SITE.$ENV"
+echo "Field Mapping: $SITE.$ENV (Solr $SOLR_VERSION, constraint $CONSTRAINT)"
 
 # Step 1: Install required modules
 log_info "Step 1: Installing required modules"
@@ -95,15 +104,15 @@ cat pantheon.yml
 
 cat >> pantheon.yml <<EOF
 search:
-  version: 8
+  version: $SOLR_VERSION
 EOF
 
 echo "After modification:"
 cat pantheon.yml
 
 # Install modules via Composer
-log_info "Installing search_api_pantheon 8.4.x-dev via Composer..."
-composer require "pantheon-systems/search_api_pantheon:8.4.x-dev" -n
+log_info "Installing search_api_pantheon ($CONSTRAINT) via Composer..."
+composer require "pantheon-systems/search_api_pantheon:$CONSTRAINT" -n
 
 log_info "Committing and pushing changes..."
 git add -A
@@ -132,13 +141,7 @@ git push origin "$CURRENT_BRANCH" || {
 }
 
 log_info "Waiting for code deployment workflow..."
-terminus workflow:wait --max=60 "$SITE.$ENV"
-
-# Enable Solr AFTER code deployment so pantheon.yml is processed first. Sleep needed to avoid race condition
-log_info "Enabling Solr..."
-terminus solr:enable "$SITE"
-log_info "Waiting for Solr to be provisioned..."
-sleep 5
+terminus workflow:wait --max=300 "$SITE.$ENV"
 
 log_info "Enabling modules..."
 terminus drush "$SITE.$ENV" -- pm:enable search_api search_api_solr search_api_pantheon -y
