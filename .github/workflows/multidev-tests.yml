@@ -1,0 +1,78 @@
+name: Multidev Tests
+on:
+  pull_request:
+    branches: [ 8.x ]
+  workflow_dispatch:
+    inputs:
+      solr_version:
+        description: 'Solr version to test (leave empty for matrix)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - '8'
+          - '9'
+      drupal_version:
+        description: 'Drupal version to test (leave empty for matrix)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - '10'
+          - '11'
+
+jobs:
+  multidev_test:
+    strategy:
+      matrix:
+        drupal-version: ${{ fromJSON(github.event.inputs.drupal_version && format('[{0}]', github.event.inputs.drupal_version) || '[10, 11]') }}
+        solr-version: ${{ fromJSON(github.event.inputs.solr_version && format('[{0}]', github.event.inputs.solr_version) || '[8, 9]') }}
+      fail-fast: false
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
+      options: --user root
+    name: Drupal ${{ matrix.drupal-version }}, Solr ${{ matrix.solr-version }}
+    env:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      GIT_EMAIL: "test@pantheon.com"
+      GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      BASH_ENV: ~/.bashrc
+      DRUPAL_VERSION: ${{ matrix.drupal-version }}
+      SOLR_VERSION: ${{ matrix.solr-version }}
+    steps:
+
+      - name: Configure git and SSH
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "Github Actions"
+          git config --global --add safe.directory '*'
+          mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
+
+      - name: Log in to Terminus
+        run: |
+          terminus auth:login --machine-token="$TERMINUS_TOKEN"
+          terminus auth:whoami
+
+      - name: Setup SSH Keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Select test site
+        id: site
+        run: |
+          if [ "$DRUPAL_VERSION" = "10" ]; then
+            echo "TEST_SITE=${{ secrets.TEST_SITE_D10 }}" >> "$GITHUB_ENV"
+          else
+            echo "TEST_SITE=${{ secrets.TEST_SITE_D11 }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run multidev tests
+        run: |
+          TEST_SITE="$TEST_SITE" SOLR_VERSION="$SOLR_VERSION" ./scripts/manual-tests/run-multidev-tests.sh
