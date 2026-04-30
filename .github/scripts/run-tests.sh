@@ -9,6 +9,7 @@ fi
 SITE_ENV="${TERMINUS_SITE}.${MULTIDEV_ENV}"
 FAILED=0
 
+# Wait for Solr to be reachable (may lag behind code deployment)
 echo "::group::Wait for Solr readiness"
 for i in $(seq 1 10); do
   if terminus drush "$SITE_ENV" -- search-api-pantheon:select '*' 2>/dev/null | grep -q numFound; then
@@ -24,6 +25,7 @@ for i in $(seq 1 10); do
 done
 echo "::endgroup::"
 
+# Post schema before indexing content (per module docs: schema first, then index)
 echo "::group::Test schema post"
 SOLR_VER="${SOLR_VERSION:-8}"
 SCHEMA_PATH="/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VER}/config-set"
@@ -45,11 +47,13 @@ for attempt in $(seq 1 $MAX_RETRIES); do
 done
 echo "::endgroup::"
 
+# Generate test content using devel_generate module
 echo "::group::Generate test content"
 echo "Generating five nodes..."
 terminus drush "$SITE_ENV" -- genc 5
 echo "::endgroup::"
 
+# Verify Search API tracked the indexed items
 echo "::group::Verify Search API index"
 INDEXED=$(terminus drush "$SITE_ENV" -- sapi-s primary --fields=total --format=string)
 if [ "$INDEXED" != "5" ]; then
@@ -61,6 +65,7 @@ else
 fi
 echo "::endgroup::"
 
+# Verify documents reached Solr by querying directly
 echo "::group::Verify Solr document count"
 FOUND=$(terminus drush "$SITE_ENV" -- search-api-pantheon:select '*' | grep -v notice | jq .response.numFound)
 if [ "$FOUND" != "5" ]; then

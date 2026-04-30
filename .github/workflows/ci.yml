@@ -82,13 +82,28 @@ jobs:
       SOLR_VERSION: ${{ matrix.solr-version }}
       TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || vars.PANTHEON_SITE_D11 }}
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
-      TERMINUS_VERSION: ${{ matrix.php-version >= '8.4' && '4.1.4' || '3.5.1' }}
+      TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:
-      - name: Set multidev name
+      - name: Set multidev name and composer constraint
         run: |
+          # Multidev name: d{drupal}p{php}s{solr}-{run} e.g. d10p81s8-42 (max 11 chars, truncated in script)
           PHP_SHORT=$(echo "$PHP_VERSION" | tr -d '.')
           echo "MULTIDEV_NAME=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          # Prefix used by cleanup script to find stale multidevs from prior runs
           echo "MULTIDEV_PREFIX=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-" >> $GITHUB_ENV
+
+          # Convert git ref to a composer version constraint:
+          #   Tags (e.g. 8.5.0-beta1)        -> use as-is: 8.5.0-beta1
+          #   Version-like branches (e.g. 8.5.x) -> branch-dev format: 8.5.x-dev
+          #   Other branches (e.g. my-feature)   -> dev-branch format: dev-my-feature
+          REF="${{ github.head_ref || github.ref_name }}"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "GIT_CONSTRAINT=${REF}" >> $GITHUB_ENV
+          elif echo "$REF" | grep -qE '^v?[0-9]+(\.[0-9x]+)*$'; then
+            echo "GIT_CONSTRAINT=${REF}-dev" >> $GITHUB_ENV
+          else
+            echo "GIT_CONSTRAINT=dev-${REF}" >> $GITHUB_ENV
+          fi
 
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -99,12 +114,13 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
 
       - name: Install Terminus
-        run: |
-          mkdir -p $HOME/.terminus/plugins
-          curl -L https://github.com/pantheon-systems/terminus/releases/download/${TERMINUS_VERSION}/terminus.phar --output terminus
-          chmod +x terminus
-          sudo mv terminus /usr/local/bin/terminus
-          terminus --version
+        uses: pantheon-systems/terminus-github-actions@409451ede17f75acac08f42edc823fee6c435057 # v1.2.8
+        with:
+          pantheon-machine-token: ${{env.TERMINUS_TOKEN}}
+          terminus-version: ${{env.TERMINUS_VERSION}}
+      
+      - name: Verify Terminus auth                                                                                                            
+        run: terminus auth:whoami 
 
       - name: Setup Git
         run: |
@@ -112,18 +128,13 @@ jobs:
           git config --global user.name "Github Actions"
           git config --global --add safe.directory '*'
 
-      - name: Log in to Terminus
-        run: |
-          terminus auth:login --machine-token="$TERMINUS_TOKEN"
-          terminus auth:whoami
-
       - name: Setup SSH Keys
         uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ env.PANTHEON_CI_SSH_KEY }}
 
       - name: Create multidev environment
-        run: .github/scripts/create-multidev.sh "$MULTIDEV_NAME" "$TERMINUS_SITE" "$GITHUB_ENV" "dev-${{ github.head_ref || github.ref_name }}" "$PHP_VERSION"
+        run: .github/scripts/create-multidev.sh "$MULTIDEV_NAME" "$TERMINUS_SITE" "$GITHUB_ENV" "$GIT_CONSTRAINT" "$PHP_VERSION"
 
       - name: Show PHP versions
         run: |
@@ -134,7 +145,7 @@ jobs:
         run: bash .github/scripts/run-tests.sh
 
       - name: Cleanup old CI multidevs
-        if: always()
+        if: success()
         run: bash .github/scripts/cleanup-multidevs.sh "$MULTIDEV_PREFIX" "${MULTIDEV_ENV:-}"
 
   mirror_do:

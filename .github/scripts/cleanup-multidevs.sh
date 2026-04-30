@@ -1,8 +1,11 @@
 #!/bin/bash
 set -eo pipefail
 
-PREFIX="$1"
-CURRENT_ENV="${2:-}"
+# Delete stale CI multidevs matching the prefix, except the current one.
+# Runs with "if: always()" so it cleans up even when tests fail.
+
+PREFIX="$1"          # e.g. "d10p81s8-" (matches all multidevs for this matrix combo)
+CURRENT_ENV="${2:-}" # e.g. "d10p81s8-25" (skip this one, it's the current run)
 
 if [[ -z "$TERMINUS_SITE" || -z "$PREFIX" ]]; then
   echo "::error::TERMINUS_SITE and PREFIX (arg 1) must be set."
