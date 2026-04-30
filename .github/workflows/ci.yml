@@ -80,7 +80,7 @@ jobs:
       PANTHEON_CI_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
       PHP_VERSION: ${{ matrix.php-version }}
       SOLR_VERSION: ${{ matrix.solr-version }}
-      TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || vars.PANTHEON_SITE_D11 }}
+      TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.TEST_SITE_D10 || vars.TEST_SITE_D11 }}
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:
