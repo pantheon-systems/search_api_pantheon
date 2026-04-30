@@ -1,4 +1,12 @@
 name: Search API Pantheon
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 'ci-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
 on:
   push:
   repository_dispatch:
@@ -10,32 +18,25 @@ on:
         description: Enable tmate debugging
         required: true
         default: "0"
+
 jobs:
   linting:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
-      options: --user root
-    name: Code linting
-    env:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
-      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
-      TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: "test@pantheon.com"
-      GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      COMMIT_SHA: ${{ github.sha }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
-      BASH_ENV: ~/.bashrc
+    strategy:
+      matrix:
+        php-version: ["8.1", "8.5"]
+    name: Code linting (PHP ${{ matrix.php-version }})
     steps:
-
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: ${{ matrix.php-version }}
 
       - name: Composer install
-        run: composer install
+        run: composer install --ignore-platform-reqs
 
       - name: Code sniff
         run: composer run-script code:lint
@@ -44,45 +45,72 @@ jobs:
     runs-on: ubuntu-latest
     name: PHP Compatibility
     steps:
-
       - name: PHPCompatibility
-        uses: pantheon-systems/phpcompatibility-action@v1
+        uses: pantheon-systems/phpcompatibility-action@44be5a8381691b9a209404a3f45df8254f1ce08f # v1
         with:
-          test-versions: 8.1
+          test-versions: 8.1-
 
-  build_test:
+  deploy_multidev:
+    # Test combinations (floor + ceiling per Drupal version, both Solr versions):
+    #   Drupal 10: PHP 8.1, 8.4
+    #   Drupal 11: PHP 8.3, 8.5
+    #   Each tested with Solr 8 and 9
     strategy:
       matrix:
         drupal-version: [ 10, 11 ]
+        php-version: [ "8.1", "8.3", "8.4", "8.5" ]
         solr-version: [ 8, 9 ]
+        exclude:
+          - drupal-version: 10
+            php-version: "8.3"
+          - drupal-version: 10
+            php-version: "8.5"
+          - drupal-version: 11
+            php-version: "8.1"
+          - drupal-version: 11
+            php-version: "8.4"
       fail-fast: false
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/pantheon-public/build-tools-ci:8.x-php8.1
-      options: --user root
-    name: Build and test (Drupal ${{ matrix.drupal-version }}, Solr ${{ matrix.solr-version }})
+    name: Multidev test (Drupal ${{ matrix.drupal-version }}, PHP ${{ matrix.php-version }}, Solr ${{ matrix.solr-version }})
+    needs: [linting, phpcompatibility]
     env:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
-      TERMINUS_SITE: ${{ secrets.TERMINUS_SITE }}
-      TERMINUS_ORG: ${{ secrets.TERMINUS_ORG }}
-      GIT_EMAIL: "test@pantheon.com"
-      GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      COMMIT_SHA: ${{ github.sha }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SANDBOX_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
-      BASH_ENV: ~/.bashrc
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      PANTHEON_CI_SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
+      PHP_VERSION: ${{ matrix.php-version }}
       SOLR_VERSION: ${{ matrix.solr-version }}
+      TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || vars.PANTHEON_SITE_D11 }}
+      TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+      TERMINUS_VERSION: ${{ matrix.php-version >= '8.4' && '4.1.4' || '3.5.1' }}
     steps:
+      - name: Set multidev name
+        run: |
+          PHP_SHORT=$(echo "$PHP_VERSION" | tr -d '.')
+          echo "MULTIDEV_NAME=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          echo "MULTIDEV_PREFIX=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-" >> $GITHUB_ENV
 
-      - name: Login
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Install Terminus
+        run: |
+          mkdir -p $HOME/.terminus/plugins
+          curl -L https://github.com/pantheon-systems/terminus/releases/download/${TERMINUS_VERSION}/terminus.phar --output terminus
+          chmod +x terminus
+          sudo mv terminus /usr/local/bin/terminus
+          terminus --version
+
+      - name: Setup Git
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "Github Actions"
           git config --global --add safe.directory '*'
-          mkdir -p /root/.ssh && echo "${{ secrets.SSH_CONFIG }}" >> "/root/.ssh/config"
 
       - name: Log in to Terminus
         run: |
@@ -90,46 +118,42 @@ jobs:
           terminus auth:whoami
 
       - name: Setup SSH Keys
-        uses: webfactory/ssh-agent@v0.5.3
+        uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
-          ssh-private-key: ${{ secrets.SANDBOX_SSH_KEY }}
+          ssh-private-key: ${{ env.PANTHEON_CI_SSH_KEY }}
 
-      - name: Prepare environment variables
-        id: prepare_env_vars
+      - name: Create multidev environment
+        run: .github/scripts/create-multidev.sh "$MULTIDEV_NAME" "$TERMINUS_SITE" "$GITHUB_ENV" "dev-${{ github.head_ref || github.ref_name }}" "$PHP_VERSION"
+
+      - name: Show PHP versions
         run: |
-          # dsapip is short for Drupal Search API Pantheon.
-          echo "SITE=dsapip-$DRUPAL_VERSION-$(printf '%x' $(date +%s%N))" >> "$GITHUB_ENV"
-
-      - name: Checkout code
-        uses: actions/checkout@v3
+          echo "Runner PHP: $(php -v | head -1)"
+          echo "Multidev PHP: $(terminus drush $TERMINUS_SITE.$MULTIDEV_ENV -- ev "echo 'PHP ' . PHP_VERSION;")"
 
       - name: Run tests
-        run: |
-          ./.github/workflows/ci.sh
+        run: bash .github/scripts/run-tests.sh
 
-      - name: Cleanup sites
-        if: ${{ always() }}
-        run: |
-          terminus -y site:delete $SITE
+      - name: Cleanup old CI multidevs
+        if: always()
+        run: bash .github/scripts/cleanup-multidevs.sh "$MULTIDEV_PREFIX" "${MULTIDEV_ENV:-}"
 
   mirror_do:
     runs-on: ubuntu-latest
     name: Checkout & push to remote
     if: ${{ github.repository == 'pantheon-systems/search_api_pantheon' }}
-    needs: [ build_test ]
+    needs: [ deploy_multidev ]
     env:
       BRANCH: ${{ github.ref_name }}
       WORKSPACE: ${{ github.workspace }}
       DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
     steps:
-
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+        uses: shimataro/ssh-key-action@87a8f067114a8ce263df83e9ed5c849953548bc3 # v2
         with:
           key: ${{ secrets.SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
