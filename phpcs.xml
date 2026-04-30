@@ -12,21 +12,19 @@
     <exclude name="Drupal.Arrays.Array.ArrayIndentation"/>
     <exclude name="Drupal.Arrays.Array.LongLineDeclaration"/>
   </rule>
-  <rule ref="Drupal.Classes.ClassCreateInstance"/>
+  <rule ref="SlevomatCodingStandard.ControlStructures.NewWithParentheses"/>
   <rule ref="Drupal.Classes.ClassDeclaration"/>
-  <rule ref="Drupal.Classes.ClassFileName"/>
+  <rule ref="Squiz.Classes.ClassFileName"/>
   <rule ref="Drupal.Classes.FullyQualifiedNamespace"/>
-  <rule ref="Drupal.Classes.InterfaceName"/>
+  <rule ref="Generic.NamingConventions.InterfaceNameSuffix"/>
   <rule ref="Drupal.Classes.PropertyDeclaration"/>
-  <rule ref="Drupal.Classes.UnusedUseStatement"/>
+  <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"/>
+  <rule ref="SlevomatCodingStandard.Namespaces.UseFromSameNamespace"/>
   <rule ref="Drupal.Classes.UseGlobalClass"/>
-  <rule ref="Drupal.Classes.UseLeadingBackslash"/>
-  <rule ref="Drupal.CSS.ClassDefinitionNameSpacing"/>
-  <rule ref="Drupal.CSS.ColourDefinition"/>
+  <rule ref="SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash"/>
   <rule ref="Drupal.Commenting.ClassComment">
     <exclude name="Drupal.Commenting.ClassComment.Missing"/>
   </rule>
-  <rule ref="Drupal.Commenting.DataTypeNamespace"/>
   <rule ref="Drupal.Commenting.Deprecated"/>
   <rule ref="Drupal.Commenting.DocComment">
     <!-- Sniff for these errors: SpacingAfterTagGroup, WrongEnd, SpacingBetween,
@@ -74,9 +72,9 @@
     <exclude name="Drupal.Commenting.InlineComment.SpacingBefore"/>
   </rule>
   <rule ref="Drupal.Commenting.PostStatementComment"/>
-  <rule ref="Drupal.ControlStructures.ElseIf"/>
+  <rule ref="PSR2.ControlStructures.ElseIfDeclaration"/>
   <rule ref="Drupal.ControlStructures.ControlSignature"/>
-  <rule ref="Drupal.ControlStructures.InlineControlStructure"/>
+  <rule ref="Generic.ControlStructures.InlineControlStructure"/>
   <rule ref="Drupal.Files.EndFileNewline"/>
   <rule ref="Drupal.Files.FileEncoding"/>
   <rule ref="Drupal.Files.TxtFileLineLength"/>
@@ -85,16 +83,11 @@
   <rule ref="Drupal.Formatting.SpaceInlineIf"/>
   <rule ref="Drupal.Formatting.SpaceUnaryOperator"/>
   <rule ref="Drupal.Functions.DiscouragedFunctions"/>
-  <rule ref="Drupal.Functions.FunctionDeclaration"/>
   <rule ref="Drupal.InfoFiles.AutoAddedKeys"/>
   <rule ref="Drupal.InfoFiles.ClassFiles"/>
   <rule ref="Drupal.InfoFiles.DuplicateEntry"/>
   <rule ref="Drupal.InfoFiles.Required"/>
-  <rule ref="Drupal.Methods.MethodDeclaration">
-    <!-- Silence method name underscore warning which is covered already in
-      Drupal.NamingConventions.ValidFunctionName.ScopeNotCamelCaps. -->
-    <exclude name="Drupal.Methods.MethodDeclaration.Underscore"/>
-  </rule>
+  <rule ref="PSR2.Methods.MethodDeclaration"/>
   <rule ref="Drupal.NamingConventions.ValidVariableName">
     <!-- Sniff for: LowerStart -->
     <exclude name="Drupal.NamingConventions.ValidVariableName.LowerCamelName"/>
@@ -112,11 +105,11 @@
   <rule ref="Drupal.Semantics.RemoteAddress"/>
   <rule ref="Drupal.Semantics.TInHookMenu"/>
   <rule ref="Drupal.Semantics.TInHookSchema"/>
-  <rule ref="Drupal.Strings.UnnecessaryStringConcat"/>
+  <rule ref="Generic.Strings.UnnecessaryStringConcat"/>
   <rule ref="Drupal.WhiteSpace.CloseBracketSpacing"/>
   <rule ref="Drupal.WhiteSpace.Comma"/>
   <rule ref="Drupal.WhiteSpace.EmptyLines"/>
-  <rule ref="Drupal.WhiteSpace.Namespace"/>
+  <rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
   <rule ref="Drupal.WhiteSpace.ObjectOperatorIndent"/>
   <rule ref="Drupal.WhiteSpace.ObjectOperatorSpacing"/>
   <rule ref="Drupal.WhiteSpace.OpenBracketSpacing"/>
@@ -156,9 +149,6 @@
     <!-- No PHP code in *.yml -->
     <exclude-pattern>*.yml</exclude-pattern>
   </rule>
-
-  <!-- MySource sniffs -->
-  <rule ref="MySource.Debug.DebugCode"/>
 
   <!-- PEAR sniffs -->
   <rule ref="PEAR.Files.IncludingFile"/>
@@ -347,7 +337,7 @@
       <property name="spacing" value="1"/>
     </properties>
   </rule>
-  <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
+  <rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
   <rule ref="Squiz.WhiteSpace.OperatorSpacing">
     <properties>
       <property name="ignoreNewlines" value="true"/>
