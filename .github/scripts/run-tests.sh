@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eo pipefail
 
+# Integration tests for search_api_pantheon on a Pantheon multidev environment.
+# Test order follows module docs: schema post first, then generate content, then verify.
+# Reads TERMINUS_SITE, MULTIDEV_ENV, and SOLR_VERSION from environment (set by ci.yml).
+
 if [[ -z "$TERMINUS_SITE" || -z "$MULTIDEV_ENV" ]]; then
   echo "::error::TERMINUS_SITE and MULTIDEV_ENV must be set."
   exit 1
@@ -9,7 +13,8 @@ fi
 SITE_ENV="${TERMINUS_SITE}.${MULTIDEV_ENV}"
 FAILED=0
 
-# Wait for Solr to be reachable (may lag behind code deployment)
+# Solr may not be immediately available after multidev creation/code push.
+# Poll until the select query returns results (up to ~2.5 minutes).
 echo "::group::Wait for Solr readiness"
 for i in $(seq 1 10); do
   if terminus drush "$SITE_ENV" -- search-api-pantheon:select '*' 2>/dev/null | grep -q numFound; then
@@ -25,7 +30,9 @@ for i in $(seq 1 10); do
 done
 echo "::endgroup::"
 
-# Post schema before indexing content (per module docs: schema first, then index)
+# Post the Solr schema config set. Must happen before content generation,
+# otherwise Solr may be busy indexing with the wrong schema.
+# Retries handle transient 502s from Solr endpoint availability.
 echo "::group::Test schema post"
 SOLR_VER="${SOLR_VERSION:-8}"
 SCHEMA_PATH="/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VER}/config-set"
@@ -47,13 +54,13 @@ for attempt in $(seq 1 $MAX_RETRIES); do
 done
 echo "::endgroup::"
 
-# Generate test content using devel_generate module
+# Generate test content using devel_generate module (installed by create-multidev.sh)
 echo "::group::Generate test content"
 echo "Generating five nodes..."
 terminus drush "$SITE_ENV" -- genc 5
 echo "::endgroup::"
 
-# Verify Search API tracked the indexed items
+# Verify Drupal's Search API tracked the generated content
 echo "::group::Verify Search API index"
 INDEXED=$(terminus drush "$SITE_ENV" -- sapi-s primary --fields=total --format=string)
 if [ "$INDEXED" != "5" ]; then
@@ -65,7 +72,7 @@ else
 fi
 echo "::endgroup::"
 
-# Verify documents reached Solr by querying directly
+# Verify documents actually reached the Solr backend (not just tracked by Drupal)
 echo "::group::Verify Solr document count"
 FOUND=$(terminus drush "$SITE_ENV" -- search-api-pantheon:select '*' | grep -v notice | jq .response.numFound)
 if [ "$FOUND" != "5" ]; then

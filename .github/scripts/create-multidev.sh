@@ -1,25 +1,29 @@
 #!/bin/bash
 set -euo pipefail
 
+# Create a Pantheon multidev environment for CI testing.
+# Clones the base site's dev environment, installs the module under test
+# via Composer, configures PHP/Solr versions, and enables the module.
+
 # Arguments
-MULTIDEV_NAME="$1"       # Full multidev name (may exceed 11 chars)
-TERMINUS_SITE="$2"       # Pantheon site name (e.g. search-api-pantheon-d10)
+MULTIDEV_NAME="$1"       # Full multidev name (may exceed 11 chars, truncated below)
+TERMINUS_SITE="$2"       # Pantheon site name (e.g. d10-search-api-pantheon)
 GITHUB_ENV_FILE="${3:-${GITHUB_ENV:-}}"  # Path to $GITHUB_ENV file for exporting vars
-GIT_REF="${4:-dev-8.5.x}" # Composer version constraint for the module
+GIT_REF="${4:-dev-8.5.x}" # Composer version constraint (e.g. dev-my-branch, 8.5.x-dev, 8.5.0-beta1)
 PHP_VERSION="${5:-}"      # PHP version to set on the multidev (e.g. 8.1)
 
 # Pantheon multidev names are limited to 11 characters
 MULTIDEV="${MULTIDEV_NAME:0:11}"
 
-# Delete existing multidev if present (from a previous failed run)
+# Delete existing multidev if present (from a previous failed run with same truncated name)
 if terminus multidev:list "$TERMINUS_SITE" --format=list | grep -q "^$MULTIDEV$"; then
   terminus multidev:delete "$TERMINUS_SITE.$MULTIDEV" --delete-branch --yes
 fi
 
-# Create multidev from dev environment (inherits code, DB, Solr config)
+# Create multidev from dev environment (inherits code, database, and Solr config)
 terminus multidev:create "$TERMINUS_SITE.dev" "$MULTIDEV"
 
-# Clone the Pantheon site repo to push code changes
+# Clone the Pantheon site repo so we can push composer changes
 echo "Getting Pantheon git URL..."
 GIT_URL=$(terminus connection:info "$TERMINUS_SITE.$MULTIDEV" --field=git_url)
 echo "Git URL: $GIT_URL"
@@ -32,15 +36,17 @@ cd pantheon-site
 echo "Checking out branch $MULTIDEV..."
 git checkout "$MULTIDEV"
 
-# Add module via VCS repo so we can install branch builds (not just tagged releases)
+# Add module via VCS repo so we can install branch builds (not just tagged releases).
+# devel provides the genc (generate content) command used by run-tests.sh.
 composer config repositories.search_api_pantheon '{"type": "vcs", "url": "git@github.com:pantheon-systems/search_api_pantheon.git", "canonical": false}'
 composer require "pantheon-systems/search_api_pantheon:${GIT_REF}" drupal/devel:~5.4
 
 echo "Module installed at:"
 find . -path '*/search_api_pantheon/search_api_pantheon.info.yml' -not -path './vendor/*' | head -1
 
-# Remove nested .git dirs so Pantheon accepts the push
-# (VCS repos and some deps include their own .git which causes conflicts)
+# Remove nested .git dirs so Pantheon accepts the push.
+# Composer VCS repos and some dependencies include their own .git directories
+# which conflict with Pantheon's git-based deployment.
 if [ -d web/modules/contrib/search_api_pantheon/.git ]; then
   MODULE_INSTALL_PATH="web/modules/contrib/search_api_pantheon"
 elif [ -d modules/contrib/search_api_pantheon/.git ]; then
@@ -52,7 +58,8 @@ if [ -n "${MODULE_INSTALL_PATH:-}" ]; then
 fi
 rm -rf vendor/*/.git/
 
-# Set Solr version in pantheon.yml (SOLR_VERSION env var from CI matrix)
+# Set Solr version in pantheon.yml (SOLR_VERSION env var from CI matrix).
+# Must anchor sed to indented lines to avoid clobbering api_version.
 SOLR_VER="${SOLR_VERSION:-8}"
 echo "Setting Solr version to ${SOLR_VER}..."
 if [ -f pantheon.yml ]; then
@@ -79,7 +86,7 @@ if [ -n "$PHP_VERSION" ]; then
   fi
 fi
 
-# Push code to Pantheon and wait for deployment
+# Push code to Pantheon and wait for the platform build to complete
 git add .
 git commit -m "Add search_api_pantheon module (PHP ${PHP_VERSION:-default}, Solr ${SOLR_VER})"
 git push --set-upstream origin "$MULTIDEV"
@@ -89,9 +96,9 @@ cd ..
 echo "Waiting for Pantheon build to complete..."
 terminus workflow:wait "$TERMINUS_SITE.$MULTIDEV" --max=300
 
-# Enable the module and devel_generate (provides genc command for test content)
+# Enable the module and devel_generate (provides genc command for generating test content)
 echo "Enabling search_api_pantheon and devel_generate..."
 terminus drush "$TERMINUS_SITE.$MULTIDEV" -- pm:enable search_api_pantheon devel_generate -y
 
-# Export multidev env name for subsequent CI steps
+# Export the truncated multidev name for subsequent CI steps (run-tests.sh, cleanup)
 echo "MULTIDEV_ENV=$MULTIDEV" >> "$GITHUB_ENV_FILE"

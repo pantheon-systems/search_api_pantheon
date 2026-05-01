@@ -144,7 +144,11 @@ jobs:
       - name: Run tests
         run: bash .github/scripts/run-tests.sh
 
-      - name: Cleanup old CI multidevs
+      - name: Delete current multidev
+        if: success()
+        run: terminus multidev:delete "$TERMINUS_SITE.${MULTIDEV_ENV}" --delete-branch --yes || true
+
+      - name: Cleanup stale CI multidevs
         if: always()
         run: bash .github/scripts/cleanup-multidevs.sh "$MULTIDEV_PREFIX" "${MULTIDEV_ENV:-}"
 
