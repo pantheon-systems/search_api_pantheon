@@ -28,7 +28,7 @@ jobs:
     name: Code linting (PHP ${{ matrix.php-version }})
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
@@ -84,29 +84,14 @@ jobs:
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:
-      - name: Set multidev name and composer constraint
-        run: |
-          # Multidev name: d{drupal}p{php}s{solr}-{run} e.g. d10p81s8-42 (max 11 chars, truncated in script)
-          PHP_SHORT=$(echo "$PHP_VERSION" | tr -d '.')
-          echo "MULTIDEV_NAME=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          # Prefix used by cleanup script to find stale multidevs from prior runs
-          echo "MULTIDEV_PREFIX=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-" >> $GITHUB_ENV
-
-          # Convert git ref to a composer version constraint:
-          #   Tags (e.g. 8.5.0-beta1)        -> use as-is: 8.5.0-beta1
-          #   Version-like branches (e.g. 8.5.x) -> branch-dev format: 8.5.x-dev
-          #   Other branches (e.g. my-feature)   -> dev-branch format: dev-my-feature
-          REF="${{ github.head_ref || github.ref_name }}"
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "GIT_CONSTRAINT=${REF}" >> $GITHUB_ENV
-          elif echo "$REF" | grep -qE '^v?[0-9]+(\.[0-9x]+)*$'; then
-            echo "GIT_CONSTRAINT=${REF}-dev" >> $GITHUB_ENV
-          else
-            echo "GIT_CONSTRAINT=dev-${REF}" >> $GITHUB_ENV
-          fi
-
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set multidev name and composer constraint
+        run: .github/scripts/set-multidev-and-constraint.sh
+        env:
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+          GIT_REF_TYPE: ${{ github.ref_type }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
@@ -129,7 +114,7 @@ jobs:
           git config --global --add safe.directory '*'
 
       - name: Setup SSH Keys
-        uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ env.PANTHEON_CI_SSH_KEY }}
 
@@ -148,6 +133,10 @@ jobs:
         if: success()
         run: terminus multidev:delete "$TERMINUS_SITE.${MULTIDEV_ENV}" --delete-branch --yes || true
 
+      - name: Show multidev URL for investigation
+        if: ${{ failure() && env.MULTIDEV_ENV != '' }}
+        run: 'echo "Multidev URL: https://${MULTIDEV_ENV}-${TERMINUS_SITE}.pantheonsite.io"'
+
       - name: Cleanup stale CI multidevs
         if: always()
         run: bash .github/scripts/cleanup-multidevs.sh "$MULTIDEV_PREFIX" "${MULTIDEV_ENV:-}"
@@ -163,7 +152,7 @@ jobs:
       DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
