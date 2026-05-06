@@ -129,13 +129,23 @@ jobs:
       - name: Run tests
         run: bash .github/scripts/run-tests.sh
 
-      - name: Delete current multidev
+      - name: Run field mapping tests
+        run: bash .github/scripts/test-field-mapping.sh
+
+      - name: Run parity tests
+        run: bash scripts/manual-tests/test-multidev-parity.sh "$TERMINUS_SITE" "$MULTIDEV_ENV" "$PARITY_ENV"
+
+      - name: Delete current multidevs
         if: success()
-        run: terminus multidev:delete "$TERMINUS_SITE.${MULTIDEV_ENV}" --delete-branch --yes || true
+        run: |
+          terminus multidev:delete "$TERMINUS_SITE.${MULTIDEV_ENV}" --delete-branch --yes || true
+          terminus multidev:delete "$TERMINUS_SITE.${PARITY_ENV}" --delete-branch --yes || true
 
       - name: Show multidev URL for investigation
         if: ${{ failure() && env.MULTIDEV_ENV != '' }}
-        run: 'echo "Multidev URL: https://${MULTIDEV_ENV}-${TERMINUS_SITE}.pantheonsite.io"'
+        run: |
+          echo "Multidev URL: https://${MULTIDEV_ENV}-${TERMINUS_SITE}.pantheonsite.io"
+          echo "Parity URL: https://${PARITY_ENV}-${TERMINUS_SITE}.pantheonsite.io"
 
       - name: Cleanup stale CI multidevs
         if: always()

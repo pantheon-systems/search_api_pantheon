@@ -102,3 +102,14 @@ terminus drush "$TERMINUS_SITE.$MULTIDEV" -- pm:enable search_api_pantheon devel
 
 # Export the truncated multidev name for subsequent CI steps (run-tests.sh, cleanup)
 echo "MULTIDEV_ENV=$MULTIDEV" >> "$GITHUB_ENV_FILE"
+
+# Create a second bare multidev for parity testing.
+# No code push needed — it inherits code from dev like the first one did before our push.
+PARITY_NAME="${MULTIDEV_NAME}b"
+PARITY_ENV="${PARITY_NAME:0:11}"
+echo "Creating parity multidev: $PARITY_ENV"
+if terminus multidev:list "$TERMINUS_SITE" --format=list | grep -q "^$PARITY_ENV$"; then
+  terminus multidev:delete "$TERMINUS_SITE.$PARITY_ENV" --delete-branch --yes
+fi
+terminus multidev:create "$TERMINUS_SITE.dev" "$PARITY_ENV"
+echo "PARITY_ENV=$PARITY_ENV" >> "$GITHUB_ENV_FILE"
