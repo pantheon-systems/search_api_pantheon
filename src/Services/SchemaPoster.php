@@ -120,7 +120,6 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
-    // @codingStandardsIgnoreLine
 
   /**
    * Get the schema and config files for posting on the solr server.

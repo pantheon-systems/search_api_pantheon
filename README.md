@@ -32,7 +32,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 ## Requirements
 
 - Drupal 10 or 11
-- PHP 8.1 or later
+- PHP 8.1 or later (tested through PHP 8.5)
 - [Search API Solr](https://www.drupal.org/project/search_api_solr) 4.3.x
 - Hosting on Pantheon's platform
 - Composer-based workflow using one of the following:

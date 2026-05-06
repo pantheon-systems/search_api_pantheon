@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "php": ">=8.1",
         "drupal/search_api_solr": "^4.3"
     },
     "require-dev": {
@@ -18,11 +19,11 @@
     },
     "scripts": {
         "code:fix": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcbf . --ignore=vendor src modules"
         ],
         "code:lint": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcs --ignore=RoboFile.php,vendor . "
         ],
         "pre-commit": [
