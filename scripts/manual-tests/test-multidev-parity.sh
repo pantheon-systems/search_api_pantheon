@@ -28,7 +28,6 @@ echo "Parity: $SITE ($MULTIDEV1, $MULTIDEV2)"
 # Portable variables (no associative arrays - bash 3 compatible)
 HOST_1="" HOST_2=""
 PORT_1="" PORT_2=""
-PATH_1="" PATH_2=""
 CORE_1="" CORE_2=""
 
 # Disable exit on error for test assertions
@@ -60,9 +59,9 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   CUR_CORE=$(echo "$ENV_VARS" | grep "^CORE=" | cut -d= -f2-)
 
   if [ "$ENV_INDEX" -eq 1 ]; then
-    HOST_1="$CUR_HOST"; PORT_1="$CUR_PORT"; PATH_1="$CUR_PATH"; CORE_1="$CUR_CORE"
+    HOST_1="$CUR_HOST"; PORT_1="$CUR_PORT"; CORE_1="$CUR_CORE"
   else
-    HOST_2="$CUR_HOST"; PORT_2="$CUR_PORT"; PATH_2="$CUR_PATH"; CORE_2="$CUR_CORE"
+    HOST_2="$CUR_HOST"; PORT_2="$CUR_PORT"; CORE_2="$CUR_CORE"
   fi
 
   # Validate environment variables

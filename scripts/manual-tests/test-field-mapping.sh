@@ -24,8 +24,21 @@ SOLR_VERSION="${3:-${SOLR_VERSION:-8}}"
 # Resolve composer constraint from current branch/tag
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-. "$REPO_ROOT/.github/workflows/git-constraint-helper"
-CONSTRAINT=$(get_current_constraint)
+cd "$REPO_ROOT"
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+if [ "$BRANCH" = "HEAD" ] || [ -z "$BRANCH" ]; then
+  TAG=$(git describe --exact-match --tags 2>/dev/null || true)
+  if [ -n "$TAG" ]; then
+    CONSTRAINT="$TAG"
+  else
+    CONSTRAINT="^8"
+  fi
+elif echo "$BRANCH" | grep -qE '^v?[0-9]+(\.[0-9x]+)*$'; then
+  CONSTRAINT="${BRANCH}-dev"
+else
+  CONSTRAINT="dev-${BRANCH}"
+fi
+cd - >/dev/null
 
 # Validate that SITE doesn't include environment suffix
 if [[ "$SITE" == *.dev ]] || [[ "$SITE" == *.test ]] || [[ "$SITE" == *.live ]]; then
