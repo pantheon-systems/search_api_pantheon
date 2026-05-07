@@ -125,7 +125,6 @@ echo "::endgroup::"
 
 # Post schema
 echo "::group::Post Solr schema"
-SOLR_VER="${SOLR_VERSION:-8}"
 terminus drush "$SITE_ENV" -- search-api-pantheon:postSchema
 echo "::endgroup::"
 
