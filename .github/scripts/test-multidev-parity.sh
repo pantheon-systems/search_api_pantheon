@@ -28,13 +28,13 @@ CORE_1="" CORE_2=""
 
 ENV_INDEX=0
 for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
-  ((ENV_INDEX++))
+  ENV_INDEX=$((ENV_INDEX + 1))
   echo "::group::Testing: $ENV"
 
   # Check if environment exists
   if ! terminus env:info "$SITE.$ENV" >/dev/null 2>&1; then
     echo "::error::$ENV not accessible"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "::endgroup::"
     continue
   fi
@@ -61,33 +61,33 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   # Validate environment variables
   if [ -z "$CUR_HOST" ] || [ "$CUR_HOST" = "false" ]; then
     echo "::error::PANTHEON_INDEX_HOST not set for $ENV"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_PORT" ] || [ "$CUR_PORT" = "false" ]; then
     echo "::error::PANTHEON_INDEX_PORT not set for $ENV"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_PATH" ] || [ "$CUR_PATH" = "false" ]; then
     echo "::error::PANTHEON_INDEX_PATH not set for $ENV"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_CORE" ] || [ "$CUR_CORE" = "false" ]; then
     echo "::error::PANTHEON_INDEX_CORE not set for $ENV"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "::endgroup::"
     continue
   fi
 
-  ((TESTS_PASSED++))
+  TESTS_PASSED=$((TESTS_PASSED + 1))
 
   # Extract Solr core name from CORE path
   CORE_NAME=$(echo "$CUR_CORE" | sed -n 's/.*environment\/\([^/]*\)\/.*/\1/p')
@@ -95,17 +95,17 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   # Validate core name matches environment
   if [ "$CORE_NAME" = "$ENV" ]; then
     echo "::notice::PASS: Core name matches environment ($ENV)"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
   else
     echo "::error::FAIL: Core ($CORE_NAME) != env ($ENV)"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
   fi
 
   # Check Search API server configuration
   SERVER_CONFIG=$(terminus drush "$SITE.$ENV" -- config:get search_api.server.pantheon_search backend_config 2>/dev/null | grep -v "\[" | grep -v "WARNING" || echo "")
 
   if [ -n "$SERVER_CONFIG" ]; then
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
   fi
 
   echo "::endgroup::"
@@ -118,28 +118,28 @@ echo "::group::Cross-environment validation"
 if [ -n "$CORE_1" ] && [ -n "$CORE_2" ]; then
   if [ "$CORE_1" != "$CORE_2" ]; then
     echo "::notice::PASS: Different cores"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
   else
     echo "::error::FAIL: Same cores (should differ)"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
   fi
 fi
 
 # Test 2: Same host and port
 if [ "$HOST_1" = "$HOST_2" ]; then
   echo "::notice::PASS: Same host"
-  ((TESTS_PASSED++))
+  TESTS_PASSED=$((TESTS_PASSED + 1))
 else
   echo "::error::FAIL: Different hosts"
-  ((TESTS_FAILED++))
+  TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 if [ "$PORT_1" = "$PORT_2" ]; then
   echo "::notice::PASS: Same port"
-  ((TESTS_PASSED++))
+  TESTS_PASSED=$((TESTS_PASSED + 1))
 else
   echo "::error::FAIL: Different ports"
-  ((TESTS_FAILED++))
+  TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo "::endgroup::"
