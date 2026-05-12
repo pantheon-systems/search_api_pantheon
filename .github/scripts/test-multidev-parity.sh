@@ -1,25 +1,21 @@
 #!/bin/bash
-# Test environment parity for search_api_pantheon using multidev environments
-# Validates that Pantheon Search API correctly detects and uses different Solr cores
-# for different multidev environments
+set -eo pipefail
 
-set -e
+# Environment parity test for CI.
+# Validates that different multidev environments get different Solr cores
+# but share the same host and port.
+# Reads TERMINUS_SITE, MULTIDEV_ENV, and PARITY_ENV from environment,
+# or accepts them as positional arguments.
 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-  echo "Usage: $0 SITE_NAME MULTIDEV1 MULTIDEV2"
+SITE="${1:-$TERMINUS_SITE}"
+MULTIDEV1="${2:-$MULTIDEV_ENV}"
+MULTIDEV2="${3:-$PARITY_ENV}"
+
+if [[ -z "$SITE" || -z "$MULTIDEV1" || -z "$MULTIDEV2" ]]; then
+  echo "::error::Usage: $0 SITE_NAME MULTIDEV1 MULTIDEV2 (or set TERMINUS_SITE, MULTIDEV_ENV, PARITY_ENV)"
   exit 1
 fi
 
-SITE="$1"
-MULTIDEV1="$2"
-MULTIDEV2="$3"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Test tracking
 TESTS_PASSED=0
 TESTS_FAILED=0
 
@@ -30,18 +26,16 @@ HOST_1="" HOST_2=""
 PORT_1="" PORT_2=""
 CORE_1="" CORE_2=""
 
-# Disable exit on error for test assertions
-set +e
-
 ENV_INDEX=0
 for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   ((ENV_INDEX++))
-  echo "Testing: $ENV"
+  echo "::group::Testing: $ENV"
 
   # Check if environment exists
   if ! terminus env:info "$SITE.$ENV" >/dev/null 2>&1; then
-    echo -e "${RED}$ENV not accessible${NC}"
+    echo "::error::$ENV not accessible"
     ((TESTS_FAILED++))
+    echo "::endgroup::"
     continue
   fi
 
@@ -66,26 +60,30 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
 
   # Validate environment variables
   if [ -z "$CUR_HOST" ] || [ "$CUR_HOST" = "false" ]; then
-    echo -e "${RED}PANTHEON_INDEX_HOST not set${NC}"
+    echo "::error::PANTHEON_INDEX_HOST not set for $ENV"
     ((TESTS_FAILED++))
+    echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_PORT" ] || [ "$CUR_PORT" = "false" ]; then
-    echo -e "${RED}PANTHEON_INDEX_PORT not set${NC}"
+    echo "::error::PANTHEON_INDEX_PORT not set for $ENV"
     ((TESTS_FAILED++))
+    echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_PATH" ] || [ "$CUR_PATH" = "false" ]; then
-    echo -e "${RED}PANTHEON_INDEX_PATH not set${NC}"
+    echo "::error::PANTHEON_INDEX_PATH not set for $ENV"
     ((TESTS_FAILED++))
+    echo "::endgroup::"
     continue
   fi
 
   if [ -z "$CUR_CORE" ] || [ "$CUR_CORE" = "false" ]; then
-    echo -e "${RED}PANTHEON_INDEX_CORE not set${NC}"
+    echo "::error::PANTHEON_INDEX_CORE not set for $ENV"
     ((TESTS_FAILED++))
+    echo "::endgroup::"
     continue
   fi
 
@@ -96,9 +94,10 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
 
   # Validate core name matches environment
   if [ "$CORE_NAME" = "$ENV" ]; then
+    echo "::notice::PASS: Core name matches environment ($ENV)"
     ((TESTS_PASSED++))
   else
-    echo -e "${RED}Core ($CORE_NAME) != env ($ENV)${NC}"
+    echo "::error::FAIL: Core ($CORE_NAME) != env ($ENV)"
     ((TESTS_FAILED++))
   fi
 
@@ -108,51 +107,50 @@ for ENV in "$MULTIDEV1" "$MULTIDEV2"; do
   if [ -n "$SERVER_CONFIG" ]; then
     ((TESTS_PASSED++))
   fi
+
+  echo "::endgroup::"
 done
 
 # Cross-environment validation
-echo ""
-echo "Cross-env:"
+echo "::group::Cross-environment validation"
 
 # Test 1: Different Solr cores
 if [ -n "$CORE_1" ] && [ -n "$CORE_2" ]; then
   if [ "$CORE_1" != "$CORE_2" ]; then
-    echo -e "${GREEN}Different cores${NC}"
+    echo "::notice::PASS: Different cores"
     ((TESTS_PASSED++))
   else
-    echo -e "${RED}Same cores (should differ)${NC}"
+    echo "::error::FAIL: Same cores (should differ)"
     ((TESTS_FAILED++))
   fi
 fi
 
 # Test 2: Same host and port
 if [ "$HOST_1" = "$HOST_2" ]; then
-  echo -e "${GREEN}Same host${NC}"
+  echo "::notice::PASS: Same host"
   ((TESTS_PASSED++))
 else
-  echo -e "${RED}Different hosts${NC}"
+  echo "::error::FAIL: Different hosts"
   ((TESTS_FAILED++))
 fi
 
 if [ "$PORT_1" = "$PORT_2" ]; then
-  echo -e "${GREEN}Same port${NC}"
+  echo "::notice::PASS: Same port"
   ((TESTS_PASSED++))
 else
-  echo -e "${RED}Different ports${NC}"
+  echo "::error::FAIL: Different ports"
   ((TESTS_FAILED++))
 fi
 
-# Re-enable exit on error
-set -e
+echo "::endgroup::"
 
 # Summary
-echo ""
 echo "Pass:$TESTS_PASSED Fail:$TESTS_FAILED"
 
 if [ $TESTS_FAILED -eq 0 ]; then
-  echo -e "${GREEN}PASS${NC}"
+  echo "All parity tests passed"
   exit 0
 else
-  echo -e "${RED}FAIL${NC}"
+  echo "::error::One or more parity tests failed"
   exit 1
 fi

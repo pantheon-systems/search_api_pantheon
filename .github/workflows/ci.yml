@@ -133,7 +133,7 @@ jobs:
         run: bash .github/scripts/test-field-mapping.sh
 
       - name: Run parity tests
-        run: bash scripts/manual-tests/test-multidev-parity.sh "$TERMINUS_SITE" "$MULTIDEV_ENV" "$PARITY_ENV"
+        run: bash .github/scripts/test-multidev-parity.sh "$TERMINUS_SITE" "$MULTIDEV_ENV" "$PARITY_ENV"
 
       - name: Delete current multidevs
         if: success()
