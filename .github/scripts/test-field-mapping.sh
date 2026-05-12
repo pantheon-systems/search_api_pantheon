@@ -123,9 +123,23 @@ terminus drush "$SITE_ENV" -- ev "
 terminus drush "$SITE_ENV" -- config:set search_api.server.pantheon_search backend_config.connector_config.http_method POST -y
 echo "::endgroup::"
 
-# Post schema
+# Post schema (retry on transient 502s)
 echo "::group::Post Solr schema"
-terminus drush "$SITE_ENV" -- search-api-pantheon:postSchema
+MAX_RETRIES=3
+RETRY_DELAY=60
+for attempt in $(seq 1 $MAX_RETRIES); do
+  echo "Schema post attempt $attempt of $MAX_RETRIES"
+  if terminus drush "$SITE_ENV" -- search-api-pantheon:postSchema; then
+    echo "::notice::Schema post completed (attempt $attempt)"
+    break
+  fi
+  if [ "$attempt" -eq "$MAX_RETRIES" ]; then
+    echo "::error::Schema post failed after $MAX_RETRIES attempts"
+    exit 1
+  fi
+  echo "::warning::Schema post failed (attempt $attempt), retrying in ${RETRY_DELAY}s..."
+  sleep $RETRY_DELAY
+done
 echo "::endgroup::"
 
 # Create test node with known values
