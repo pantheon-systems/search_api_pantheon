@@ -14,23 +14,6 @@ fi
 SITE_ENV="${TERMINUS_SITE}.${MULTIDEV_ENV}"
 FAILED=0
 
-# Clean up any existing test data from a previous run
-echo "::group::Cleanup existing test data"
-terminus drush "$SITE_ENV" -- ev "
-  \$nids = \Drupal::entityQuery('node')->condition('type', 'field_test')->accessCheck(FALSE)->execute();
-  if (\$nids) {
-    \$nodes = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple(\$nids);
-    foreach (\$nodes as \$node) { \$node->delete(); }
-    echo 'Deleted ' . count(\$nids) . ' existing test nodes' . PHP_EOL;
-  }
-  \$index = \Drupal::entityTypeManager()->getStorage('search_api_index')->load('primary');
-  if (\$index) { \$index->delete(); echo 'Deleted existing primary index' . PHP_EOL; }
-  \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
-  if (\$type) { \$type->delete(); echo 'Deleted existing field_test content type' . PHP_EOL; }
-  echo 'Cleanup complete' . PHP_EOL;
-"
-echo "::endgroup::"
-
 # Create content type
 echo "::group::Create field_test content type and fields"
 terminus drush "$SITE_ENV" -- ev "
