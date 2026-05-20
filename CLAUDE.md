@@ -25,7 +25,7 @@ Drupal 10/11 x PHP 8.1/8.3/8.4/8.5 x Solr 8/9 = 8 combinations (with exclusions 
 Each matrix job runs these scripts sequentially:
 
 1. `create-multidev.sh` — Creates multidev from dev, installs module via Composer, sets Solr/PHP version in pantheon.yml, creates a second "parity" multidev
-2. `run-tests.sh` — Basic integration: Solr readiness polling, schema post (3 retries/60s), content generation, index verification
+2. `run-tests.sh` — Basic integration: Solr readiness polling, schema post (3 retries/60s), content generation, index verification (counts pre-existing content before `genc` to handle inherited nodes)
 3. `test-field-mapping.sh` — Configures Search API index, posts schema, indexes pre-baked test node, validates Solr field type mappings (tm_, its_, fs_, bs_, ds_, ss_ prefixes)
 4. `test-multidev-parity.sh` — Validates different multidevs get different Solr cores but same host/port
 5. `cleanup-multidevs.sh` — Deletes stale CI multidevs (prefix match + 72h age cutoff)
