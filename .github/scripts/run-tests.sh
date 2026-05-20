@@ -62,6 +62,7 @@ echo "Pre-existing tracked items: $BEFORE"
 # Generate test content using devel_generate module (installed by create-multidev.sh)
 echo "Generating five nodes..."
 terminus drush "$SITE_ENV" -- genc 5
+terminus drush "$SITE_ENV" -- search-api:index primary
 EXPECTED=$((BEFORE + 5))
 echo "::endgroup::"
 
