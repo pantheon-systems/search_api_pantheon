@@ -4,6 +4,8 @@ set -eo pipefail
 # Field mapping integration test for CI.
 # Validates that all Drupal field types correctly map to Solr field types.
 # Expects the module is already installed and enabled (by create-multidev.sh).
+# Expects field_test content type, fields, and test node to be pre-baked on
+# the dev environment (inherited by the multidev on creation).
 # Reads TERMINUS_SITE, MULTIDEV_ENV, and SOLR_VERSION from environment.
 
 if [[ -z "$TERMINUS_SITE" || -z "$MULTIDEV_ENV" ]]; then
@@ -14,66 +16,18 @@ fi
 SITE_ENV="${TERMINUS_SITE}.${MULTIDEV_ENV}"
 FAILED=0
 
-# Create content type
-echo "::group::Create field_test content type and fields"
+# Verify pre-baked content type and fields exist (inherited from dev environment)
+echo "::group::Verify field_test content type and fields"
 terminus drush "$SITE_ENV" -- ev "
-  \$type = \Drupal::entityTypeManager()->getStorage('node_type')->create([
-    'type' => 'field_test', 'name' => 'Field Test',
-  ]);
-  \$type->save();
-  echo 'Content type created' . PHP_EOL;
-"
-
-# Create all test fields
-FIELDS=(
-  "field_text_plain:string"
-  "field_text_long:text_long"
-  "field_integer:integer"
-  "field_boolean:boolean"
-  "field_email:email"
-  "field_link:link"
-)
-
-for FIELD_DEF in "${FIELDS[@]}"; do
-  FIELD_NAME="${FIELD_DEF%%:*}"
-  FIELD_TYPE="${FIELD_DEF##*:}"
-  terminus drush "$SITE_ENV" -- ev "
-    use Drupal\field\Entity\FieldStorageConfig;
-    use Drupal\field\Entity\FieldConfig;
-    FieldStorageConfig::create(['field_name' => '$FIELD_NAME', 'entity_type' => 'node', 'type' => '$FIELD_TYPE'])->save();
-    FieldConfig::create(['field_name' => '$FIELD_NAME', 'entity_type' => 'node', 'bundle' => 'field_test', 'label' => '$FIELD_NAME'])->save();
-    echo '$FIELD_NAME created' . PHP_EOL;
-  "
-done
-
-# Fields with custom settings
-terminus drush "$SITE_ENV" -- ev "
-  use Drupal\field\Entity\FieldStorageConfig;
-  use Drupal\field\Entity\FieldConfig;
-  FieldStorageConfig::create(['field_name' => 'field_decimal', 'entity_type' => 'node', 'type' => 'decimal', 'settings' => ['precision' => 10, 'scale' => 2]])->save();
-  FieldConfig::create(['field_name' => 'field_decimal', 'entity_type' => 'node', 'bundle' => 'field_test', 'label' => 'field_decimal'])->save();
-  echo 'field_decimal created' . PHP_EOL;
-"
-terminus drush "$SITE_ENV" -- ev "
-  use Drupal\field\Entity\FieldStorageConfig;
-  use Drupal\field\Entity\FieldConfig;
-  FieldStorageConfig::create(['field_name' => 'field_date', 'entity_type' => 'node', 'type' => 'datetime', 'settings' => ['datetime_type' => 'date']])->save();
-  FieldConfig::create(['field_name' => 'field_date', 'entity_type' => 'node', 'bundle' => 'field_test', 'label' => 'field_date'])->save();
-  echo 'field_date created' . PHP_EOL;
-"
-terminus drush "$SITE_ENV" -- ev "
-  use Drupal\field\Entity\FieldStorageConfig;
-  use Drupal\field\Entity\FieldConfig;
-  FieldStorageConfig::create(['field_name' => 'field_datetime', 'entity_type' => 'node', 'type' => 'datetime', 'settings' => ['datetime_type' => 'datetime']])->save();
-  FieldConfig::create(['field_name' => 'field_datetime', 'entity_type' => 'node', 'bundle' => 'field_test', 'label' => 'field_datetime'])->save();
-  echo 'field_datetime created' . PHP_EOL;
-"
-terminus drush "$SITE_ENV" -- ev "
-  use Drupal\field\Entity\FieldStorageConfig;
-  use Drupal\field\Entity\FieldConfig;
-  FieldStorageConfig::create(['field_name' => 'field_list_text', 'entity_type' => 'node', 'type' => 'list_string', 'settings' => ['allowed_values' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3']]])->save();
-  FieldConfig::create(['field_name' => 'field_list_text', 'entity_type' => 'node', 'bundle' => 'field_test', 'label' => 'field_list_text'])->save();
-  echo 'field_list_text created' . PHP_EOL;
+  \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
+  if (!\$type) { echo 'MISSING: field_test content type' . PHP_EOL; exit(1); }
+  echo 'field_test content type: OK' . PHP_EOL;
+  \$fields = ['field_text_plain','field_text_long','field_integer','field_boolean','field_email','field_link','field_decimal','field_date','field_datetime','field_list_text'];
+  foreach (\$fields as \$f) {
+    \$storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', \$f);
+    if (!\$storage) { echo 'MISSING: ' . \$f . PHP_EOL; exit(1); }
+    echo \$f . ': OK' . PHP_EOL;
+  }
 "
 echo "::endgroup::"
 
@@ -125,27 +79,17 @@ for attempt in $(seq 1 $MAX_RETRIES); do
 done
 echo "::endgroup::"
 
-# Create test node with known values
-echo "::group::Create test node and index"
-terminus drush "$SITE_ENV" -- ev "
-  use Drupal\node\Entity\Node;
-  \$node = Node::create([
-    'type' => 'field_test',
-    'title' => 'Field Mapping Test Node',
-    'field_text_plain' => 'Plain text value',
-    'field_text_long' => 'Long text with special chars: <>&',
-    'field_integer' => 42,
-    'field_decimal' => '3.14',
-    'field_boolean' => TRUE,
-    'field_date' => '2026-01-22',
-    'field_datetime' => '2026-01-22T10:30:00',
-    'field_list_text' => 'option2',
-    'field_email' => 'test@example.com',
-    'field_link' => ['uri' => 'https://example.com', 'title' => 'Example'],
-  ]);
-  \$node->save();
-  echo 'Node ' . \$node->id() . ' created' . PHP_EOL;
-"
+# Verify test node exists (inherited from dev environment) and index it
+echo "::group::Verify test node and index"
+NODE_COUNT=$(terminus drush "$SITE_ENV" -- ev "
+  \$query = \Drupal::entityQuery('node')->condition('type', 'field_test')->condition('title', 'Field Mapping Test Node')->accessCheck(FALSE)->count();
+  echo \$query->execute();
+" 2>/dev/null | grep -v notice | grep -v WARNING | tr -d '[:space:]')
+if [ "$NODE_COUNT" = "0" ] || [ -z "$NODE_COUNT" ]; then
+  echo "::error::No field_test node found — dev environment may not be set up correctly"
+  exit 1
+fi
+echo "::notice::Found $NODE_COUNT field_test node(s)"
 terminus drush "$SITE_ENV" -- search-api:index primary
 sleep 5
 echo "::endgroup::"

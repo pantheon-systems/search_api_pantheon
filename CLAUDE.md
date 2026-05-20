@@ -26,7 +26,7 @@ Each matrix job runs these scripts sequentially:
 
 1. `create-multidev.sh` — Creates multidev from dev, installs module via Composer, sets Solr/PHP version in pantheon.yml, creates a second "parity" multidev
 2. `run-tests.sh` — Basic integration: Solr readiness polling, schema post (3 retries/60s), content generation, index verification
-3. `test-field-mapping.sh` — Creates 10 field types, indexes a test node, validates Solr field type mappings (tm_, its_, fs_, bs_, ds_, ss_ prefixes)
+3. `test-field-mapping.sh` — Configures Search API index, posts schema, indexes pre-baked test node, validates Solr field type mappings (tm_, its_, fs_, bs_, ds_, ss_ prefixes)
 4. `test-multidev-parity.sh` — Validates different multidevs get different Solr cores but same host/port
 5. `cleanup-multidevs.sh` — Deletes stale CI multidevs (prefix match + 72h age cutoff)
 
@@ -63,6 +63,15 @@ These are Pantheon infrastructure issues, not script bugs:
 ### drupal.org Mirror
 
 The `mirror_do` job pushes branches to drupal.org. Feature branches may fail if the drupal.org remote has diverged. This only matters for release branches (`8.x`).
+
+### Pre-baked Dev Environment
+
+The dev sites (`d10-search-api-pantheon.dev`, `d11-search-api-pantheon-ci.dev`) have pre-configured Drupal content that multidevs inherit via database clone:
+
+- **`field_test` content type** with 10 fields: `field_text_plain` (string), `field_text_long` (text_long), `field_integer` (integer), `field_boolean` (boolean), `field_email` (email), `field_link` (link), `field_decimal` (decimal), `field_date` (datetime/date), `field_datetime` (datetime/datetime), `field_list_text` (list_string)
+- **Test node** titled "Field Mapping Test Node" with known values for all fields
+
+This avoids creating content types, fields, and test content per-multidev. The Search API index configuration and Solr operations (schema post, indexing, querying) still happen per-multidev since each gets its own Solr core.
 
 ## Development Notes
 
