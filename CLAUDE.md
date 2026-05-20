@@ -66,7 +66,7 @@ The `mirror_do` job pushes branches to drupal.org. Feature branches may fail if 
 
 ### Pre-baked Dev Environment
 
-The dev sites (`d10-search-api-pantheon.dev`, `d11-search-api-pantheon-ci.dev`) have pre-configured Drupal content that multidevs inherit via database clone:
+The dev sites (`search-api-pantheon-d10.dev`, `search-api-pantheon-d11.dev`) have pre-configured Drupal content that multidevs inherit via database clone:
 
 - **`field_test` content type** with 10 fields: `field_text_plain` (string), `field_text_long` (text_long), `field_integer` (integer), `field_boolean` (boolean), `field_email` (email), `field_link` (link), `field_decimal` (decimal), `field_date` (datetime/date), `field_datetime` (datetime/datetime), `field_list_text` (list_string)
 - **Test node** titled "Field Mapping Test Node" with known values for all fields
