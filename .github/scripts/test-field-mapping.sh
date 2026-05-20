@@ -34,24 +34,23 @@ echo "::endgroup::"
 # Configure Search API index
 echo "::group::Configure Search API index"
 terminus drush "$SITE_ENV" -- ev "
-  \$index = \Drupal::entityTypeManager()->getStorage('search_api_index')->create([
-    'id' => 'primary', 'name' => 'Primary', 'server' => 'pantheon_search',
-    'datasource_settings' => [
-      'entity:node' => ['bundles' => ['default' => false, 'selected' => ['field_test']], 'languages' => ['default' => true, 'selected' => []]],
-    ],
-    'field_settings' => [
-      'title' => ['label' => 'Title', 'datasource_id' => 'entity:node', 'property_path' => 'title', 'type' => 'text'],
-      'field_text_plain' => ['label' => 'Text Plain', 'datasource_id' => 'entity:node', 'property_path' => 'field_text_plain', 'type' => 'text'],
-      'field_text_long' => ['label' => 'Text Long', 'datasource_id' => 'entity:node', 'property_path' => 'field_text_long', 'type' => 'text'],
-      'field_integer' => ['label' => 'Integer', 'datasource_id' => 'entity:node', 'property_path' => 'field_integer', 'type' => 'integer'],
-      'field_decimal' => ['label' => 'Decimal', 'datasource_id' => 'entity:node', 'property_path' => 'field_decimal', 'type' => 'decimal'],
-      'field_boolean' => ['label' => 'Boolean', 'datasource_id' => 'entity:node', 'property_path' => 'field_boolean', 'type' => 'boolean'],
-      'field_date' => ['label' => 'Date', 'datasource_id' => 'entity:node', 'property_path' => 'field_date', 'type' => 'date'],
-      'field_datetime' => ['label' => 'Datetime', 'datasource_id' => 'entity:node', 'property_path' => 'field_datetime', 'type' => 'date'],
-      'field_list_text' => ['label' => 'List Text', 'datasource_id' => 'entity:node', 'property_path' => 'field_list_text', 'type' => 'string'],
-      'field_email' => ['label' => 'Email', 'datasource_id' => 'entity:node', 'property_path' => 'field_email', 'type' => 'string'],
-      'field_link' => ['label' => 'Link', 'datasource_id' => 'entity:node', 'property_path' => 'field_link:uri', 'type' => 'string'],
-    ],
+  \$index = \Drupal::entityTypeManager()->getStorage('search_api_index')->load('primary');
+  if (!\$index) { echo 'ERROR: primary index not found' . PHP_EOL; exit(1); }
+  \$index->set('datasource_settings', [
+    'entity:node' => ['bundles' => ['default' => false, 'selected' => ['field_test']], 'languages' => ['default' => true, 'selected' => []]],
+  ]);
+  \$index->set('field_settings', [
+    'title' => ['label' => 'Title', 'datasource_id' => 'entity:node', 'property_path' => 'title', 'type' => 'text'],
+    'field_text_plain' => ['label' => 'Text Plain', 'datasource_id' => 'entity:node', 'property_path' => 'field_text_plain', 'type' => 'text'],
+    'field_text_long' => ['label' => 'Text Long', 'datasource_id' => 'entity:node', 'property_path' => 'field_text_long', 'type' => 'text'],
+    'field_integer' => ['label' => 'Integer', 'datasource_id' => 'entity:node', 'property_path' => 'field_integer', 'type' => 'integer'],
+    'field_decimal' => ['label' => 'Decimal', 'datasource_id' => 'entity:node', 'property_path' => 'field_decimal', 'type' => 'decimal'],
+    'field_boolean' => ['label' => 'Boolean', 'datasource_id' => 'entity:node', 'property_path' => 'field_boolean', 'type' => 'boolean'],
+    'field_date' => ['label' => 'Date', 'datasource_id' => 'entity:node', 'property_path' => 'field_date', 'type' => 'date'],
+    'field_datetime' => ['label' => 'Datetime', 'datasource_id' => 'entity:node', 'property_path' => 'field_datetime', 'type' => 'date'],
+    'field_list_text' => ['label' => 'List Text', 'datasource_id' => 'entity:node', 'property_path' => 'field_list_text', 'type' => 'string'],
+    'field_email' => ['label' => 'Email', 'datasource_id' => 'entity:node', 'property_path' => 'field_email', 'type' => 'string'],
+    'field_link' => ['label' => 'Link', 'datasource_id' => 'entity:node', 'property_path' => 'field_link:uri', 'type' => 'string'],
   ]);
   \$index->setStatus(TRUE);
   \$index->save();
