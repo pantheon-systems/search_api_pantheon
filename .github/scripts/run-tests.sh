@@ -54,33 +54,38 @@ for attempt in $(seq 1 $MAX_RETRIES); do
 done
 echo "::endgroup::"
 
-# Generate test content using devel_generate module (installed by create-multidev.sh)
+# Count pre-existing content (inherited from dev environment)
 echo "::group::Generate test content"
+BEFORE=$(terminus drush "$SITE_ENV" -- sapi-s primary --fields=total --format=string 2>/dev/null || echo "0")
+echo "Pre-existing tracked items: $BEFORE"
+
+# Generate test content using devel_generate module (installed by create-multidev.sh)
 echo "Generating five nodes..."
 terminus drush "$SITE_ENV" -- genc 5
+EXPECTED=$((BEFORE + 5))
 echo "::endgroup::"
 
 # Verify Drupal's Search API tracked the generated content
 echo "::group::Verify Search API index"
 INDEXED=$(terminus drush "$SITE_ENV" -- sapi-s primary --fields=total --format=string)
-if [ "$INDEXED" != "5" ]; then
-  echo "::error::Search API reports $INDEXED indexed documents, expected 5"
+if [ "$INDEXED" != "$EXPECTED" ]; then
+  echo "::error::Search API reports $INDEXED indexed documents, expected $EXPECTED ($BEFORE pre-existing + 5 generated)"
   terminus drush "$SITE_ENV" -- sapd
   FAILED=1
 else
-  echo "::notice::Search API index count: $INDEXED (expected 5)"
+  echo "::notice::Search API index count: $INDEXED (expected $EXPECTED)"
 fi
 echo "::endgroup::"
 
 # Verify documents actually reached the Solr backend (not just tracked by Drupal)
 echo "::group::Verify Solr document count"
 FOUND=$(terminus drush "$SITE_ENV" -- search-api-pantheon:select '*' | grep -v notice | jq .response.numFound)
-if [ "$FOUND" != "5" ]; then
-  echo "::error::Solr reports $FOUND documents, expected 5"
+if [ "$FOUND" != "$EXPECTED" ]; then
+  echo "::error::Solr reports $FOUND documents, expected $EXPECTED"
   terminus drush "$SITE_ENV" -- sapd
   FAILED=1
 else
-  echo "::notice::Solr document count: $FOUND (expected 5)"
+  echo "::notice::Solr document count: $FOUND (expected $EXPECTED)"
 fi
 echo "::endgroup::"
 
