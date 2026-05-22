@@ -9,11 +9,12 @@ set -euo pipefail
 #
 # What it sets up:
 #   1. Pantheon site on drupal-composer-managed upstream (CI Fixtures org)
-#   2. pantheon.yml with Solr 8 and PHP version (8.1 for D10, 8.3 for D11)
-#   3. field_test content type with 10 fields (string, text_long, integer,
+#   2. Drupal install (standard profile)
+#   3. pantheon.yml with Solr 8 and PHP version (8.1 for D10, 8.3 for D11)
+#   4. field_test content type with 10 fields (string, text_long, integer,
 #      boolean, email, link, decimal, datetime/date, datetime/datetime, list_string)
-#   4. "Field Mapping Test Node" with known values for all 10 fields
-#   5. Verification that everything was created correctly
+#   5. "Field Mapping Test Node" with known values for all 10 fields
+#   6. Verification that everything was created correctly
 #
 # How to use:
 #   1. Authenticate terminus:
@@ -58,16 +59,23 @@ echo ""
 if terminus site:info "$SITE_NAME" &>/dev/null; then
   echo "[skip] Site ${SITE_NAME} already exists"
 else
-  echo "[1/5] Creating site..."
+  echo "[1/6] Creating site..."
   terminus site:create "$SITE_NAME" "$SITE_NAME" "$UPSTREAM" --org="$ORG"
   echo "Waiting for site creation workflow..."
   terminus workflow:wait "$SITE_ENV" --max=300
+
+  echo "Installing Drupal..."
+  terminus drush "$SITE_ENV" -- site:install standard \
+    --account-name=admin \
+    --account-mail=admin@test.com \
+    --site-name="$SITE_NAME" \
+    --yes
 fi
 
 # ---------------------------------------------------------------------------
 # Step 2: Configure pantheon.yml (Solr 8, PHP version)
 # ---------------------------------------------------------------------------
-echo "[2/5] Configuring pantheon.yml..."
+echo "[2/6] Configuring pantheon.yml..."
 
 GIT_URL=$(terminus connection:info "$SITE_ENV" --field=git_url)
 WORK_DIR=$(mktemp -d)
@@ -128,7 +136,7 @@ done
 # ---------------------------------------------------------------------------
 # Step 3: Create field_test content type and 10 fields
 # ---------------------------------------------------------------------------
-echo "[3/5] Creating field_test content type and fields..."
+echo "[3/6] Creating field_test content type and fields..."
 
 terminus drush "$SITE_ENV" -- ev "
   \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
@@ -197,7 +205,7 @@ terminus drush "$SITE_ENV" -- ev "
 # ---------------------------------------------------------------------------
 # Step 4: Create test node with known field values
 # ---------------------------------------------------------------------------
-echo "[4/5] Creating test node..."
+echo "[4/6] Creating test node..."
 
 terminus drush "$SITE_ENV" -- ev "
   use Drupal\node\Entity\Node;
@@ -229,7 +237,7 @@ terminus drush "$SITE_ENV" -- ev "
 # ---------------------------------------------------------------------------
 # Step 5: Verify setup
 # ---------------------------------------------------------------------------
-echo "[5/5] Verifying setup..."
+echo "[5/6] Verifying setup..."
 
 terminus drush "$SITE_ENV" -- ev "
   \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
