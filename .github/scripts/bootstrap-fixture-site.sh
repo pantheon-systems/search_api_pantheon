@@ -10,10 +10,12 @@ set -eou pipefail
 # What it sets up:
 #   1. Pantheon site on correct upstream + Drupal install
 #   2. Performance Small plan + Solr enabled
-#   3. pantheon.yml with Solr 8 and PHP version
-#   4. field_test content type with 10 fields
-#   5. "Field Mapping Test Node" with known values
-#   6. Verification
+#   3. field_test content type with 10 fields
+#   4. "Field Mapping Test Node" with known values
+#   5. Verification
+#
+# Note: pantheon.yml (search version, php_version) must be configured
+# manually via git push after running this script.
 #
 # Examples:
 #   .github/scripts/bootstrap-fixture-site.sh -n search-api-pantheon-d10 -u d10
@@ -97,7 +99,7 @@ main() {
         exit 1
     fi
 
-    echo "[1/6] Creating site..."
+    echo "[1/5] Creating site..."
     terminus site:create "$SITE_NAME" "$SITE_NAME" "$UPSTREAM" --org="$ORG"
     echo "Waiting for site creation workflow..."
     terminus workflow:wait "$SITE_ENV"
@@ -108,7 +110,7 @@ main() {
     # -----------------------------------------------------------------------
     # Step 2: Install Drupal
     # -----------------------------------------------------------------------
-    echo "[2/6] Installing Drupal..."
+    echo "[2/5] Installing Drupal..."
     if terminus drush "$SITE_ENV" -- status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
         echo "[skip] Drupal already installed"
     else
@@ -118,7 +120,7 @@ main() {
     # -----------------------------------------------------------------------
     # Step 3: Upgrade plan + enable Solr
     # -----------------------------------------------------------------------
-    echo "[3/6] Configuring plan and Solr..."
+    echo "[3/5] Configuring plan and Solr..."
     local CURRENT_PLAN
     CURRENT_PLAN=$(terminus site:info "$SITE_NAME_LC" --field=plan_name 2>/dev/null || echo "")
     if [[ "$CURRENT_PLAN" == *"Sandbox"* ]]; then
@@ -130,76 +132,6 @@ main() {
 
     echo "Enabling Solr..."
     terminus solr:enable "$SITE_ID" 2>/dev/null || echo "[skip] Solr already enabled or enable failed"
-
-    # -----------------------------------------------------------------------
-    # Step 4: Configure pantheon.yml (Solr 8, PHP version)
-    # -----------------------------------------------------------------------
-    echo "[4/6] Configuring pantheon.yml..."
-
-    local GIT_URL
-    GIT_URL=$(terminus connection:info "$SITE_ENV" --field=git_url)
-    local WORK_DIR
-    WORK_DIR=$(mktemp -d)
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone "$GIT_URL" "$WORK_DIR/site"
-
-    pushd "$WORK_DIR/site" > /dev/null
-
-    echo "Current pantheon.yml:"
-    if [ -f pantheon.yml ]; then
-        cat pantheon.yml
-    else
-        echo "(file does not exist)"
-    fi
-    echo "---"
-
-    if [ -f pantheon.yml ]; then
-        if ! grep -q "^search:" pantheon.yml; then
-            echo "Adding search config..."
-            echo "search:" >> pantheon.yml
-            echo "  version: 8" >> pantheon.yml
-        else
-            echo "search: already present"
-        fi
-        if ! grep -q "php_version:" pantheon.yml; then
-            echo "Adding php_version: ${PHP_VER}..."
-            echo "php_version: ${PHP_VER}" >> pantheon.yml
-        else
-            echo "php_version: already present ($(grep php_version pantheon.yml))"
-        fi
-    else
-        echo "Creating pantheon.yml from scratch..."
-        cat > pantheon.yml <<YAML
-api_version: 1
-php_version: ${PHP_VER}
-search:
-  version: 8
-YAML
-    fi
-
-    echo "Updated pantheon.yml:"
-    cat pantheon.yml
-    echo "---"
-
-    if git diff --quiet pantheon.yml 2>/dev/null; then
-        echo "[skip] No changes to pantheon.yml"
-    else
-        echo "Changes detected:"
-        git diff pantheon.yml
-        git add pantheon.yml
-        git commit -m "Configure Solr 8 and PHP ${PHP_VER} for CI fixture"
-        git push origin master
-        terminus workflow:wait "$SITE_ENV"
-    fi
-
-    popd > /dev/null
-    rm -rf "$WORK_DIR"
-
-    # Ensure connection mode is git
-    local CONNECTION_TYPE
-    CONNECTION_TYPE=$(terminus env:info "$SITE_ENV" --field="Connection Mode" 2>/dev/null || echo "")
-    if [[ "$CONNECTION_TYPE" != "git" ]]; then
-        terminus connection:set "$SITE_ENV" git
-    fi
 
     # Wait for Drupal to be available
     echo "Waiting for Drupal to be available..."
@@ -218,7 +150,7 @@ YAML
     # -----------------------------------------------------------------------
     # Step 5: Create field_test content type, fields, and test node
     # -----------------------------------------------------------------------
-    echo "[5/6] Creating field_test content type, fields, and test node..."
+    echo "[4/5] Creating field_test content type, fields, and test node..."
 
     terminus drush "$SITE_ENV" -- ev "
       \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
@@ -315,7 +247,7 @@ YAML
     # -----------------------------------------------------------------------
     # Step 7: Verify setup
     # -----------------------------------------------------------------------
-    echo "[6/6] Verifying setup..."
+    echo "[5/5] Verifying setup..."
 
     terminus drush "$SITE_ENV" -- ev "
       \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
