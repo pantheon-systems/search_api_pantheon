@@ -11,10 +11,9 @@ set -eou pipefail
 #   1. Pantheon site on correct upstream + Drupal install
 #   2. Performance Small plan + Solr enabled
 #   3. pantheon.yml with Solr 8 and PHP version
-#   4. Test/live environments deployed
-#   5. field_test content type with 10 fields
-#   6. "Field Mapping Test Node" with known values
-#   7. Verification
+#   4. field_test content type with 10 fields
+#   5. "Field Mapping Test Node" with known values
+#   6. Verification
 #
 # Examples:
 #   .github/scripts/bootstrap-fixture-site.sh -n search-api-pantheon-d10 -u d10
@@ -91,16 +90,17 @@ main() {
     echo ""
 
     # -----------------------------------------------------------------------
-    # Step 1: Create site (skip if exists)
+    # Step 1: Create site (exit if exists)
     # -----------------------------------------------------------------------
     if terminus site:info "$SITE_NAME_LC" &>/dev/null; then
-        echo "[skip] Site ${SITE_NAME} already exists"
-    else
-        echo "[1/7] Creating site..."
-        terminus site:create "$SITE_NAME" "$SITE_NAME" "$UPSTREAM" --org="$ORG"
-        echo "Waiting for site creation workflow..."
-        terminus workflow:wait "$SITE_ENV" --max=600
+        echo "ERROR: Site ${SITE_NAME} already exists. Exiting to avoid modifying an existing site."
+        exit 1
     fi
+
+    echo "[1/6] Creating site..."
+    terminus site:create "$SITE_NAME" "$SITE_NAME" "$UPSTREAM" --org="$ORG"
+    echo "Waiting for site creation workflow..."
+    terminus workflow:wait "$SITE_ENV"
 
     local SITE_ID
     SITE_ID=$(terminus site:info "$SITE_NAME_LC" --field=ID)
@@ -108,7 +108,7 @@ main() {
     # -----------------------------------------------------------------------
     # Step 2: Install Drupal
     # -----------------------------------------------------------------------
-    echo "[2/7] Installing Drupal..."
+    echo "[2/6] Installing Drupal..."
     if terminus drush "$SITE_ENV" -- status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
         echo "[skip] Drupal already installed"
     else
@@ -118,7 +118,7 @@ main() {
     # -----------------------------------------------------------------------
     # Step 3: Upgrade plan + enable Solr
     # -----------------------------------------------------------------------
-    echo "[3/7] Configuring plan and Solr..."
+    echo "[3/6] Configuring plan and Solr..."
     local CURRENT_PLAN
     CURRENT_PLAN=$(terminus site:info "$SITE_NAME_LC" --field=plan_name 2>/dev/null || echo "")
     if [[ "$CURRENT_PLAN" == *"Sandbox"* ]]; then
@@ -134,7 +134,7 @@ main() {
     # -----------------------------------------------------------------------
     # Step 4: Configure pantheon.yml (Solr 8, PHP version)
     # -----------------------------------------------------------------------
-    echo "[4/7] Configuring pantheon.yml..."
+    echo "[4/6] Configuring pantheon.yml..."
 
     local GIT_URL
     GIT_URL=$(terminus connection:info "$SITE_ENV" --field=git_url)
@@ -144,15 +144,30 @@ main() {
 
     pushd "$WORK_DIR/site" > /dev/null
 
+    echo "Current pantheon.yml:"
+    if [ -f pantheon.yml ]; then
+        cat pantheon.yml
+    else
+        echo "(file does not exist)"
+    fi
+    echo "---"
+
     if [ -f pantheon.yml ]; then
         if ! grep -q "^search:" pantheon.yml; then
+            echo "Adding search config..."
             echo "search:" >> pantheon.yml
             echo "  version: 8" >> pantheon.yml
+        else
+            echo "search: already present"
         fi
         if ! grep -q "php_version:" pantheon.yml; then
+            echo "Adding php_version: ${PHP_VER}..."
             echo "php_version: ${PHP_VER}" >> pantheon.yml
+        else
+            echo "php_version: already present ($(grep php_version pantheon.yml))"
         fi
     else
+        echo "Creating pantheon.yml from scratch..."
         cat > pantheon.yml <<YAML
 api_version: 1
 php_version: ${PHP_VER}
@@ -161,13 +176,19 @@ search:
 YAML
     fi
 
+    echo "Updated pantheon.yml:"
+    cat pantheon.yml
+    echo "---"
+
     if git diff --quiet pantheon.yml 2>/dev/null; then
-        echo "[skip] pantheon.yml already configured"
+        echo "[skip] No changes to pantheon.yml"
     else
+        echo "Changes detected:"
+        git diff pantheon.yml
         git add pantheon.yml
         git commit -m "Configure Solr 8 and PHP ${PHP_VER} for CI fixture"
         git push origin master
-        terminus workflow:wait "$SITE_ENV" --max=300
+        terminus workflow:wait "$SITE_ENV"
     fi
 
     popd > /dev/null
@@ -195,16 +216,9 @@ YAML
     done
 
     # -----------------------------------------------------------------------
-    # Step 5: Deploy test and live environments
+    # Step 5: Create field_test content type, fields, and test node
     # -----------------------------------------------------------------------
-    echo "[5/7] Deploying test and live environments..."
-    terminus env:deploy --cc --updatedb "${SITE_ID}.test" 2>/dev/null || echo "[skip] Test env already deployed or nothing to deploy"
-    terminus env:deploy --cc --updatedb "${SITE_ID}.live" 2>/dev/null || echo "[skip] Live env already deployed or nothing to deploy"
-
-    # -----------------------------------------------------------------------
-    # Step 6: Create field_test content type, fields, and test node
-    # -----------------------------------------------------------------------
-    echo "[6/7] Creating field_test content type, fields, and test node..."
+    echo "[5/6] Creating field_test content type, fields, and test node..."
 
     terminus drush "$SITE_ENV" -- ev "
       \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
@@ -301,7 +315,7 @@ YAML
     # -----------------------------------------------------------------------
     # Step 7: Verify setup
     # -----------------------------------------------------------------------
-    echo "[7/7] Verifying setup..."
+    echo "[6/6] Verifying setup..."
 
     terminus drush "$SITE_ENV" -- ev "
       \$type = \Drupal::entityTypeManager()->getStorage('node_type')->load('field_test');
