@@ -44,7 +44,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is used in Endpoint::getCollectionBaseUri() and similar. Usually
       // it's "solr" but the Pantheon endpoint does not have a /solr/ part in
       // their path.
-      $configuration['context'] = '';
+      if (getenv('PANTHEON_ENVIRONMENT') !== 'lando') {
+        $configuration['context'] = '';
+      }
     }
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -65,7 +67,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
       return [];
     }
     return [
-      'scheme' => 'https',
+      // Fallback to HTTPS is purely defensive.
+      'scheme' => getenv('PANTHEON_INDEX_SCHEME') ?: 'https',
       'host' => getenv('PANTHEON_INDEX_HOST'),
       'port' => getenv('PANTHEON_INDEX_PORT'),
       // Just the string "v1". In Endpoint::getServerUri() this will be
