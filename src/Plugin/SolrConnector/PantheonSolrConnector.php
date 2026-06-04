@@ -145,7 +145,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * @internal
    */
   public function postSchema(array $schemaFiles): Response {
-    $this->useTimeout();
+    // Schema uploads transfer multiple base64-encoded files, which can take
+    // longer than the default QUERY_TIMEOUT (5s). Use FINALIZE_TIMEOUT (30s).
+    $this->useTimeout(self::FINALIZE_TIMEOUT);
     $filesToSend = [];
     foreach ($schemaFiles as $filename => $file_contents) {
       $this->logger->info($this->t('Encoding file: {filename}'), [
