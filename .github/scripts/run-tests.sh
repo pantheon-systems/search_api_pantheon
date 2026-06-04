@@ -32,26 +32,16 @@ echo "::endgroup::"
 
 # Post the Solr schema config set. Must happen before content generation,
 # otherwise Solr may be busy indexing with the wrong schema.
-# Retries handle transient 502s from Solr endpoint availability.
+# The module retries transient 502s/timeouts internally (SITE-5775).
 echo "::group::Test schema post"
 SOLR_VER="${SOLR_VERSION:-8}"
 SCHEMA_PATH="/code/web/modules/contrib/search_api_solr/jump-start/solr${SOLR_VER}/config-set"
-MAX_RETRIES=3
-RETRY_DELAY=60
-for attempt in $(seq 1 $MAX_RETRIES); do
-  echo "Schema post attempt $attempt of $MAX_RETRIES"
-  if terminus drush "$SITE_ENV" -- search-api-pantheon:postSchema "$SCHEMA_PATH"; then
-    echo "::notice::Schema post completed (attempt $attempt)"
-    break
-  fi
-  if [ "$attempt" -eq "$MAX_RETRIES" ]; then
-    echo "::error::Schema post failed after $MAX_RETRIES attempts"
-    FAILED=1
-  else
-    echo "::warning::Schema post failed (attempt $attempt), retrying in ${RETRY_DELAY}s..."
-    sleep $RETRY_DELAY
-  fi
-done
+if terminus drush "$SITE_ENV" -- search-api-pantheon:postSchema "$SCHEMA_PATH"; then
+  echo "::notice::Schema post completed"
+else
+  echo "::error::Schema post failed"
+  FAILED=1
+fi
 echo "::endgroup::"
 
 # Count pre-existing content (inherited from dev environment)
