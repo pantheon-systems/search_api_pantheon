@@ -131,7 +131,7 @@ main() {
     fi
 
     echo "Enabling Solr..."
-    terminus solr:enable "$SITE_ID" 2>/dev/null || echo "[skip] Solr already enabled or enable failed"
+    terminus search:enable "$SITE_ID" 2>/dev/null || echo "[skip] Solr already enabled or enable failed"
 
     # Wait for Drupal to be available
     echo "Waiting for Drupal to be available..."
