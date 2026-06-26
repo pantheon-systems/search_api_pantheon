@@ -27,7 +27,7 @@ Search API Solr provides the ability to connect to any Solr server by providing 
 ### Solr Versions on Pantheon
 
 - Solr 8: [Apache Solr 8.11.4](https://solr.apache.org/docs/8_11_4/)
-- Solr 9: [Apache Solr 9.10.0](https://solr.apache.org/docs/9_10_0/)
+- Solr 9: [Apache Solr 9.10.1](https://solr.apache.org/docs/9_10_1/)
 
 ## Requirements
 
