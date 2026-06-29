@@ -74,6 +74,7 @@ jobs:
     name: Multidev test (Drupal ${{ matrix.drupal-version }}, PHP ${{ matrix.php-version }}, Solr ${{ matrix.solr-version }})
     needs: [linting, phpcompatibility]
     env:
+      COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ github.token }}"}}'
       DRUPAL_VERSION: ${{ matrix.drupal-version }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GITHUB_RUN_NUMBER: ${{ github.run_number }}
