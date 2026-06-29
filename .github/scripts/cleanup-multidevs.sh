@@ -10,7 +10,7 @@ CURRENT_ENV="${2:-}" # e.g. "d10p81s8-25" (skip this one, it's the current run)
 MAX_AGE_HOURS=72
 
 # Matches CI-generated multidev names like d10p81s8-25, d11p83s9-31
-CI_PATTERN='^d[0-9]+p[0-9]+s[0-9]+-[0-9]+'
+CI_PATTERN='^(d[0-9]+p[0-9]+s[0-9]+|[0-9]+s[0-9]+)-[0-9]+'
 
 if [[ -z "$TERMINUS_SITE" || -z "$PREFIX" ]]; then
   echo "::error::TERMINUS_SITE and PREFIX (arg 1) must be set."

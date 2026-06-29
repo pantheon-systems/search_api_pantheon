@@ -11,12 +11,12 @@ if [[ -z "$DRUPAL_VERSION" || -z "$PHP_VERSION" || -z "$GITHUB_RUN_NUMBER" ]]; t
   exit 1
 fi
 
-# Multidev name: d{drupal}p{php}s{solr}-{run} e.g. d10p81s8-42 (max 11 chars, truncated in create-multidev.sh)
+# Multidev name: {drupal}{php}s{solr}-{run} e.g. 1081s8-2630 (max 11 chars, truncated in create-multidev.sh)
 PHP_SHORT=$(echo "$PHP_VERSION" | tr -d '.')
-echo "MULTIDEV_NAME=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+echo "MULTIDEV_NAME=${DRUPAL_VERSION}${PHP_SHORT}s${SOLR_VERSION}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
 
 # Prefix used by cleanup script to find stale multidevs from prior runs
-echo "MULTIDEV_PREFIX=d${DRUPAL_VERSION}p${PHP_SHORT}s${SOLR_VERSION}-" >> "$GITHUB_ENV"
+echo "MULTIDEV_PREFIX=${DRUPAL_VERSION}${PHP_SHORT}s${SOLR_VERSION}-" >> "$GITHUB_ENV"
 
 # Convert git ref to a composer version constraint:
 #   Tags (e.g. 8.5.0-beta1)             -> use as-is: 8.5.0-beta1

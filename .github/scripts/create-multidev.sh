@@ -113,7 +113,7 @@ echo "MULTIDEV_ENV=$MULTIDEV" >> "$GITHUB_ENV_FILE"
 
 # Create a second bare multidev for parity testing.
 # Replace the last char of the truncated name to stay within the 11-char limit.
-# e.g. d10p81s8-25 -> d10p81s8-2b
+# e.g. 1081s8-2630 -> 1081s8-263b
 PARITY_ENV="${MULTIDEV:0:10}b"
 echo "Creating parity multidev: $PARITY_ENV"
 if terminus multidev:list "$TERMINUS_SITE" --format=list | grep -q "^$PARITY_ENV$"; then
