@@ -13,7 +13,7 @@ Search API Pantheon 8.5.0
 ### Improvements
 
 - Increased schema upload timeout to prevent failures on large config-sets
-- Added automatic retry on temporary server errors during schema uploads (up to 3 attempts)
+- Added automatic retry on temporary server errors during schema uploads
 
 See README.md for installation and UPGRADE.md for upgrade instructions:
 - https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.5.x/README.md
