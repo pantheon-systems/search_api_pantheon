@@ -36,6 +36,14 @@ cd pantheon-site
 echo "Checking out branch $MULTIDEV..."
 git checkout "$MULTIDEV"
 
+# Authenticate Composer to the GitHub API so VCS metadata requests use the
+# authenticated rate limit (5000/hr) instead of the anonymous one (60/hr),
+# which returns HTTP 429 on busy matrix runs. GH_TOKEN is the run's built-in
+# GITHUB_TOKEN (contents: read on this repo is sufficient; no PAT needed).
+if [ -n "${GH_TOKEN:-}" ]; then
+  composer config --global --auth github-oauth.github.com "$GH_TOKEN"
+fi
+
 # Add module via VCS repo so we can install branch builds (not just tagged releases).
 # devel provides the genc (generate content) command used by run-tests.sh.
 composer config repositories.search_api_pantheon '{"type": "vcs", "url": "git@github.com:pantheon-systems/search_api_pantheon.git", "canonical": false}'

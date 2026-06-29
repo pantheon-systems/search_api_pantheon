@@ -119,6 +119,8 @@ jobs:
           ssh-private-key: ${{ env.PANTHEON_CI_SSH_KEY }}
 
       - name: Create multidev environment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .github/scripts/create-multidev.sh "$MULTIDEV_NAME" "$TERMINUS_SITE" "$GITHUB_ENV" "$GIT_CONSTRAINT" "$PHP_VERSION"
 
       - name: Show PHP versions
