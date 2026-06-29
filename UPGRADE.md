@@ -2,9 +2,6 @@
 
 ## Upgrading to 8.5.x
 
-> [!NOTE]
->**Beta Release: Version 8.5.x is currently in beta. Test thoroughly on non-production environments and report issues in [the drupal.org issue queue](https://www.drupal.org/project/issues/search_api_pantheon?categories=All).**
-
 Version 8.5.x adds support for Apache Solr 9. Existing Solr 8 installations continue to work without changes.
 
 ### Upgrading from 8.4.x to 8.5.x
@@ -14,7 +11,7 @@ Version 8.5.x requires [Search API Solr](https://www.drupal.org/project/search_a
 1. **Update the module** and commit and deploy the changes to your Pantheon environment:
 
    ```bash
-   composer require 'drupal/search_api_pantheon:^8.5@beta'
+   composer require 'drupal/search_api_pantheon:^8.5'
    git add composer.json composer.lock
    git commit -m "Update search_api_pantheon to 8.5.x"
    git push
@@ -38,7 +35,7 @@ If you are upgrading from an existing Solr 8 installation, upgrade the module fi
 1. If you are not on Search API Pantheon 8.5.x, update the module to 8.5.x and commit and deploy the changes to your Pantheon environment:
 
    ```bash
-   composer require 'drupal/search_api_pantheon:^8.5@beta'
+   composer require 'drupal/search_api_pantheon:^8.5'
    git add composer.json composer.lock
    git commit -m "Update search_api_pantheon to 8.5.x"
    git push

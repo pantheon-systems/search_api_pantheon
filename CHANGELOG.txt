@@ -1,3 +1,24 @@
+Search API Pantheon 8.5.0
+--------------------------------------------------
+
+### What's New
+
+- Added support for Apache Solr 9 (9.10.1)
+- Added compatibility for PHP 8.5
+
+### Bug Fixes
+
+- Resolved SSL and Solr connection issues with Lando
+
+### Improvements
+
+- Increased schema upload timeout to prevent failures on large config-sets
+- Added automatic retry on temporary server errors during schema uploads
+
+See README.md for installation and UPGRADE.md for upgrade instructions:
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.5.x/README.md
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.5.x/UPGRADE.md
+
 Search API Pantheon 8.5.0-beta1
 --------------------------------------------------
 
