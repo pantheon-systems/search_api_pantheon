@@ -2,7 +2,7 @@
     "name": "pantheon-systems/search_api_pantheon",
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
-    "description": "Connection module for Pantheon Search (solr 8)",
+    "description": "Connection module for Pantheon Search",
     "repositories": [
         {
             "type": "composer",
@@ -10,19 +10,20 @@
         }
     ],
     "require": {
-        "drupal/search_api_solr": "^4.2"
+        "php": ">=8.1",
+        "drupal/search_api_solr": "^4.3"
     },
     "require-dev": {
-        "drupal/coder": "@stable",
+        "drupal/coder": "^8.3",
         "squizlabs/php_codesniffer": "@stable"
     },
     "scripts": {
         "code:fix": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcbf . --ignore=vendor src modules"
         ],
         "code:lint": [
-            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer",
+            "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcs --ignore=RoboFile.php,vendor . "
         ],
         "pre-commit": [
@@ -33,7 +34,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "drupal/core-composer-scaffold": true
         }
     },
     "extra": {

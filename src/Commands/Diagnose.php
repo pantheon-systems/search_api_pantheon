@@ -131,8 +131,8 @@ class Diagnose extends PantheonCommandBase {
       throw new \Exception('Unable to find search.version in pantheon.yml or pantheon.upstream.yml');
     }
 
-    if ($pantheon_yml['search']['version'] != '8') {
-      throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml');
+    if (!in_array($pantheon_yml['search']['version'], ['8', '9'])) {
+      throw new \Exception('Unsupported search.version in pantheon.yml or pantheon.upstream.yml.');
     }
     $this->logger->notice('Pantheon.yml file looks ok ✅');
   }

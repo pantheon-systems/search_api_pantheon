@@ -44,7 +44,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is used in Endpoint::getCollectionBaseUri() and similar. Usually
       // it's "solr" but the Pantheon endpoint does not have a /solr/ part in
       // their path.
-      $configuration['context'] = '';
+      if (getenv('PANTHEON_ENVIRONMENT') !== 'lando') {
+        $configuration['context'] = '';
+      }
     }
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -65,7 +67,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
       return [];
     }
     return [
-      'scheme' => 'https',
+      // Fallback to HTTPS is purely defensive.
+      'scheme' => getenv('PANTHEON_INDEX_SCHEME') ?: 'https',
       'host' => getenv('PANTHEON_INDEX_HOST'),
       'port' => getenv('PANTHEON_INDEX_PORT'),
       // Just the string "v1". In Endpoint::getServerUri() this will be
@@ -75,7 +78,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
       // This is set to "/site/{site-uuid}/environment/{env}/backend" and
       // the core can't start with a slash.
       'core' => trim(getenv('PANTHEON_INDEX_CORE'), '/'),
-      'solr_version' => 8,
+      'solr_version' => getenv('PANTHEON_SEARCH_VERSION'),
       // This is set to "/site/{site-uuid}/environment/{env}/configs",
       // very similar to core and so also can't start with a slash. It is used
       // by ::postSchema().
@@ -142,7 +145,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * @internal
    */
   public function postSchema(array $schemaFiles): Response {
-    $this->useTimeout();
+    // Schema uploads transfer multiple base64-encoded files, which can take
+    // longer than the default QUERY_TIMEOUT (5s). Use FINALIZE_TIMEOUT (30s).
+    $this->useTimeout(self::FINALIZE_TIMEOUT);
     $filesToSend = [];
     foreach ($schemaFiles as $filename => $file_contents) {
       $this->logger->info($this->t('Encoding file: {filename}'), [
@@ -174,7 +179,7 @@ class PantheonSolrConnector extends StandardSolrConnector {
    */
   public function reloadCore(): bool {
     if (!isset($this->configuration['search_api_pantheon_reload_endpoint'])) {
-      parent::reloadCore();
+      return parent::reloadCore();
     }
     $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
@@ -205,9 +210,12 @@ class PantheonSolrConnector extends StandardSolrConnector {
 
   /**
    * Gets summary information about the Solr Core.
+   *
+   * Overrides the parent to reliably return core name on Pantheon.
+   * Uses null-safe access to handle response format differences
+   * between Solr 8 and 9.
    */
   public function getStatsSummary() {
-
     $summary = [
       '@pending_docs' => '',
       '@core_name' => '',
@@ -221,8 +229,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     $stats = $this->execute($query)->getData();
 
     if (!empty($stats)) {
-      $update_handler_stats = $stats['solr-mbeans']['UPDATE']['updateHandler']['stats'];
-      $summary['@pending_docs'] = (int) $update_handler_stats['UPDATE.updateHandler.docsPending'];
+      $update_handler_stats = $stats['solr-mbeans']['UPDATE']['updateHandler']['stats'] ?? [];
+      $summary['@pending_docs'] = (int) ($update_handler_stats['UPDATE.updateHandler.docsPending'] ?? 0);
       $summary['@core_name'] = $stats['solr-mbeans']['CORE']['core']['class'] ?? $this->t('No information available.');
       $summary['@index_size'] = $stats['solr-mbeans']['CORE']['searcher']['stats']['SEARCHER.searcher.numDocs'] ?? $this->t('No information available.');
       $summary['@schema_version'] = $this->getSchemaVersionString(TRUE);
