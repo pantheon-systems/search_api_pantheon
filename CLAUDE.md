@@ -38,7 +38,7 @@ The `.ci/` directory is legacy (old CircleCI-era scripts, not referenced by curr
 
 ### Multidev Naming
 
-Names are truncated to 11 chars (Pantheon limit). Format: `d{drupal}p{php}s{solr}-{run#}` truncated, e.g. `d10p81s8-25`. Parity env replaces last char with `b`, e.g. `d10p81s8-2b`.
+Names are truncated to 11 chars (Pantheon limit). Format: `{drupal}{php}s{solr}-{run#}`, e.g. `1081s8-2630`. Parity env replaces last char with `b`, e.g. `1081s8-263b`. The `d`/`p` letter prefixes were dropped so the 7-char prefix leaves room for the full 4-digit run number (no truncation up to run 9999); the old `d{drupal}p{php}s{solr}-` form truncated the run number away, causing name collisions across concurrent runs.
 
 ### Cleanup Behavior
 

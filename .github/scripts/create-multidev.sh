@@ -37,8 +37,10 @@ echo "Checking out branch $MULTIDEV..."
 git checkout "$MULTIDEV"
 
 # Add module via VCS repo so we can install branch builds (not just tagged releases).
+# no-api: clone over git instead of querying api.github.com, which rate-limits
+# (HTTP 429) the busy matrix. Public repo over https needs no auth.
 # devel provides the genc (generate content) command used by run-tests.sh.
-composer config repositories.search_api_pantheon '{"type": "vcs", "url": "git@github.com:pantheon-systems/search_api_pantheon.git", "canonical": false}'
+composer config repositories.search_api_pantheon '{"type": "vcs", "url": "https://github.com/pantheon-systems/search_api_pantheon.git", "no-api": true, "canonical": false}'
 composer require "pantheon-systems/search_api_pantheon:${GIT_REF}" drupal/devel:~5.4
 
 echo "Module installed at:"
@@ -105,7 +107,7 @@ echo "MULTIDEV_ENV=$MULTIDEV" >> "$GITHUB_ENV_FILE"
 
 # Create a second bare multidev for parity testing.
 # Replace the last char of the truncated name to stay within the 11-char limit.
-# e.g. d10p81s8-25 -> d10p81s8-2b
+# e.g. 1081s8-2630 -> 1081s8-263b
 PARITY_ENV="${MULTIDEV:0:10}b"
 echo "Creating parity multidev: $PARITY_ENV"
 if terminus multidev:list "$TERMINUS_SITE" --format=list | grep -q "^$PARITY_ENV$"; then
