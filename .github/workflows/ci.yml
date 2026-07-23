@@ -9,6 +9,8 @@ concurrency:
 
 on:
   push:
+    branches:
+      - 8.x
   pull_request:
   repository_dispatch:
   schedule:
