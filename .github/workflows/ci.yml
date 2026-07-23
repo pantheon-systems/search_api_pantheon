@@ -9,6 +9,7 @@ concurrency:
 
 on:
   push:
+  pull_request:
   repository_dispatch:
   schedule:
     - cron: '0 0 * * *'
