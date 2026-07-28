@@ -60,11 +60,14 @@ function search_api_pantheon_update_10081() {
   $old_exists = !$pantheon_solr8_config->isNew();
   $new_exists = !$pantheon_search_config->isNew();
 
+  // Skip if old server doesn't exist (already migrated or using pantheon_search server),
+  // or if the site explicitly keeps the old server name via settings.php.
   if (!$old_exists || $default_search_server === 'pantheon_solr8') {
     return;
   }
 
   try {
+    // Create the new 'pantheon_search' server from old config if it doesn't exist.
     if (!$new_exists) {
       $data = $pantheon_solr8_config->getRawData();
       $data['id'] = $new_server_id;
@@ -75,6 +78,8 @@ function search_api_pantheon_update_10081() {
       ]);
     }
 
+    // Migrate all indexes pointing to the old server, updating both
+    // the server reference and config dependencies.
     $config_storage = \Drupal::service('config.storage');
     $index_config_names = $config_storage->listAll('search_api.index.');
     foreach ($index_config_names as $index_config_name) {
@@ -100,6 +105,7 @@ function search_api_pantheon_update_10081() {
       ]);
     }
 
+    // Delete the old server only if no indexes still reference it.
     $unmigrated_indexes = [];
     foreach ($index_config_names as $index_config_name) {
       $check = $config_factory->getEditable($index_config_name);
