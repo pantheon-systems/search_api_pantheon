@@ -162,11 +162,25 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   public function processResponse(Response $response): array {
     $logMethod = PantheonSolrConnector::getLogMethod($response);
+    $status_code = $response->getStatusCode();
     $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
       $logMethod == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
-      $response->getStatusCode(),
+      $status_code,
       $response->getStatusMessage(),
     ]);
+
+    if ($logMethod === 'error') {
+      $body = $response->getBody();
+      if (!empty($body)) {
+        if ($status_code >= 400 && $status_code < 500) {
+          $message .= "\n" . $this->t('Gateway response: @body', ['@body' => $body]);
+        }
+        else {
+          $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
+        }
+      }
+    }
+
     return [$logMethod, $message];
   }
 
