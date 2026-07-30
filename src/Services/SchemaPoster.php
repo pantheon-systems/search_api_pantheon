@@ -176,7 +176,7 @@ class SchemaPoster implements LoggerAwareInterface {
           $message .= "\n" . $this->t('Gateway response: @body', ['@body' => $body]);
         }
         else {
-          $message .= "\n" . $this->t('The server encountered an internal error. Check the search gateway logs for details.');
+          $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
         }
       }
     }
