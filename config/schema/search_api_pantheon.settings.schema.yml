@@ -1,0 +1,7 @@
+search_api_pantheon.settings:
+  type: config_object
+  label: 'Search API Pantheon settings'
+  mapping:
+    solr_commit_reinvalidation:
+      type: boolean
+      label: 'Re-invalidate cache tags after Solr soft-commit window'
