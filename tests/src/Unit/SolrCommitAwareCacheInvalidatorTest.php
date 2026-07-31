@@ -14,27 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-
-/**
- * Testable subclass that captures re-invalidation calls.
- */
-class TestableSolrCommitAwareCacheInvalidator extends SolrCommitAwareCacheInvalidator {
-
-  /**
-   * Tags that were re-invalidated.
-   *
-   * @var array
-   */
-  public array $reInvalidatedTags = [];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function reInvalidateTags(array $tags): void {
-    $this->reInvalidatedTags = array_merge($this->reInvalidatedTags, $tags);
-  }
-
-}
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Tests the SolrCommitAwareCacheInvalidator.
@@ -274,7 +254,7 @@ class SolrCommitAwareCacheInvalidatorTest extends TestCase {
   public function testSubscribedEvents(): void {
     $events = SolrCommitAwareCacheInvalidator::getSubscribedEvents();
     $this->assertArrayHasKey('search_api.items_indexed', $events);
-    $this->assertArrayHasKey(\Symfony\Component\HttpKernel\KernelEvents::REQUEST, $events);
+    $this->assertArrayHasKey(KernelEvents::REQUEST, $events);
   }
 
   /**
