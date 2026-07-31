@@ -15,26 +15,17 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Re-invalidates Search API cache tags after Solr's soft-commit window.
+ * Re-invalidates Search API cache tags after Solr's commit window.
  *
- * On Pantheon, Solr's autoSoftCommit interval is 5 seconds. When content is
- * saved, cache tags are invalidated immediately — but Solr hasn't committed
- * yet. If a visitor request arrives in that window, it caches stale Solr
- * results. This subscriber fires a second invalidation after the commit
- * window so the stale cache entry is cleared.
+ * Ensures listing pages reflect newly published content without waiting
+ * for a manual cache clear. Enabled by default.
  *
- * Enabled by default. Can be disabled via config:
- *   drush config:set search_api_pantheon.settings solr_commit_reinvalidation 0
- *
- * When disabled, no State reads occur on web requests (zero overhead).
- *
- * Coverage:
- * - Publish, update, unpublish, and delete — all trigger cache tag
- *   invalidation for the affected search index, which this subscriber
- *   intercepts.
- * - Works for any content type indexed by Search API (nodes, media,
- *   taxonomy terms, custom entities).
- * - Works with Solr 3, 8, and 9 (the soft-commit timing gap exists on all).
+ * @code
+ * # Disable:
+ * drush config:set search_api_pantheon.settings solr_commit_reinvalidation 0
+ * # Re-enable:
+ * drush config:set search_api_pantheon.settings solr_commit_reinvalidation 1
+ * @endcode
  */
 class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, EventSubscriberInterface {
 

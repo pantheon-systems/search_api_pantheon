@@ -228,6 +228,7 @@ Diagnostic commands automatically use the first server connected via Pantheon co
 | Search index corruption     | Try reposting schema and reindexing content   |
 | Core reload failures        | Check Solr logs and connection status         |
 | Error after Search API Solr upgrade | Schema incompatibility from 4.2.x → 4.3.x. See [UPGRADE.md](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x) |
+| Listing pages show stale results after publishing | Expected for a few seconds due to Solr's soft-commit window. Verify re-invalidation is enabled: `drush config:get search_api_pantheon.settings solr_commit_reinvalidation` |
 
 ## Solr Jargon
 
