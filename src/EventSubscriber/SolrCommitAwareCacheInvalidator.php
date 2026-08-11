@@ -7,6 +7,7 @@ namespace Drupal\search_api_pantheon\EventSubscriber;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\search_api\Event\ItemsIndexedEvent;
 use Drupal\search_api\Event\SearchApiEvents;
@@ -30,25 +31,17 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, EventSubscriberInterface {
 
   /**
-   * Seconds to wait after invalidation before re-invalidating.
-   *
-   * Solr autoSoftCommit is 5s on Pantheon. We add 1s buffer to ensure
-   * Solr has committed before the re-invalidation fires.
+   * Fallback delay when the server's commit_within can't be read.
    */
-  const SOLR_COMMIT_BUFFER_SECONDS = 6;
+  public const DEFAULT_COMMIT_DELAY_SECONDS = 6;
 
   /**
    * State key for pending re-invalidation timestamps.
    */
-  const STATE_KEY = 'search_api_pantheon.reinvalidate_due';
+  public const STATE_KEY = 'search_api_pantheon.reinvalidate_due';
 
   /**
    * Guard flag to prevent infinite recursion during re-invalidation.
-   *
-   * When onRequest() calls Cache::invalidateTags(), that triggers all
-   * registered CacheTagsInvalidatorInterface implementations — including
-   * this one. This flag tells invalidateTags() to skip scheduling another
-   * re-invalidation for tags we are currently re-invalidating.
    *
    * @var bool
    */
@@ -62,16 +55,26 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
   private ?bool $enabled = NULL;
 
   /**
+   * Cached commit delay in seconds.
+   *
+   * @var int|null
+   */
+  private ?int $commitDelay = NULL;
+
+  /**
    * Constructs a SolrCommitAwareCacheInvalidator.
    *
    * @param \Drupal\Core\State\StateInterface $state
    *   The state service for persisting pending re-invalidation timestamps.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The config factory for reading the enabled flag.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager for loading Search API server config.
    */
   public function __construct(
     protected StateInterface $state,
     protected ConfigFactoryInterface $configFactory,
+    protected EntityTypeManagerInterface $entityTypeManager,
   ) {}
 
   /**
@@ -181,6 +184,42 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
   }
 
   /**
+   * Returns the delay in seconds before re-invalidation should fire.
+   *
+   * Reads commit_within from the Pantheon Solr server's connector config
+   * (in milliseconds), converts to seconds, and adds a 1s buffer.
+   * Cached for the request lifetime.
+   *
+   * @return int
+   *   Delay in seconds.
+   */
+  protected function getCommitDelay(): int {
+    if ($this->commitDelay !== NULL) {
+      return $this->commitDelay;
+    }
+    $this->commitDelay = self::DEFAULT_COMMIT_DELAY_SECONDS;
+    try {
+      $servers = $this->entityTypeManager
+        ->getStorage('search_api_server')
+        ->loadByProperties(['backend' => 'search_api_solr']);
+      foreach ($servers as $server) {
+        $connector_config = $server->getBackendConfig();
+        if (($connector_config['connector'] ?? '') === 'pantheon') {
+          $commit_within_ms = (int) ($connector_config['connector_config']['commit_within'] ?? 0);
+          if ($commit_within_ms > 0) {
+            $this->commitDelay = (int) ceil($commit_within_ms / 1000) + 1;
+          }
+          break;
+        }
+      }
+    }
+    catch (\Exception $e) {
+      // Fall back to default if entity loading fails (e.g. during install).
+    }
+    return $this->commitDelay;
+  }
+
+  /**
    * Filters for search_api_list tags and schedules re-invalidation.
    *
    * @param array $tags
@@ -193,11 +232,8 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
     }
 
     $pending = $this->state->get(self::STATE_KEY, []);
-    $due_at = time() + self::SOLR_COMMIT_BUFFER_SECONDS;
+    $due_at = time() + $this->getCommitDelay();
     foreach ($list_tags as $tag) {
-      // Always update to latest timestamp — if content is edited rapidly,
-      // each edit pushes the re-invalidation forward so it fires after
-      // the LAST edit's Solr commit.
       $pending[$tag] = $due_at;
     }
     $this->state->set(self::STATE_KEY, $pending);

@@ -6,6 +6,7 @@ namespace Drupal\Tests\search_api_pantheon\Unit;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\search_api\Event\ItemsIndexedEvent;
 use Drupal\search_api\IndexInterface;
@@ -90,7 +91,9 @@ class SolrCommitAwareCacheInvalidatorTest extends TestCase {
       ->with('search_api_pantheon.settings')
       ->willReturn($config);
 
-    return new TestableSolrCommitAwareCacheInvalidator($this->state, $configFactory);
+    $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
+
+    return new TestableSolrCommitAwareCacheInvalidator($this->state, $configFactory, $entityTypeManager);
   }
 
   /**

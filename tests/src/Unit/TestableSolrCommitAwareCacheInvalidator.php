@@ -25,4 +25,11 @@ class TestableSolrCommitAwareCacheInvalidator extends SolrCommitAwareCacheInvali
     $this->reInvalidatedTags = array_merge($this->reInvalidatedTags, $tags);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function getCommitDelay(): int {
+    return self::DEFAULT_COMMIT_DELAY_SECONDS;
+  }
+
 }
