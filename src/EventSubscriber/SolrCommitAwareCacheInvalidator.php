@@ -173,11 +173,14 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
   /**
    * Fires cache tag invalidation for the given tags.
    *
-   * Extracted so unit tests can override without hitting Drupal's static
-   * Cache::invalidateTags() (which requires a booted container).
+   * Uses the static Cache::invalidateTags() because this class IS a
+   * cache_tags_invalidator service — injecting the chain would create
+   * a circular dependency.
    *
    * @param array $tags
    *   Cache tags to invalidate.
+   *
+   * @SuppressWarnings(PHPMD.StaticAccess)
    */
   protected function reInvalidateTags(array $tags): void {
     Cache::invalidateTags($tags);
