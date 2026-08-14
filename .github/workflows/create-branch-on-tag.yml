@@ -37,9 +37,11 @@ jobs:
           echo "MAJOR_BRANCH_NAME=$MAJOR_ONLY" >> $GITHUB_OUTPUT
       - name: Check if branch exists
         id: check_branch
+        env:
+          BRANCH_NAME: ${{ steps.tag_name.outputs.BRANCH_NAME }}
         run: |
           git fetch
-          branch_existence=$(git ls-remote --heads origin ${{ steps.tag_name.outputs.BRANCH_NAME }})
+          branch_existence=$(git ls-remote --heads origin "$BRANCH_NAME")
           if [[ -z ${branch_existence} ]]; then
             echo "Branch for tag does not exist."
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -49,22 +51,30 @@ jobs:
           fi
       - name: Create branch
         if: steps.check_branch.outputs.exists == 'false'
+        env:
+          BRANCH_NAME: ${{ steps.tag_name.outputs.BRANCH_NAME }}
+          MAJOR_BRANCH_NAME: ${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
         run: |
-          git checkout -b ${{ steps.tag_name.outputs.BRANCH_NAME }} origin/${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
-          git push origin ${{ steps.tag_name.outputs.BRANCH_NAME }}
+          git checkout -b "$BRANCH_NAME" "origin/$MAJOR_BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
       - name: Set Git user name and email
         run: |
           git config --global user.name "Pantheon Automation"
           git config --global user.email "bot@getpantheon.com"
       - name: Merge changes from current default branch
         if: steps.check_branch.outputs.exists == 'true'
+        env:
+          BRANCH_NAME: ${{ steps.tag_name.outputs.BRANCH_NAME }}
+          MAJOR_BRANCH_NAME: ${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
         run: |
           git fetch
-          git checkout -b ${{ steps.tag_name.outputs.BRANCH_NAME }} origin/${{ steps.tag_name.outputs.BRANCH_NAME }}
-          git merge origin/${{ steps.tag_name.outputs.MAJOR_BRANCH_NAME }}
-          git push origin HEAD:${{ steps.tag_name.outputs.BRANCH_NAME }}
+          git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          git merge "origin/$MAJOR_BRANCH_NAME"
+          git push origin "HEAD:$BRANCH_NAME"
       - name: Pushes to drupal.org repository
+        env:
+          BRANCH_NAME: ${{ steps.tag_name.outputs.BRANCH_NAME }}
         run: |
           cd $WORKSPACE
           git remote add drupalorg $DRUPAL_ORG_REMOTE
-          git push drupalorg HEAD:${{ steps.tag_name.outputs.BRANCH_NAME }}
+          git push drupalorg "HEAD:$BRANCH_NAME"
