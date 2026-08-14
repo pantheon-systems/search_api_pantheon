@@ -5,7 +5,6 @@
  * Various hook implementations for installing the module.
  */
 
-use Drupal\search_api\Entity\Server;
 use Drupal\Core\Site\Settings;
 
 /**
@@ -45,55 +44,90 @@ function search_api_pantheon_update_10080() {
  * Implements hook_update_N().
  *
  * This update hook assists in the transition when upgrading the
- * module from earlier versions to 8.4.x
+ * module from earlier versions to 8.4.x and later.
  * It updates the search server from 'pantheon_solr8' to 'pantheon_search'.
  */
 function search_api_pantheon_update_10081() {
-  $old_server_id          = 'pantheon_solr8';
-  $new_server_id          = 'pantheon_search';
-  $old_index_id           = 'content_index';
-  $config_factory         = \Drupal::configFactory();
-  $pantheon_solr8_config  = $config_factory->getEditable("search_api.server.pantheon_solr8");
-  $pantheon_search_config = $config_factory->getEditable("search_api.server.pantheon_search");
-  $logger                 = \Drupal::logger('search_api_pantheon');
-  $default_search_server  = Settings::get('default_search_server', NULL);
+  $old_server_id = 'pantheon_solr8';
+  $new_server_id = 'pantheon_search';
+  $config_factory = \Drupal::configFactory();
+  $logger = \Drupal::logger('search_api_pantheon');
+  $default_search_server = Settings::get('default_search_server', NULL);
 
-  // Skip migration if :
-  // - 'pantheon_solr8' search server doesn't exists,
-  // - or the 'pantheon_search' server already exists.
-  // - Default search server is set as 'pantheon_solr8' in settings.php
-  if ($pantheon_solr8_config->isNew() || (!$pantheon_search_config->isNew()) || $default_search_server === 'pantheon_solr8') {
+  $pantheon_solr8_config = $config_factory->getEditable("search_api.server.{$old_server_id}");
+  $pantheon_search_config = $config_factory->getEditable("search_api.server.{$new_server_id}");
+
+  $old_exists = !$pantheon_solr8_config->isNew();
+  $new_exists = !$pantheon_search_config->isNew();
+
+  // Skip if old server doesn't exist (already migrated or using pantheon_search server),
+  // or if the site explicitly keeps the old server name via settings.php.
+  if (!$old_exists || $default_search_server === 'pantheon_solr8') {
     return;
   }
 
   try {
-    // Update the search server id 'pantheon_solr8' to  'pantheon_search' server
-    if ($pantheon_search_config->isNew()) {
+    // Create the new 'pantheon_search' server from old config if it doesn't exist.
+    if (!$new_exists) {
       $data = $pantheon_solr8_config->getRawData();
       $data['id'] = $new_server_id;
       $pantheon_search_config->setData($data)->save();
-      $logger->info("Search server ID changed from '$old_server_id' to '$new_server_id'.");
+      $logger->info('Search server ID changed from "@old" to "@new".', [
+        '@old' => $old_server_id,
+        '@new' => $new_server_id,
+      ]);
     }
-    // Update all search indexes with 'pantheon_solr8' as search server to 'pantheon_search'
-    $indexes = \Drupal::entityTypeManager()->getStorage('search_api_index')->loadMultiple();
-    foreach ($indexes as $index) {
-      if ($index->get('server') === $old_server_id) {
-        $index->set('server', $new_server_id);
-        $index->save();
-        $logger->info('Updated server for index "@index" to "@new_server_id".', [
-          '@index' => $index->id(),
-          '@new_server_id' => $new_server_id,
-        ]);
+
+    // Migrate all indexes pointing to the old server, updating both
+    // the server reference and config dependencies.
+    $config_storage = \Drupal::service('config.storage');
+    $index_config_names = $config_storage->listAll('search_api.index.');
+    foreach ($index_config_names as $index_config_name) {
+      $index_config = $config_factory->getEditable($index_config_name);
+      if ($index_config->get('server') !== $old_server_id) {
+        continue;
+      }
+
+      $index_config->set('server', $new_server_id);
+
+      $dependencies = $index_config->get('dependencies.config') ?: [];
+      $old_dep = "search_api.server.{$old_server_id}";
+      $new_dep = "search_api.server.{$new_server_id}";
+      $dependencies = array_map(function ($dep) use ($old_dep, $new_dep) {
+        return $dep === $old_dep ? $new_dep : $dep;
+      }, $dependencies);
+      $index_config->set('dependencies.config', $dependencies);
+
+      $index_config->save();
+      $logger->info('Updated server for index "@index" to "@new_server_id".', [
+        '@index' => $index_config->get('id'),
+        '@new_server_id' => $new_server_id,
+      ]);
+    }
+
+    // Delete the old server only if no indexes still reference it.
+    $unmigrated_indexes = [];
+    foreach ($index_config_names as $index_config_name) {
+      $check = $config_factory->getEditable($index_config_name);
+      if ($check->get('server') === $old_server_id) {
+        $unmigrated_indexes[] = $check->get('id') ?: $index_config_name;
       }
     }
 
-    // Delete the old search server, if it exists.
-    $old_server = Server::load($old_server_id);
-    if ($old_server) {
-      $old_server->delete();
-      $logger->info("Deleted old search server '$old_server_id'.");
+    if (!empty($unmigrated_indexes)) {
+      $logger->warning('Skipping deletion of old server "@server": still referenced by indexes: @indexes', [
+        '@server' => $old_server_id,
+        '@indexes' => implode(', ', $unmigrated_indexes),
+      ]);
+      return;
     }
 
+    if (!$pantheon_solr8_config->isNew()) {
+      $pantheon_solr8_config->delete();
+      $logger->info('Deleted old search server "@server".', [
+        '@server' => $old_server_id,
+      ]);
+    }
   }
   catch (\Exception $e) {
     $logger->error('Error occurred during Search API Pantheon migration: @message. Please re-run database updates.', [
