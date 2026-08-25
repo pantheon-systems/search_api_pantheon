@@ -214,7 +214,7 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
         if (($connector_config['connector'] ?? '') === 'pantheon') {
           $commit_within_ms = (int) ($connector_config['connector_config']['commit_within'] ?? 0);
           if ($commit_within_ms > 0) {
-            $this->commitDelay = (int) ceil($commit_within_ms / 1000) + 1;
+            $this->commitDelay = max(self::DEFAULT_COMMIT_DELAY_SECONDS, (int) ceil($commit_within_ms / 1000) + 1);
           }
           break;
         }
