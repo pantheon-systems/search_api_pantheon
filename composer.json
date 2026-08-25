@@ -32,6 +32,18 @@
             "@code:lint"
         ]
     },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\search_api_pantheon\\": "src/",
+            "Drupal\\search_api_pantheon_cache\\": "modules/search_api_pantheon_cache/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\Tests\\search_api_pantheon\\Unit\\": "tests/src/Unit/",
+            "Drupal\\Tests\\search_api_pantheon_cache\\Unit\\": "modules/search_api_pantheon_cache/tests/src/Unit/"
+        }
+    },
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,

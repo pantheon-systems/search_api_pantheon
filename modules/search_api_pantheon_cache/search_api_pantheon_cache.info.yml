@@ -1,0 +1,7 @@
+name: 'Search API Pantheon Cache'
+type: module
+description: 'Re-invalidates Solr-backed views cache after autoSoftCommit to prevent stale search results.'
+core_version_requirement: ^10 || ^11
+package: Search
+dependencies:
+  - search_api_pantheon:search_api_pantheon

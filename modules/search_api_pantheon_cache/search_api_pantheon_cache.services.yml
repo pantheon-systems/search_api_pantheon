@@ -1,0 +1,7 @@
+services:
+  search_api_pantheon_cache.solr_commit_aware_cache_invalidator:
+    class: Drupal\search_api_pantheon_cache\EventSubscriber\SolrCommitAwareCacheInvalidator
+    arguments: ['@state']
+    tags:
+      - { name: cache_tags_invalidator }
+      - { name: event_subscriber }
