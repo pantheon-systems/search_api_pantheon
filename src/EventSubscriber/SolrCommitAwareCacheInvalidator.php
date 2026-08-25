@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * Re-invalidates Search API cache tags after Solr's commit window.
  *
  * Ensures listing pages reflect newly published content without waiting
- * for a manual cache clear. Enabled by default.
+ * for a manual cache clear. Disabled by default.
  *
  * @code
  * # Disable:
@@ -166,8 +166,12 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
 
     // Set the guard flag so our own invalidateTags() skips these.
     $this->isReInvalidating = TRUE;
-    $this->reInvalidateTags(array_keys($due));
-    $this->isReInvalidating = FALSE;
+    try {
+      $this->reInvalidateTags(array_keys($due));
+    }
+    finally {
+      $this->isReInvalidating = FALSE;
+    }
   }
 
   /**

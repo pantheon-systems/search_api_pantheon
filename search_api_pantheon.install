@@ -136,3 +136,13 @@ function search_api_pantheon_update_10081() {
     throw $e;
   }
 }
+
+/**
+ * Add solr_commit_reinvalidation config for existing installs.
+ */
+function search_api_pantheon_update_10082() {
+  $config = \Drupal::configFactory()->getEditable('search_api_pantheon.settings');
+  if ($config->isNew()) {
+    $config->set('solr_commit_reinvalidation', FALSE)->save();
+  }
+}
