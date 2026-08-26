@@ -6,7 +6,6 @@ namespace Drupal\Tests\search_api_pantheon\Unit;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,17 +75,20 @@ abstract class SolrCommitAwareCacheInvalidatorTestBase extends TestCase {
   protected function createInvalidator(bool $enabled): TestableSolrCommitAwareCacheInvalidator {
     $config = $this->createMock(ImmutableConfig::class);
     $config->method('get')
-      ->with('solr_commit_reinvalidation')
-      ->willReturn($enabled);
+      ->willReturnCallback(function (string $key) use ($enabled) {
+        return match ($key) {
+          'solr_commit_reinvalidation' => $enabled,
+          'solr_commit_reinvalidation_delay' => 6,
+          default => NULL,
+        };
+      });
 
     $configFactory = $this->createMock(ConfigFactoryInterface::class);
     $configFactory->method('get')
       ->with('search_api_pantheon.settings')
       ->willReturn($config);
 
-    $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
-
-    return new TestableSolrCommitAwareCacheInvalidator($this->state, $configFactory, $entityTypeManager);
+    return new TestableSolrCommitAwareCacheInvalidator($this->state, $configFactory);
   }
 
   /**

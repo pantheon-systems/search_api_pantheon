@@ -7,7 +7,6 @@ namespace Drupal\search_api_pantheon\EventSubscriber;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\search_api\Event\ItemsIndexedEvent;
 use Drupal\search_api\Event\SearchApiEvents;
@@ -67,14 +66,11 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
    * @param \Drupal\Core\State\StateInterface $state
    *   The state service for persisting pending re-invalidation timestamps.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The config factory for reading the enabled flag.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entity type manager for loading Search API server config.
+   *   The config factory for reading settings.
    */
   public function __construct(
     protected StateInterface $state,
     protected ConfigFactoryInterface $configFactory,
-    protected EntityTypeManagerInterface $entityTypeManager,
   ) {}
 
   /**
@@ -193,10 +189,6 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
   /**
    * Returns the delay in seconds before re-invalidation should fire.
    *
-   * Reads commit_within from the Pantheon Solr server's connector config
-   * (in milliseconds), converts to seconds, and adds a 1s buffer.
-   * Cached for the request lifetime.
-   *
    * @return int
    *   Delay in seconds.
    */
@@ -204,25 +196,10 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
     if ($this->commitDelay !== NULL) {
       return $this->commitDelay;
     }
-    $this->commitDelay = self::DEFAULT_COMMIT_DELAY_SECONDS;
-    try {
-      $servers = $this->entityTypeManager
-        ->getStorage('search_api_server')
-        ->loadByProperties(['backend' => 'search_api_solr']);
-      foreach ($servers as $server) {
-        $connector_config = $server->getBackendConfig();
-        if (($connector_config['connector'] ?? '') === 'pantheon') {
-          $commit_within_ms = (int) ($connector_config['connector_config']['commit_within'] ?? 0);
-          if ($commit_within_ms > 0) {
-            $this->commitDelay = max(self::DEFAULT_COMMIT_DELAY_SECONDS, (int) ceil($commit_within_ms / 1000) + 1);
-          }
-          break;
-        }
-      }
-    }
-    catch (\Exception $e) {
-      // Fall back to default if entity loading fails (e.g. during install).
-    }
+    $delay = (int) $this->configFactory
+      ->get('search_api_pantheon.settings')
+      ->get('solr_commit_reinvalidation_delay');
+    $this->commitDelay = $delay > 0 ? $delay : self::DEFAULT_COMMIT_DELAY_SECONDS;
     return $this->commitDelay;
   }
 
