@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 /**
  * Base class for SolrCommitAwareCacheInvalidator tests.
  */
-abstract class SolrCommitAwareCacheInvalidatorTestBase extends TestCase {
+abstract class SolrCommitTestBase extends TestCase {
 
   /**
    * In-memory state storage for testing.
@@ -34,9 +34,9 @@ abstract class SolrCommitAwareCacheInvalidatorTestBase extends TestCase {
   /**
    * The invalidator under test.
    *
-   * @var \Drupal\Tests\search_api_pantheon\Unit\TestableSolrCommitAwareCacheInvalidator
+   * @var \Drupal\Tests\search_api_pantheon\Unit\TestableSolrCommitInvalidator
    */
-  protected TestableSolrCommitAwareCacheInvalidator $invalidator;
+  protected TestableSolrCommitInvalidator $invalidator;
 
   /**
    * {@inheritdoc}
@@ -69,10 +69,10 @@ abstract class SolrCommitAwareCacheInvalidatorTestBase extends TestCase {
    * @param bool $enabled
    *   Whether solr_commit_reinvalidation is enabled.
    *
-   * @return \Drupal\Tests\search_api_pantheon\Unit\TestableSolrCommitAwareCacheInvalidator
+   * @return \Drupal\Tests\search_api_pantheon\Unit\TestableSolrCommitInvalidator
    *   The configured invalidator.
    */
-  protected function createInvalidator(bool $enabled): TestableSolrCommitAwareCacheInvalidator {
+  protected function createInvalidator(bool $enabled): TestableSolrCommitInvalidator {
     $config = $this->createMock(ImmutableConfig::class);
     $config->method('get')
       ->willReturnCallback(function (string $key) use ($enabled) {
@@ -88,7 +88,7 @@ abstract class SolrCommitAwareCacheInvalidatorTestBase extends TestCase {
       ->with('search_api_pantheon.settings')
       ->willReturn($config);
 
-    return new TestableSolrCommitAwareCacheInvalidator($this->state, $configFactory);
+    return new TestableSolrCommitInvalidator($this->state, $configFactory);
   }
 
   /**

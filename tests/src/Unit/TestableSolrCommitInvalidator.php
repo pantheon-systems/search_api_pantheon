@@ -9,7 +9,7 @@ use Drupal\search_api_pantheon\EventSubscriber\SolrCommitAwareCacheInvalidator;
 /**
  * Testable subclass that captures re-invalidation calls.
  */
-class TestableSolrCommitAwareCacheInvalidator extends SolrCommitAwareCacheInvalidator {
+class TestableSolrCommitInvalidator extends SolrCommitAwareCacheInvalidator {
 
   /**
    * Tags that were re-invalidated.
