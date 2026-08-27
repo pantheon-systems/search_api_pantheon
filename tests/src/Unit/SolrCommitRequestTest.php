@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * @coversDefaultClass \Drupal\search_api_pantheon\EventSubscriber\SolrCommitAwareCacheInvalidator
  * @group search_api_pantheon
  */
-class SolrCommitAwareCacheInvalidatorRequestTest extends SolrCommitAwareCacheInvalidatorTestBase {
+class SolrCommitRequestTest extends SolrCommitAwareCacheInvalidatorTestBase {
 
   /**
    * Tests that onRequest does not fire before the buffer period.

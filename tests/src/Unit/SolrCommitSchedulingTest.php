@@ -14,7 +14,7 @@ use Drupal\search_api_pantheon\EventSubscriber\SolrCommitAwareCacheInvalidator;
  * @coversDefaultClass \Drupal\search_api_pantheon\EventSubscriber\SolrCommitAwareCacheInvalidator
  * @group search_api_pantheon
  */
-class SolrCommitAwareCacheInvalidatorSchedulingTest extends SolrCommitAwareCacheInvalidatorTestBase {
+class SolrCommitSchedulingTest extends SolrCommitAwareCacheInvalidatorTestBase {
 
   /**
    * Tests that search_api_list tags schedule re-invalidation.

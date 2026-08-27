@@ -94,11 +94,6 @@ class SolrCommitAwareCacheInvalidator implements CacheTagsInvalidatorInterface, 
   /**
    * Intercepts search_api_list cache tag invalidations.
    *
-   * Called by Drupal's cache tag invalidation chain whenever any code calls
-   * Cache::invalidateTags(). We only care about search_api_list:* tags —
-   * these indicate a search index's content has changed and listing pages
-   * should be refreshed.
-   *
    * {@inheritdoc}
    */
   public function invalidateTags(array $tags): void {
