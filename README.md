@@ -228,6 +228,32 @@ Diagnostic commands automatically use the first server connected via Pantheon co
 | Search index corruption     | Try reposting schema and reindexing content   |
 | Core reload failures        | Check Solr logs and connection status         |
 | Error after Search API Solr upgrade | Schema incompatibility from 4.2.x → 4.3.x. See [UPGRADE.md](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x) |
+| Listing pages show stale results after publishing | Expected for a few seconds due to Solr's soft-commit window. Enable re-invalidation: `drush config:set search_api_pantheon.settings solr_commit_reinvalidation 1` |
+
+## Solr Commit Re-invalidation
+
+When content is published, Drupal invalidates cache tags immediately, but Solr doesn't make the new document searchable for ~5 seconds (`autoSoftCommit`). Visitors who load a Solr-backed View during that window get stale results cached in Drupal's render cache. This was initially observed on sites using Content Publisher. The issue is intermittent — it only occurs when a visitor loads a listing page during the brief window between Drupal's cache invalidation and Solr's commit.
+
+This module includes an opt-in fix that re-invalidates `search_api_list:*` cache tags after the Solr commit window, clearing any stale cached pages.
+
+### Enable
+
+```bash
+drush config:set search_api_pantheon.settings solr_commit_reinvalidation 1
+```
+
+### Configure delay
+
+The default delay is 6 seconds (5s `autoSoftCommit` + 1s buffer). Adjust if your Solr setup has a different commit interval:
+
+```bash
+drush config:set search_api_pantheon.settings solr_commit_reinvalidation_delay 10
+```
+
+### Updating from earlier versions
+
+Existing installations need to run `drush updatedb` after updating to this version. Update hook `10082` creates the `search_api_pantheon.settings` config with the feature disabled. The feature is not active until explicitly enabled.
+
 
 ## Solr Jargon
 
