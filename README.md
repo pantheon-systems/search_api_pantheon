@@ -228,6 +228,7 @@ Diagnostic commands automatically use the first server connected via Pantheon co
 | Search index corruption     | Try reposting schema and reindexing content   |
 | Core reload failures        | Check Solr logs and connection status         |
 | Error after Search API Solr upgrade | Schema incompatibility from 4.2.x → 4.3.x. See [UPGRADE.md](UPGRADE.md#schema-incompatibility-with-search-api-solr-43x) |
+| Duplicated `/solr` in the endpoint URL on Lando | Remove any manual `PANTHEON_INDEX_PATH` override. Since 8.5.0 the connector supplies the Solr context on Lando, so a hand-set `/solr` is added on top of it |
 
 ## Solr Jargon
 
