@@ -173,7 +173,11 @@ class SchemaPoster implements LoggerAwareInterface {
       $body = $response->getBody();
       if (!empty($body)) {
         if ($status_code >= 400 && $status_code < 500) {
-          $message .= "\n" . $this->t('Gateway response: @body', ['@body' => $body]);
+          // The gateway returns {"success":false,"error":"..."}; show the
+          // error text, or the raw body if it is not in that format.
+          $decoded = json_decode($body, TRUE);
+          $error = is_array($decoded) && !empty($decoded['error']) ? $decoded['error'] : $body;
+          $message .= "\n" . vsprintf($this->t('Gateway error: %s'), [$error]);
         }
         else {
           $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
