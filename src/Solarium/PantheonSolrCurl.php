@@ -21,6 +21,12 @@ class PantheonSolrCurl extends Curl {
     foreach ($curlOpts as $option => $value) {
       curl_setopt($handler, $option, $value);
     }
+    // EXPERIMENT (BUGS-11968): force HTTP/1.1 when talking to the gateway
+    // directly with a client cert, to test whether HTTP/2 causes the
+    // schema post stream reset (curl error 92).
+    if (!empty($curlOpts[CURLOPT_SSLCERT])) {
+      curl_setopt($handler, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+    }
     return $handler;
   }
 
