@@ -1,71 +1,100 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\search_api_pantheon\Unit;
 
 use Drupal\search_api_pantheon\Solarium\PantheonSolrCurl;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests which Pantheon prepend curl options are applied to Solr requests.
+ * Tests that PantheonSolrCurl uses the TLS settings from the platform prepend.
  *
- * @coversDefaultClass \Drupal\search_api_pantheon\Solarium\PantheonSolrCurl
+ * The prepend's pantheon_curl_setup() is stubbed in tests/bootstrap.php to
+ * return the options stored in self::$prependCurlOptions.
  */
-class PantheonSolrCurlTest extends TestCase {
+#[CoversClass(PantheonSolrCurl::class)]
+final class PantheonSolrCurlTest extends TestCase {
 
   /**
-   * Cases of prepend output and the options expected on Solr requests.
+   * The curl options the stubbed prepend returns.
    *
-   * The prepend cases mirror what pantheon_curl_setup() in cos-runtime-php
-   * returns on an appserver and in a Unified Job Runner (UJR) job.
+   * @var array<int, mixed>
    */
-  public function curlOptionsProvider(): array {
-    $base = [
-      CURLOPT_URL => '',
-      CURLOPT_HEADER => 1,
-      CURLOPT_PORT => 443,
-      CURLOPT_RETURNTRANSFER => 1,
-      CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-Ignore-Agent: 1'],
-    ];
+  public static array $prependCurlOptions = [];
 
-    return [
-      'appserver: verification disabled for the local mTLS proxy' => [
-        $base + [
-          CURLOPT_SSL_VERIFYPEER => FALSE,
-          CURLOPT_SSL_VERIFYHOST => 0,
-        ],
-        [
-          CURLOPT_SSL_VERIFYPEER => FALSE,
-          CURLOPT_SSL_VERIFYHOST => 0,
-        ],
-      ],
-      'UJR: client cert presented over HTTP/1.1' => [
-        $base + [
-          CURLOPT_SSLCERT => '/home/pantheon-app/certs/binding.pem',
-        ],
-        [
-          CURLOPT_SSLCERT => '/home/pantheon-app/certs/binding.pem',
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        ],
-      ],
-      'UJR: no binding cert found' => [
-        $base + [
-          CURLOPT_SSLCERT => '',
-        ],
-        [],
-      ],
-      'no prepend options' => [
-        [],
-        [],
-      ],
-    ];
+  /**
+   * {@inheritdoc}
+   */
+  protected function tearDown(): void {
+    self::$prependCurlOptions = [];
+    parent::tearDown();
   }
 
   /**
-   * @covers ::curlOptionsFromPrepend
-   * @dataProvider curlOptionsProvider
+   * Tests that the client certificate set by the prepend is used for Solr.
+   *
+   * In Unified Job Runner the prepend supplies a client certificate, which
+   * the Solr gateway requires for mTLS. Requests go to the gateway directly,
+   * and it resets HTTP/2 streams on schema uploads, so HTTP/1.1 is used.
    */
-  public function testCurlOptionsFromPrepend(array $prepend_options, array $expected): void {
-    $this->assertSame($expected, PantheonSolrCurl::curlOptionsFromPrepend($prepend_options));
+  public function testClientCertificateFromPrependIsUsedForSolrOverHttp11(): void {
+    self::$prependCurlOptions = [
+      CURLOPT_URL => '',
+      CURLOPT_SSLCERT => '/tmp/binding.pem',
+    ];
+
+    $this->assertSame(
+      [
+        CURLOPT_SSLCERT => '/tmp/binding.pem',
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      ],
+      $this->curlOptionsUsedForSolr(),
+    );
+  }
+
+  /**
+   * Tests that an empty client certificate path is not used for Solr.
+   *
+   * The prepend sets an empty path when no binding.pem file exists.
+   */
+  public function testEmptyClientCertificatePathIsNotUsedForSolr(): void {
+    self::$prependCurlOptions = [
+      CURLOPT_URL => '',
+      CURLOPT_SSLCERT => '',
+    ];
+
+    $this->assertSame([], $this->curlOptionsUsedForSolr());
+  }
+
+  /**
+   * Tests that the peer verification settings from the prepend are kept.
+   *
+   * On appservers the prepend disables peer verification instead of
+   * supplying a client certificate.
+   */
+  public function testPeerVerificationSettingsFromPrependAreUsedForSolr(): void {
+    self::$prependCurlOptions = [
+      CURLOPT_URL => '',
+      CURLOPT_SSL_VERIFYPEER => FALSE,
+      CURLOPT_SSL_VERIFYHOST => 0,
+    ];
+
+    $this->assertSame(
+      [
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_SSL_VERIFYHOST => 0,
+      ],
+      $this->curlOptionsUsedForSolr(),
+    );
+  }
+
+  /**
+   * Returns the prepend options PantheonSolrCurl applies to Solr requests.
+   */
+  private function curlOptionsUsedForSolr(): array {
+    return (new \ReflectionMethod(PantheonSolrCurl::class, 'getPantheonCurlOptions'))->invoke(NULL);
   }
 
 }

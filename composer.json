@@ -15,7 +15,7 @@
     },
     "require-dev": {
         "drupal/coder": "^8.3",
-        "phpunit/phpunit": "^9.6",
+        "phpunit/phpunit": "^10.5 || ^11",
         "squizlabs/php_codesniffer": "@stable"
     },
     "autoload-dev": {
@@ -25,7 +25,6 @@
         }
     },
     "scripts": {
-        "test:unit": "vendor/bin/phpunit",
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcbf . --ignore=vendor src modules"

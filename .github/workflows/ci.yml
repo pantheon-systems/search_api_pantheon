@@ -42,7 +42,7 @@ jobs:
         run: composer run-script code:lint
 
       - name: Unit tests
-        run: composer run-script test:unit
+        run: vendor/bin/phpunit
 
   phpcompatibility:
     runs-on: ubuntu-latest
