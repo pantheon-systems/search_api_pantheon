@@ -15,9 +15,17 @@
     },
     "require-dev": {
         "drupal/coder": "^8.3",
+        "phpunit/phpunit": "^9.6",
         "squizlabs/php_codesniffer": "@stable"
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\search_api_pantheon\\": "src/",
+            "Drupal\\Tests\\search_api_pantheon\\": "tests/"
+        }
+    },
     "scripts": {
+        "test:unit": "vendor/bin/phpunit",
         "code:fix": [
             "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer,vendor/slevomat/coding-standard,vendor/sirbrillig/phpcs-variable-analysis",
             "vendor/bin/phpcbf . --ignore=vendor src modules"

@@ -21,35 +21,14 @@ class PantheonSolrCurl extends Curl {
     foreach ($curlOpts as $option => $value) {
       curl_setopt($handler, $option, $value);
     }
-    // EXPERIMENT (BUGS-11968): force HTTP/1.1 when talking to the gateway
-    // directly with a client cert, to test whether HTTP/2 causes the
-    // schema post stream reset (curl error 92).
-    if (!empty($curlOpts[CURLOPT_SSLCERT])) {
-      curl_setopt($handler, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-    }
     return $handler;
   }
 
   /**
-   * TLS options passed through from the Pantheon prepend file.
-   *
-   * On appservers the prepend disables verification for the local mTLS
-   * proxy. In job runtimes (UJR) there is no local proxy, so the prepend
-   * instead supplies the binding client certificate.
-   */
-  protected const PASSTHROUGH_OPTIONS = [
-    CURLOPT_SSL_VERIFYPEER,
-    CURLOPT_SSL_VERIFYHOST,
-    CURLOPT_SSLCERT,
-    CURLOPT_SSLKEY,
-    CURLOPT_CAINFO,
-  ];
-
-  /**
-   * Get TLS options from Pantheon infrastructure.
+   * Get SSL options from Pantheon infrastructure.
    *
    * @return array
-   *   TLS verification and client certificate options.
+   *   SSL verification and client certificate options.
    */
   protected static function getPantheonCurlOptions(): array {
     if (!function_exists('pantheon_curl_setup')) {
@@ -58,19 +37,44 @@ class PantheonSolrCurl extends Curl {
     $port = getenv('PANTHEON_INDEX_PORT');
     [, $opts] = pantheon_curl_setup('', NULL, $port, NULL);
 
-    $ssl_options = [];
-    foreach (static::PASSTHROUGH_OPTIONS as $option) {
-      if (!isset($opts[$option])) {
-        continue;
-      }
-      // The prepend returns an empty path when no binding cert is found.
-      if ($opts[$option] === '') {
-        continue;
-      }
-      $ssl_options[$option] = $opts[$option];
+    return static::curlOptionsFromPrepend($opts);
+  }
+
+  /**
+   * Selects the prepend's curl options that apply to Solr requests.
+   *
+   * On appservers, Solr requests go through a local mTLS proxy that presents
+   * the client certificate, and the prepend disables verification of that
+   * proxy's certificate. In Unified Job Runner (UJR) jobs there is no local
+   * proxy, so the prepend supplies the binding certificate instead.
+   *
+   * @param array $prepend_options
+   *   Curl options returned by pantheon_curl_setup().
+   *
+   * @return array
+   *   Curl options to set on Solr requests.
+   */
+  public static function curlOptionsFromPrepend(array $prepend_options): array {
+    $options = [];
+    if (isset($prepend_options[CURLOPT_SSL_VERIFYPEER])) {
+      $options[CURLOPT_SSL_VERIFYPEER] = $prepend_options[CURLOPT_SSL_VERIFYPEER];
+    }
+    if (isset($prepend_options[CURLOPT_SSL_VERIFYHOST])) {
+      $options[CURLOPT_SSL_VERIFYHOST] = $prepend_options[CURLOPT_SSL_VERIFYHOST];
     }
 
-    return $ssl_options;
+    // The prepend returns an empty path when no binding certificate exists.
+    if (empty($prepend_options[CURLOPT_SSLCERT])) {
+      return $options;
+    }
+    $options[CURLOPT_SSLCERT] = $prepend_options[CURLOPT_SSLCERT];
+
+    // Connecting directly, curl negotiates HTTP/2, and the search gateway
+    // resets HTTP/2 streams on schema uploads (curl error 92). Appserver
+    // requests reach the gateway over HTTP/1.1 through the proxy.
+    $options[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_1_1;
+
+    return $options;
   }
 
 }

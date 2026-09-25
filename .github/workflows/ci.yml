@@ -41,6 +41,9 @@ jobs:
       - name: Code sniff
         run: composer run-script code:lint
 
+      - name: Unit tests
+        run: composer run-script test:unit
+
   phpcompatibility:
     runs-on: ubuntu-latest
     name: PHP Compatibility
