@@ -41,6 +41,30 @@ jobs:
       - name: Code sniff
         run: composer run-script code:lint
 
+  unit_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # PHPUnit 11 needs PHP >= 8.2, and on PHP 8.1 PHPUnit 10.5 conflicts
+        # with the only Drupal 10 core without advisories. PHP 8.1
+        # compatibility is covered by the phpcompatibility job.
+        php-version: ["8.3", "8.5"]
+    name: Unit tests (PHP ${{ matrix.php-version }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: Composer install
+        run: composer install
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
   phpcompatibility:
     runs-on: ubuntu-latest
     name: PHP Compatibility

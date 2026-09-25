@@ -47,6 +47,10 @@ class PantheonSolrCurl extends Curl {
     }
     if (!empty($opts[CURLOPT_SSLCERT])) {
       $ssl_options[CURLOPT_SSLCERT] = $opts[CURLOPT_SSLCERT];
+      // With a client cert, requests go to the search gateway directly rather
+      // than through the appserver's HTTP/1.1 mTLS proxy. The gateway resets
+      // HTTP/2 streams on schema uploads (curl error 92), so use HTTP/1.1.
+      $ssl_options[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_1_1;
     }
 
     return $ssl_options;
