@@ -45,6 +45,9 @@ class PantheonSolrCurl extends Curl {
     if (isset($opts[CURLOPT_SSL_VERIFYHOST])) {
       $ssl_options[CURLOPT_SSL_VERIFYHOST] = $opts[CURLOPT_SSL_VERIFYHOST];
     }
+    if (!empty($opts[CURLOPT_SSLCERT])) {
+      $ssl_options[CURLOPT_SSLCERT] = $opts[CURLOPT_SSLCERT];
+    }
 
     return $ssl_options;
   }
