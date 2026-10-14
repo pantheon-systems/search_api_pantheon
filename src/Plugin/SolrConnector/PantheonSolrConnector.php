@@ -216,6 +216,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * between Solr 8 and 9.
    */
   public function getStatsSummary() {
+    $this->connect();
+    $this->useTimeout();
+
     $summary = [
       '@pending_docs' => '',
       '@core_name' => '',
