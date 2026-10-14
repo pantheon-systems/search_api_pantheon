@@ -224,7 +224,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     ];
 
     $query = $this->solr->createPing();
-    $query->setResponseWriter(Query::WT_PHPS);
+    $query->setResponseWriter(Query::WT_JSON);
+    $query->addParam('json.nl', 'map');
     $query->setHandler('admin/mbeans?stats=true');
     $stats = $this->execute($query)->getData();
 
