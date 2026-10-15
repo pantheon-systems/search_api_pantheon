@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=8.1",
-        "drupal/search_api_solr": "^4.3"
+        "drupal/search_api_solr": "~4.3.0"
     },
     "require-dev": {
         "drupal/coder": "^8.3",
