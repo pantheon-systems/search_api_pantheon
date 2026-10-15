@@ -36,16 +36,20 @@ final class PantheonSolrCurlTest extends TestCase {
    * Tests that the client certificate set by the prepend is used for Solr.
    *
    * In Unified Job Runner the prepend supplies a client certificate, which
-   * the Solr gateway requires for mTLS.
+   * the Solr gateway requires for mTLS. Requests go to the gateway directly,
+   * and it resets HTTP/2 streams on schema uploads, so HTTP/1.1 is used.
    */
-  public function testClientCertificateFromPrependIsUsedForSolr(): void {
+  public function testClientCertificateFromPrependIsUsedForSolrOverHttp11(): void {
     self::$prependCurlOptions = [
       CURLOPT_URL => '',
       CURLOPT_SSLCERT => '/tmp/binding.pem',
     ];
 
     $this->assertSame(
-      [CURLOPT_SSLCERT => '/tmp/binding.pem'],
+      [
+        CURLOPT_SSLCERT => '/tmp/binding.pem',
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      ],
       $this->curlOptionsUsedForSolr(),
     );
   }
