@@ -14,6 +14,12 @@ Search API Pantheon 8.6.0
 - Replaced the deprecated Solarium PHPS response writer with JSON in the stats summary
 - Added an explicit access check to the Pantheon server entity query
 
+### Removed
+
+- Removed the obsolete search_api_pantheon_admin submodule. Sites upgrading
+  from 8.3.x must uninstall it before updating:
+  `drush pm:uninstall search_api_pantheon_admin`
+
 See README.md for installation and UPGRADE.md for upgrade instructions:
 - https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.6.x/README.md
 - https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.6.x/UPGRADE.md

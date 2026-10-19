@@ -1,5 +1,22 @@
 # Upgrade Guide
 
+## Upgrading to 8.6.x
+
+Version 8.6.x adds support for Drupal 12 and removes the obsolete `search_api_pantheon_admin` submodule.
+
+If you are upgrading from 8.3.x and the submodule is still installed, uninstall it before updating the module:
+
+```bash
+terminus drush <site>.<env> -- pm:uninstall search_api_pantheon_admin
+```
+
+Then update the module and run database updates:
+
+```bash
+composer require 'drupal/search_api_pantheon:^8.6'
+terminus drush <site>.<env> -- updb
+```
+
 ## Upgrading to 8.5.x
 
 Version 8.5.x adds support for Apache Solr 9. Existing Solr 8 installations continue to work without changes.
