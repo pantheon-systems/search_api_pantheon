@@ -18,7 +18,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) with these jobs:
 
 ### Multidev Test Matrix
 
-Drupal 10/11 x PHP 8.1/8.3/8.4/8.5 x Solr 8/9 = 8 combinations (with exclusions pairing PHP floor/ceiling per Drupal version).
+Drupal 10/11/12 x PHP 8.1/8.3/8.4/8.5 x Solr 8/9 = 10 combinations (with exclusions pairing PHP floor/ceiling per Drupal version; Drupal 12 requires PHP 8.5, so it runs only PHP 8.5). Drupal 12 cells use `continue-on-error` until the `search-api-pantheon-d12` fixture site exists.
 
 ### Test Flow
 
@@ -66,7 +66,7 @@ The `mirror_do` job pushes branches to drupal.org. Feature branches may fail if 
 
 ### Pre-baked Dev Environment
 
-The dev sites (`search-api-pantheon-d10.dev`, `search-api-pantheon-d11.dev`) have pre-configured Drupal content that multidevs inherit via database clone:
+The dev sites (`search-api-pantheon-d10.dev`, `search-api-pantheon-d11.dev`, and the planned `search-api-pantheon-d12.dev`) have pre-configured Drupal content that multidevs inherit via database clone:
 
 - **`field_test` content type** with 10 fields: `field_text_plain` (string), `field_text_long` (text_long), `field_integer` (integer), `field_boolean` (boolean), `field_email` (email), `field_link` (link), `field_decimal` (decimal), `field_date` (datetime/date), `field_datetime` (datetime/datetime), `field_list_text` (list_string)
 - **Test node** titled "Field Mapping Test Node" with known values for all fields
