@@ -8,6 +8,8 @@ Search API Pantheon 8.6.0
 ### Bug Fixes
 
 - Fixed the Solr server stats summary failing when the Solr client was not yet connected
+- Removed the orphaned "execute pantheon_solr admin task" permission from
+  roles left behind by the search_api_pantheon_admin submodule removal
 
 ### Improvements
 
