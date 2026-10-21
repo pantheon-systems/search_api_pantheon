@@ -21,6 +21,8 @@ Search API Pantheon 8.6.0
 - Removed the obsolete search_api_pantheon_admin submodule. Sites upgrading
   from 8.3.x must uninstall it before updating:
   `drush pm:uninstall search_api_pantheon_admin`
+  Otherwise /update.php is blocked by a missing module error; `drush updb`
+  still completes the cleanup.
 
 See README.md for installation and UPGRADE.md for upgrade instructions:
 - https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.6.x/README.md

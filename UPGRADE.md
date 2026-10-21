@@ -10,6 +10,8 @@ If you are upgrading from 8.3.x and the submodule is still installed, uninstall 
 terminus drush <site>.<env> -- pm:uninstall search_api_pantheon_admin
 ```
 
+If you skip this step, `/update.php` refuses to run with "Missing or invalid module: search_api_pantheon_admin". Run `drush updb` instead, which reports the same error as a warning and completes the cleanup.
+
 Then update the module and run database updates:
 
 ```bash
