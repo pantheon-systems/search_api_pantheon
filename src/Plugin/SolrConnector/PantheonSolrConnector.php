@@ -216,6 +216,9 @@ class PantheonSolrConnector extends StandardSolrConnector {
    * between Solr 8 and 9.
    */
   public function getStatsSummary() {
+    $this->connect();
+    $this->useTimeout();
+
     $summary = [
       '@pending_docs' => '',
       '@core_name' => '',
@@ -224,7 +227,8 @@ class PantheonSolrConnector extends StandardSolrConnector {
     ];
 
     $query = $this->solr->createPing();
-    $query->setResponseWriter(Query::WT_PHPS);
+    $query->setResponseWriter(Query::WT_JSON);
+    $query->addParam('json.nl', 'map');
     $query->setHandler('admin/mbeans?stats=true');
     $stats = $this->execute($query)->getData();
 

@@ -31,6 +31,7 @@ trait GetPantheonSolrServerTrait {
   protected function getPantheonSolrServer(?string $server_id = NULL): ServerInterface {
     if (!$server_id) {
       $ids = $this->storage->getQuery()
+        ->accessCheck(FALSE)
         ->condition('backend_config.connector', 'pantheon')
         ->condition('status', TRUE)
         ->execute();
