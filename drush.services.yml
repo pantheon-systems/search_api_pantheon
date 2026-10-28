@@ -24,3 +24,12 @@ services:
     arguments: ['@entity_type.manager']
     tags:
       - { name: drush.command }
+  search_api_pantheon.index_management:
+    class: Drupal\search_api_pantheon\Commands\IndexManagement
+    arguments:
+      - '@entity_type.manager'
+      - '@module_handler'
+      - '@event_dispatcher'
+      - '@search_api_solr.configset_controller'
+    tags:
+      - { name: drush.command }
