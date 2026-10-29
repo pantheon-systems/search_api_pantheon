@@ -63,9 +63,31 @@ class SchemaPoster implements LoggerAwareInterface {
    * @throws \Drupal\search_api\SearchApiException
    * @throws \GuzzleHttp\Exception\GuzzleException
    *
-   * @SuppressWarnings(PHPMD.Superglobals)
+   * @see ::post()
    */
   public function postSchema(string $server_id = '', array $files = []): array {
+    $result = $this->post($server_id, $files);
+    return [$result->getLogMethod(), $result->message];
+  }
+
+  /**
+   * Post a schema to the Pantheon Solr server and reload the core.
+   *
+   * @param string $server_id
+   *   Search Api Server ID (optional).
+   * @param array $files
+   *   Array of files to post.
+   *
+   * @return \Drupal\search_api_pantheon\Services\SchemaPostResult
+   *   Whether the schema was uploaded and the core reloaded, and the message to
+   *   show the user.
+   *
+   * @throws \Drupal\search_api\SearchApiException
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *
+   * @SuppressWarnings(PHPMD.Superglobals)
+   */
+  public function post(string $server_id = '', array $files = []): SchemaPostResult {
     $server = $this->getPantheonSolrServer($server_id);
     // PANTHEON Environment.
     if (getenv('PANTHEON_ENVIRONMENT')) {
@@ -84,11 +106,42 @@ class SchemaPoster implements LoggerAwareInterface {
 
     $status_code = $response->getStatusCode();
     $this->logger->info('Status code: ' . $status_code);
+    $reloaded = NULL;
+    $reload_response = NULL;
     if ($status_code >= 200 && $status_code < 300) {
-      // Call reload on the server.
-      $this->getPantheonSolrConnector($server)->reloadCore();
+      [$reloaded, $reload_response] = $this->reloadCore($server);
     }
-    return $this->processResponse($response);
+    return $this->buildResult($response, $reloaded, $reload_response);
+  }
+
+  /**
+   * Reload the Solr core so that it picks up the schema that was just posted.
+   *
+   * @param \Drupal\search_api\ServerInterface $server
+   *   The server whose core to reload.
+   *
+   * @return array
+   *   Whether the reload worked (bool), and the platform's response (a
+   *   \Solarium\Core\Client\Response, or NULL if there is none, for example on
+   *   a local environment or when the request itself failed).
+   *
+   * @SuppressWarnings(PHPMD.StaticAccess)
+   */
+  protected function reloadCore(ServerInterface $server): array {
+    $connector = $this->getPantheonSolrConnector($server);
+    try {
+      $response = $connector->requestReload();
+      if ($response === NULL) {
+        return [$connector->reloadCore(), NULL];
+      }
+      return [PantheonSolrConnector::getLogMethod($response) === 'info', $response];
+    }
+    catch (SearchApiSolrException $e) {
+      // Keep the exception, which names internal endpoints, out of the
+      // message shown to the user.
+      $this->logger->error('Core reload failed: {message}', ['message' => $e->getMessage()]);
+      return [FALSE, NULL];
+    }
   }
 
   /**
@@ -163,35 +216,76 @@ class SchemaPoster implements LoggerAwareInterface {
    * @return array
    *   Message to be displayed to the user (type, message).
    *
-   * @SuppressWarnings(PHPMD.StaticAccess)
+   * @see ::buildResult()
    */
   public function processResponse(Response $response): array {
-    $logMethod = PantheonSolrConnector::getLogMethod($response);
-    $status_code = $response->getStatusCode();
+    $result = $this->buildResult($response);
+    return [$result->getLogMethod(), $result->message];
+  }
+
+  /**
+   * Build the outcome of a schema post, with the message for the user.
+   *
+   * @param \Solarium\Core\Client\Response $upload_response
+   *   The response to posting the schema.
+   * @param bool|null $reloaded
+   *   Whether the core reloaded afterwards, or NULL if no reload ran.
+   * @param \Solarium\Core\Client\Response|null $reload_response
+   *   The response to the reload request, if there was one.
+   *
+   * @return \Drupal\search_api_pantheon\Services\SchemaPostResult
+   *   The outcome.
+   *
+   * @SuppressWarnings(PHPMD.StaticAccess)
+   */
+  public function buildResult(Response $upload_response, ?bool $reloaded = NULL, ?Response $reload_response = NULL): SchemaPostResult {
+    $uploaded = PantheonSolrConnector::getLogMethod($upload_response) === 'info';
     $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
-      $logMethod == 'error' ? 'NOT UPLOADED' : 'UPLOADED',
-      $status_code,
-      $response->getStatusMessage(),
+      $uploaded ? 'UPLOADED' : 'NOT UPLOADED',
+      $upload_response->getStatusCode(),
+      $upload_response->getStatusMessage(),
     ]);
 
-    if ($logMethod === 'error') {
-      if ($status_code >= 400 && $status_code < 500) {
-        // The gateway returns {"success":false,"error":"..."}. Show only that
-        // error text: a body in any other format could carry internal details.
-        $decoded = json_decode((string) $response->getBody(), TRUE);
-        $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
-        if (is_string($error) && trim($error) !== '') {
-          $message .= "\n" . vsprintf($this->t('Gateway error: %s'), [
-            mb_substr(trim($error), 0, self::MAX_ERROR_LENGTH),
-          ]);
-        }
-      }
-      else {
-        $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
+    if (!$uploaded) {
+      $message .= $this->describeError($upload_response);
+    }
+    elseif ($reloaded === FALSE) {
+      // Without the reload Solr can keep running the previous schema.
+      $message .= "\n" . $this->t('The schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.');
+      if ($reload_response) {
+        $message .= $this->describeError($reload_response);
       }
     }
 
-    return [$logMethod, $message];
+    // A failed upload means that no reload was attempted.
+    return new SchemaPostResult($uploaded, $uploaded ? $reloaded : NULL, $message);
+  }
+
+  /**
+   * Describe a failed response in terms that are safe to show to the user.
+   *
+   * @param \Solarium\Core\Client\Response $response
+   *   A response with an error status.
+   *
+   * @return string
+   *   A line break and the description, or an empty string if there is nothing
+   *   useful and safe to add.
+   */
+  protected function describeError(Response $response): string {
+    $status_code = $response->getStatusCode();
+    if ($status_code >= 400 && $status_code < 500) {
+      // The gateway returns {"success":false,"error":"..."}. Show only that
+      // error text: a body in any other format could carry internal details.
+      $decoded = json_decode($response->getBody(), TRUE);
+      $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
+      if (is_string($error) && trim($error) !== '') {
+        return "\n" . vsprintf($this->t('Gateway error: %s'), [
+          mb_substr(trim($error), 0, self::MAX_ERROR_LENGTH),
+        ]);
+      }
+      return '';
+    }
+    return "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
   }
 
   /**

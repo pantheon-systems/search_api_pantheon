@@ -7,6 +7,7 @@ namespace Drupal\Tests\search_api_pantheon\Unit;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\search_api_pantheon\Services\SchemaPoster;
+use Drupal\search_api_pantheon\Services\SchemaPostResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,7 @@ use Solarium\Core\Client\Response;
  * Tests the message shown to the user after a schema post.
  */
 #[CoversClass(SchemaPoster::class)]
+#[CoversClass(SchemaPostResult::class)]
 final class SchemaPosterTest extends TestCase {
 
   /**
@@ -111,21 +113,133 @@ final class SchemaPosterTest extends TestCase {
   }
 
   /**
+   * Tests that a successful upload and reload is a success.
+   */
+  public function testUploadAndReloadSucceed(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', '{"success":true}'),
+      TRUE,
+      $this->response(200, 'OK', ''),
+    );
+
+    $this->assertTrue($result->uploaded);
+    $this->assertTrue($result->reloaded);
+    $this->assertTrue($result->isSuccess());
+    $this->assertSame('info', $result->getLogMethod());
+    $this->assertSame('Result: UPLOADED Status code: 200 - OK', $result->message);
+  }
+
+  /**
+   * Tests that a failed reload after a successful upload is reported.
+   *
+   * The upload succeeded, so Solr can keep running the previous schema without
+   * the user knowing, unless the message says so.
+   */
+  public function testReloadFailureAfterUploadIsAnError(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', '{"success":true}'),
+      FALSE,
+      $this->response(500, 'Internal Server Error', '{"error":{"msg":"Unable to reload core abc_live","trace":"org.apache.solr.common.SolrException"}}'),
+    );
+
+    $this->assertTrue($result->uploaded);
+    $this->assertFalse($result->reloaded);
+    $this->assertFalse($result->isSuccess());
+    $this->assertSame('error', $result->getLogMethod());
+    $this->assertSame(
+      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
+      . 'The server encountered an internal error. Please contact Pantheon support for assistance.',
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests that a gateway error text for a failed reload is shown.
+   */
+  public function testReloadFailureShowsGatewayErrorText(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', '{"success":true}'),
+      FALSE,
+      $this->response(409, 'Conflict', '{"success":false,"error":"Core is being reloaded"}'),
+    );
+
+    $this->assertSame(
+      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
+      . 'Gateway error: Core is being reloaded',
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests a reload failure that has no response, such as a connection error.
+   */
+  public function testReloadFailureWithoutResponseIsAnError(): void {
+    $result = $this->poster()->buildResult($this->response(200, 'OK', ''), FALSE);
+
+    $this->assertFalse($result->isSuccess());
+    $this->assertSame(
+      "Result: UPLOADED Status code: 200 - OK\n"
+      . 'The schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.',
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests that no reload is reported when the upload failed.
+   */
+  public function testFailedUploadReportsNoReload(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(400, 'OK', '{"success":false,"error":"Invalid schema"}'),
+      TRUE,
+    );
+
+    $this->assertFalse($result->uploaded);
+    $this->assertNull($result->reloaded);
+    $this->assertSame('error', $result->getLogMethod());
+    $this->assertSame(
+      "Result: NOT UPLOADED Status code: 400 - OK\nGateway error: Invalid schema",
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests that a result with no reload information counts as a success.
+   */
+  public function testUploadWithoutReloadInformationIsSuccess(): void {
+    $result = new SchemaPostResult(TRUE, NULL, 'Result: UPLOADED Status code: 200 - OK');
+
+    $this->assertTrue($result->isSuccess());
+    $this->assertSame('info', $result->getLogMethod());
+  }
+
+  /**
    * Runs SchemaPoster::processResponse() on a response.
    *
    * @return array{string, string}
    *   The log method and the message.
    */
   private function process(int $status_code, string $status_message, string $body): array {
+    return $this->poster()->processResponse($this->response($status_code, $status_message, $body));
+  }
+
+  /**
+   * Creates a Solarium response.
+   */
+  private function response(int $status_code, string $status_message, string $body): Response {
+    return new Response($body, ["HTTP/1.1 $status_code $status_message"]);
+  }
+
+  /**
+   * Creates a SchemaPoster that translates strings to themselves.
+   */
+  private function poster(): SchemaPoster {
     // The constructor needs Drupal services that these tests do not use.
     $poster = (new \ReflectionClass(SchemaPoster::class))->newInstanceWithoutConstructor();
     $translation = $this->createStub(TranslationInterface::class);
     $translation->method('translateString')
       ->willReturnCallback(static fn (TranslatableMarkup $string): string => $string->getUntranslatedString());
     $poster->setStringTranslation($translation);
-
-    $response = new Response($body, ["HTTP/1.1 $status_code $status_message"]);
-    return $poster->processResponse($response);
+    return $poster;
   }
 
 }
