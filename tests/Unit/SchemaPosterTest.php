@@ -139,7 +139,7 @@ final class SchemaPosterTest extends TestCase {
     $result = $this->poster()->buildResult(
       $this->response(200, 'OK', '{"success":true}'),
       FALSE,
-      $this->response(500, 'Internal Server Error', '{"error":{"msg":"Unable to reload core abc_live","trace":"org.apache.solr.common.SolrException"}}'),
+      $this->response(500, 'Internal Server Error', $this->solrReloadError()),
     );
 
     $this->assertTrue($result->uploaded);
@@ -148,7 +148,79 @@ final class SchemaPosterTest extends TestCase {
     $this->assertSame('error', $result->getLogMethod());
     $this->assertSame(
       "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
-      . 'The server encountered an internal error. Please contact Pantheon support for assistance.',
+      . 'Solr error: Unable to reload core (java.lang.ClassNotFoundException)',
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests that nothing but the message and root class of a Solr error is shown.
+   *
+   * The sample is the reload error from SITE-5011. Its stack trace names the
+   * core, a schema path in the Solr data directory and internal classes.
+   */
+  public function testSolrErrorShowsNoTraceCoreIdOrPath(): void {
+    $message = $this->poster()->buildResult(
+      $this->response(200, 'OK', ''),
+      FALSE,
+      $this->response(500, 'Internal Server Error', $this->solrReloadError()),
+    )->message;
+
+    foreach (['40574207', 'live_coreqtvdc', '/var/solr', 'ICUCollationField', 'jetty', 'CoreContainer'] as $internal) {
+      $this->assertStringNotContainsString($internal, $message);
+    }
+  }
+
+  /**
+   * Tests how the message of a Solr error is cleaned before it is shown.
+   *
+   * @param array $error
+   *   The "error" object of the Solr response.
+   * @param string $expected
+   *   What follows "Solr error: " in the message.
+   */
+  #[DataProvider('solrErrors')]
+  public function testSolrErrorIsSummarized(array $error, string $expected): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', ''),
+      FALSE,
+      $this->response(500, 'Internal Server Error', json_encode(['error' => $error])),
+    );
+
+    $this->assertStringEndsWith("\nSolr error: $expected", $result->message);
+  }
+
+  /**
+   * Provides Solr error objects and the summary expected for each.
+   *
+   * @return array<string, array{array<mixed>, string}>
+   *   Error objects and expected summaries, keyed by description.
+   */
+  public static function solrErrors(): array {
+    return [
+      'message only' => [['msg' => 'Unable to reload core'], 'Unable to reload core'],
+      'root class only' => [['metadata' => ['root-error-class', 'java.lang.ClassNotFoundException']], 'java.lang.ClassNotFoundException'],
+      'bracketed core name removed' => [['msg' => 'Unable to reload core [abc_live_core1]'], 'Unable to reload core'],
+      'file path removed' => [['msg' => "Can't load schema /var/solr/data/abc/conf/schema.xml: bad field"], "Can't load schema : bad field"],
+      'root class that is not a class name is ignored' => [
+        ['msg' => 'Unable to reload core', 'metadata' => ['root-error-class', "evil\nclass"]],
+        'Unable to reload core',
+      ],
+    ];
+  }
+
+  /**
+   * Tests that a Solr error with neither field falls back to the generic text.
+   */
+  public function testSolrErrorWithoutMessageOrRootClassShowsGenericMessage(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', ''),
+      FALSE,
+      $this->response(500, 'Internal Server Error', '{"error":{"trace":"org.apache.solr.common.SolrException"}}'),
+    );
+
+    $this->assertStringEndsWith(
+      "\nThe server encountered an internal error. Please contact Pantheon support for assistance.",
       $result->message,
     );
   }
@@ -220,6 +292,31 @@ final class SchemaPosterTest extends TestCase {
    */
   private function process(int $status_code, string $status_message, string $body): array {
     return $this->poster()->processResponse($this->response($status_code, $status_message, $body));
+  }
+
+  /**
+   * The body of a failed reload, trimmed from the sample in SITE-5011.
+   */
+  private function solrReloadError(): string {
+    return json_encode([
+      'responseHeader' => ['status' => 500, 'QTime' => 27],
+      'error' => [
+        'metadata' => [
+          'error-class',
+          'org.apache.solr.common.SolrException',
+          'root-error-class',
+          'java.lang.ClassNotFoundException',
+        ],
+        'msg' => 'Unable to reload core [40574207-9f38-4265-9e30-765e38d2f063_live_coreqtvdc]',
+        'trace' => implode("\n", [
+          'org.apache.solr.common.SolrException: Unable to reload core',
+          "\tat org.apache.solr.core.CoreContainer.reload(CoreContainer.java:1782)",
+          "Caused by: org.apache.solr.common.SolrException: Can't load schema /var/solr/data/40574207-9f38-4265-9e30-765e38d2f063_live_coreqtvdc/conf/schema.xml: Error loading class 'solr.ICUCollationField'",
+          "\tat org.eclipse.jetty.server.Server.handle(Server.java:516)",
+        ]),
+        'code' => 500,
+      ],
+    ]);
   }
 
   /**

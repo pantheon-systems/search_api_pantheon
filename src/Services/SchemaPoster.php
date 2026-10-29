@@ -273,11 +273,20 @@ class SchemaPoster implements LoggerAwareInterface {
    */
   protected function describeError(Response $response): string {
     $status_code = $response->getStatusCode();
+    $decoded = json_decode($response->getBody(), TRUE);
+    $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
+
+    // Solr's own error is an object: {"error":{"msg":"...","metadata":[...]}}.
+    if (is_array($error)) {
+      $solr_error = $this->describeSolrError($error);
+      if ($solr_error !== '') {
+        return "\n" . vsprintf($this->t('Solr error: %s'), [$solr_error]);
+      }
+    }
+
     if ($status_code >= 400 && $status_code < 500) {
       // The gateway returns {"success":false,"error":"..."}. Show only that
       // error text: a body in any other format could carry internal details.
-      $decoded = json_decode($response->getBody(), TRUE);
-      $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
       if (is_string($error) && trim($error) !== '') {
         return "\n" . vsprintf($this->t('Gateway error: %s'), [
           mb_substr(trim($error), 0, self::MAX_ERROR_LENGTH),
@@ -286,6 +295,43 @@ class SchemaPoster implements LoggerAwareInterface {
       return '';
     }
     return "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
+  }
+
+  /**
+   * Summarize a Solr error object using only its short, structured fields.
+   *
+   * The stack trace is never used, as it names internal classes, hosts and
+   * paths. From the message, bracketed ids (such as the core name) and file
+   * paths are removed.
+   *
+   * @param array $error
+   *   The "error" object from a Solr response.
+   *
+   * @return string
+   *   For example "Unable to reload core (java.lang.ClassNotFoundException)",
+   *   or an empty string if the error holds neither field.
+   */
+  protected function describeSolrError(array $error): string {
+    $message = '';
+    if (is_string($error['msg'] ?? NULL)) {
+      $message = preg_replace([
+        '/\s*\[[^\]]*\]/',
+        '#(?<!\S)/[\w.\-]+(?:/[\w.\-]+)+#',
+        '/\s+/',
+      ], ['', '', ' '], $error['msg']);
+      $message = trim($message);
+    }
+
+    // The metadata is a flat list of alternating names and values.
+    $root_class = '';
+    $metadata = is_array($error['metadata'] ?? NULL) ? $error['metadata'] : [];
+    $position = array_search('root-error-class', $metadata, TRUE);
+    if ($position !== FALSE && is_string($metadata[$position + 1] ?? NULL) && preg_match('/^[\w.$]+$/', $metadata[$position + 1])) {
+      $root_class = $metadata[$position + 1];
+    }
+
+    $summary = $message !== '' && $root_class !== '' ? "$message ($root_class)" : $message . $root_class;
+    return mb_substr($summary, 0, self::MAX_ERROR_LENGTH);
   }
 
   /**
