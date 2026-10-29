@@ -147,7 +147,7 @@ final class SchemaPosterTest extends TestCase {
     $this->assertFalse($result->isSuccess());
     $this->assertSame('error', $result->getLogMethod());
     $this->assertSame(
-      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
+      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core. It may still be running the previous schema, and the new schema may fail to load the next time Solr loads the core.\n"
       . 'Solr error: Unable to reload core (java.lang.ClassNotFoundException)',
       $result->message,
     );
@@ -210,6 +210,88 @@ final class SchemaPosterTest extends TestCase {
   }
 
   /**
+   * Tests that the gateway's own error object is shown as a gateway error.
+   *
+   * The gateway answers {"error":{"code":500,"message":"..."}}, with "message"
+   * where Solr has "msg".
+   */
+  public function testGatewayErrorObjectShowsItsMessage(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', ''),
+      FALSE,
+      $this->response(500, 'Internal Server Error', '{"error":{"code":500,"message":"Core is not loaded [abc_live_core1]"}}'),
+    );
+
+    $this->assertStringEndsWith("\nGateway error: Core is not loaded", $result->message);
+  }
+
+  /**
+   * Tests that a 4xx with the gateway's error object shows its message.
+   */
+  public function testClientErrorWithGatewayErrorObjectShowsItsMessage(): void {
+    $this->assertSame(
+      ['error', "Result: NOT UPLOADED Status code: 404 - OK\nGateway error: Core not found"],
+      $this->process(404, 'OK', '{"error":{"code":404,"message":"Core not found"}}'),
+    );
+  }
+
+  /**
+   * Tests that a 2xx response saying it failed is a failed upload.
+   *
+   * When the gateway cannot store the files it answers
+   * {"success":false,"error":"..."} without an error status. Its error text
+   * can name internal backends, so it is not shown.
+   */
+  public function testSuccessFalseWithOkStatusIsAFailedUpload(): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', '{"success":false,"error":"Could not upload configs: backend HTTP error [http://10.0.0.7:8983]"}'),
+      NULL,
+    );
+
+    $this->assertFalse($result->uploaded);
+    $this->assertNull($result->reloaded);
+    $this->assertFalse($result->isSuccess());
+    $this->assertSame('error', $result->getLogMethod());
+    $this->assertSame(
+      "Result: NOT UPLOADED Status code: 200 - OK\nThe Pantheon Search service could not store the schema files. Please try again, and contact Pantheon support if it keeps failing.",
+      $result->message,
+    );
+  }
+
+  /**
+   * Tests which 2xx responses count as an accepted upload.
+   *
+   * @param string $body
+   *   The response body.
+   */
+  #[DataProvider('acceptedUploadBodies')]
+  public function testUploadWithOkStatusIsAccepted(string $body): void {
+    $result = $this->poster()->buildResult($this->response(200, 'OK', $body));
+
+    $this->assertTrue($result->uploaded);
+    $this->assertTrue($result->isSuccess());
+    $this->assertSame('Result: UPLOADED Status code: 200 - OK', $result->message);
+  }
+
+  /**
+   * Provides 2xx bodies that are not a failure.
+   *
+   * Local environments and older gateways can answer without JSON, so a body
+   * that does not say "success":false is accepted.
+   *
+   * @return array<string, array{string}>
+   *   Response bodies keyed by description.
+   */
+  public static function acceptedUploadBodies(): array {
+    return [
+      'success true' => ['{"success":true}'],
+      'empty' => [''],
+      'not JSON' => ['OK'],
+      'JSON without success' => ['{"responseHeader":{"status":0}}'],
+    ];
+  }
+
+  /**
    * Tests that a Solr error with neither field falls back to the generic text.
    */
   public function testSolrErrorWithoutMessageOrRootClassShowsGenericMessage(): void {
@@ -236,7 +318,7 @@ final class SchemaPosterTest extends TestCase {
     );
 
     $this->assertSame(
-      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
+      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core. It may still be running the previous schema, and the new schema may fail to load the next time Solr loads the core.\n"
       . 'Gateway error: Core is being reloaded',
       $result->message,
     );
@@ -251,7 +333,7 @@ final class SchemaPosterTest extends TestCase {
     $this->assertFalse($result->isSuccess());
     $this->assertSame(
       "Result: UPLOADED Status code: 200 - OK\n"
-      . 'The schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.',
+      . 'The schema was uploaded, but Solr could not reload the core. It may still be running the previous schema, and the new schema may fail to load the next time Solr loads the core.',
       $result->message,
     );
   }

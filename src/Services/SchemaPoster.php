@@ -108,10 +108,32 @@ class SchemaPoster implements LoggerAwareInterface {
     $this->logger->info('Status code: ' . $status_code);
     $reloaded = NULL;
     $reload_response = NULL;
-    if ($status_code >= 200 && $status_code < 300) {
+    if ($this->isUploaded($response)) {
       [$reloaded, $reload_response] = $this->reloadCore($server);
     }
     return $this->buildResult($response, $reloaded, $reload_response);
+  }
+
+  /**
+   * Whether the gateway accepted the schema that was posted.
+   *
+   * A 2xx status is not enough: when the gateway could not store the files it
+   * answers {"success":false,"error":"..."} without an error status.
+   *
+   * @param \Solarium\Core\Client\Response $response
+   *   The response to posting the schema.
+   *
+   * @return bool
+   *   TRUE if the schema was accepted.
+   *
+   * @SuppressWarnings(PHPMD.StaticAccess)
+   */
+  protected function isUploaded(Response $response): bool {
+    if (PantheonSolrConnector::getLogMethod($response) !== 'info') {
+      return FALSE;
+    }
+    $decoded = json_decode($response->getBody(), TRUE);
+    return !(is_array($decoded) && ($decoded['success'] ?? NULL) === FALSE);
   }
 
   /**
@@ -235,11 +257,9 @@ class SchemaPoster implements LoggerAwareInterface {
    *
    * @return \Drupal\search_api_pantheon\Services\SchemaPostResult
    *   The outcome.
-   *
-   * @SuppressWarnings(PHPMD.StaticAccess)
    */
   public function buildResult(Response $upload_response, ?bool $reloaded = NULL, ?Response $reload_response = NULL): SchemaPostResult {
-    $uploaded = PantheonSolrConnector::getLogMethod($upload_response) === 'info';
+    $uploaded = $this->isUploaded($upload_response);
     $message = vsprintf($this->t('Result: %s Status code: %d - %s'), [
       $uploaded ? 'UPLOADED' : 'NOT UPLOADED',
       $upload_response->getStatusCode(),
@@ -251,7 +271,7 @@ class SchemaPoster implements LoggerAwareInterface {
     }
     elseif ($reloaded === FALSE) {
       // Without the reload Solr can keep running the previous schema.
-      $message .= "\n" . $this->t('The schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.');
+      $message .= "\n" . $this->t('The schema was uploaded, but Solr could not reload the core. It may still be running the previous schema, and the new schema may fail to load the next time Solr loads the core.');
       if ($reload_response) {
         $message .= $this->describeError($reload_response);
       }
@@ -276,11 +296,23 @@ class SchemaPoster implements LoggerAwareInterface {
     $decoded = json_decode($response->getBody(), TRUE);
     $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
 
-    // Solr's own error is an object: {"error":{"msg":"...","metadata":[...]}}.
+    // The gateway could not store the files, but answered with a 2xx status.
+    // Its error text can name internal backends, so it is only logged.
+    if ($status_code >= 200 && $status_code < 300) {
+      $this->logger?->error('Schema upload failed: {error}', [
+        'error' => is_string($error) ? $error : json_encode($error),
+      ]);
+      return "\n" . $this->t('The Pantheon Search service could not store the schema files. Please try again, and contact Pantheon support if it keeps failing.');
+    }
+
     if (is_array($error)) {
-      $solr_error = $this->describeSolrError($error);
-      if ($solr_error !== '') {
-        return "\n" . vsprintf($this->t('Solr error: %s'), [$solr_error]);
+      // Solr's own error is {"error":{"msg":"...","metadata":[...]}}, and the
+      // gateway's is {"error":{"code":500,"message":"..."}}.
+      $summary = $this->describeErrorObject($error);
+      if ($summary !== '') {
+        return "\n" . (isset($error['message']) && !isset($error['msg'])
+          ? vsprintf($this->t('Gateway error: %s'), [$summary])
+          : vsprintf($this->t('Solr error: %s'), [$summary]));
       }
     }
 
@@ -298,27 +330,29 @@ class SchemaPoster implements LoggerAwareInterface {
   }
 
   /**
-   * Summarize a Solr error object using only its short, structured fields.
+   * Summarize an error object using only its short, structured fields.
    *
    * The stack trace is never used, as it names internal classes, hosts and
    * paths. From the message, bracketed ids (such as the core name) and file
    * paths are removed.
    *
    * @param array $error
-   *   The "error" object from a Solr response.
+   *   The "error" object from a response: Solr's, with "msg", or the
+   *   gateway's, with "message".
    *
    * @return string
    *   For example "Unable to reload core (java.lang.ClassNotFoundException)",
    *   or an empty string if the error holds neither field.
    */
-  protected function describeSolrError(array $error): string {
+  protected function describeErrorObject(array $error): string {
     $message = '';
-    if (is_string($error['msg'] ?? NULL)) {
+    $text = $error['msg'] ?? $error['message'] ?? NULL;
+    if (is_string($text)) {
       $message = preg_replace([
         '/\s*\[[^\]]*\]/',
         '#(?<!\S)/[\w.\-]+(?:/[\w.\-]+)+#',
         '/\s+/',
-      ], ['', '', ' '], $error['msg']);
+      ], ['', '', ' '], $text);
       $message = trim($message);
     }
 
