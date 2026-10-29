@@ -147,8 +147,7 @@ final class SchemaPosterTest extends TestCase {
     $this->assertFalse($result->isSuccess());
     $this->assertSame('error', $result->getLogMethod());
     $this->assertSame(
-      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
-      . "Solr error: Unable to reload core (java.lang.ClassNotFoundException)\nCause: Error loading class 'solr.ICUCollationField'",
+      "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\nSolr error: Unable to reload core (java.lang.ClassNotFoundException)\nCause: Error loading class 'solr.ICUCollationField'",
       $result->message,
     );
   }
