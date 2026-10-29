@@ -6,3 +6,4 @@
 /codacy.yml export-ignore
 /phpcs.xml export-ignore
 /CLAUDE.md export-ignore
+/docs export-ignore
