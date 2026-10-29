@@ -151,7 +151,7 @@ Follow these steps to resolve on Pantheon:
    terminus drush <site>.<env> -- search-api-pantheon:postSchema
    ```
 
-2. **Disable and re-enable the Solr server** to clear all tracked index data.
+2. **Disable and re-enable the Solr server.** This disables every index on it and clears their indexed data from Solr:
 
    ```bash
    terminus drush <site>.<env> -- search-api:server-disable <server_id>
@@ -166,20 +166,31 @@ Follow these steps to resolve on Pantheon:
    terminus drush <site>.<env> -- search-api-solr:reload <server_id>
    ```
 
-4. **Wait at least 5 minutes**, then verify the schema version has updated using `terminus drush <site>.<env> -- search-api-pantheon:diagnose`. The platform checks for new schemas and issues a core reload within 1–5 minutes.
-
-5. **Re-enable all indexes** (they are automatically disabled when the server is disabled):
+   This command is provided by the `search_api_solr_admin` submodule of Search API Solr. If Drush reports that the command is not defined, enable the submodule first:
 
    ```bash
-   terminus drush <site>.<env> -- search-api:enable
+   terminus drush <site>.<env> -- pm:enable search_api_solr_admin -y
    ```
 
-6. **Reindex all content:**
+4. **Wait at least 5 minutes**, then verify the schema version has updated using `terminus drush <site>.<env> -- search-api-pantheon:diagnose`. The platform checks for new schemas and issues a core reload within 1–5 minutes.
+
+5. **Re-enable the indexes.** Disabling the server disabled all of its indexes. Enable them all:
 
    ```bash
+   terminus drush <site>.<env> -- search-api:enable-all
+   ```
+
+   To enable a single index instead, use `terminus drush <site>.<env> -- search-api:enable <index_id>`. List your index IDs with `search-api:list`.
+
+6. **Rebuild the tracker and reindex all content.** Rebuilding the tracker marks every item as needing to be indexed again, for all enabled indexes:
+
+   ```bash
+   terminus drush <site>.<env> -- search-api:rebuild-tracker
    terminus drush <site>.<env> -- search-api:index
    ```
 
 7. **Verify** search functionality is working as expected.
+
+If you still see the same error after reindexing, [contact Pantheon support](https://docs.pantheon.io/guides/support/contact-support).
 
 For general schema management, see [Schema Updates](README.md#schema-updates) in the README.
