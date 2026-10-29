@@ -41,8 +41,6 @@ work, and develop the new release there. This was done for `8.4.x` and `8.5.x`.
 
 ## Making a new release
 
-This is an internal process for maintainers.
-
 First, tag the release. Tag a stable release from `8.x`. Tag a pre-release from
 its `8.N.x` branch (see the exception above).
 
@@ -61,13 +59,13 @@ git push origin 8.5.2
 ```
 
 For a pre-release, use a suffix such as `8.6.0-beta1`, and tag from the `8.N.x`
-branch. For example, to release `8.6.0-beta2` from `8.6.x`:
+branch. For example, to release `8.6.0-beta1` from `8.6.x`:
 
 ```bash
 git checkout 8.6.x
 git pull
-git tag 8.6.0-beta2
-git push origin 8.6.0-beta2
+git tag 8.6.0-beta1
+git push origin 8.6.0-beta1
 ```
 
 Pushing the tag runs the `create-branch-on-tag` workflow. It takes the major and
