@@ -31,6 +31,11 @@ class SchemaPoster implements LoggerAwareInterface {
   use GetPantheonSolrServerTrait;
 
   /**
+   * Longest gateway error text, in characters, shown to the user.
+   */
+  private const MAX_ERROR_LENGTH = 500;
+
+  /**
    * Class Constructor.
    */
   public function __construct(
@@ -170,18 +175,19 @@ class SchemaPoster implements LoggerAwareInterface {
     ]);
 
     if ($logMethod === 'error') {
-      $body = $response->getBody();
-      if (!empty($body)) {
-        if ($status_code >= 400 && $status_code < 500) {
-          // The gateway returns {"success":false,"error":"..."}; show the
-          // error text, or the raw body if it is not in that format.
-          $decoded = json_decode($body, TRUE);
-          $error = is_array($decoded) && !empty($decoded['error']) ? $decoded['error'] : $body;
-          $message .= "\n" . vsprintf($this->t('Gateway error: %s'), [$error]);
+      if ($status_code >= 400 && $status_code < 500) {
+        // The gateway returns {"success":false,"error":"..."}. Show only that
+        // error text: a body in any other format could carry internal details.
+        $decoded = json_decode((string) $response->getBody(), TRUE);
+        $error = is_array($decoded) ? ($decoded['error'] ?? NULL) : NULL;
+        if (is_string($error) && trim($error) !== '') {
+          $message .= "\n" . vsprintf($this->t('Gateway error: %s'), [
+            mb_substr(trim($error), 0, self::MAX_ERROR_LENGTH),
+          ]);
         }
-        else {
-          $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
-        }
+      }
+      else {
+        $message .= "\n" . $this->t('The server encountered an internal error. Please contact Pantheon support for assistance.');
       }
     }
 
