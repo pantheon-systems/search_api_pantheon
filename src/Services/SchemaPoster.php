@@ -36,6 +36,11 @@ class SchemaPoster implements LoggerAwareInterface {
   private const MAX_ERROR_LENGTH = 500;
 
   /**
+   * Longest cause, in characters, taken from a Solr stack trace.
+   */
+  private const MAX_CAUSE_LENGTH = 200;
+
+  /**
    * Class Constructor.
    */
   public function __construct(
@@ -280,7 +285,12 @@ class SchemaPoster implements LoggerAwareInterface {
     if (is_array($error)) {
       $solr_error = $this->describeSolrError($error);
       if ($solr_error !== '') {
-        return "\n" . vsprintf($this->t('Solr error: %s'), [$solr_error]);
+        $description = "\n" . vsprintf($this->t('Solr error: %s'), [$solr_error]);
+        $cause = $this->describeSolrCause($error);
+        if ($cause !== '') {
+          $description .= "\n" . vsprintf($this->t('Cause: %s'), [$cause]);
+        }
+        return $description;
       }
     }
 
@@ -298,11 +308,55 @@ class SchemaPoster implements LoggerAwareInterface {
   }
 
   /**
+   * Remove details that should not be shown from a message taken from Solr.
+   *
+   * Bracketed ids, such as the core name, and file paths are removed.
+   *
+   * @param string $text
+   *   The message.
+   *
+   * @return string
+   *   The message without those details.
+   */
+  protected function scrub(string $text): string {
+    $text = preg_replace([
+      '/\s*\[[^\]]*\]/',
+      '#(?<!\S)/[\w.\-]+(?:/[\w.\-]+)+#',
+      '/\s+/',
+    ], ['', '', ' '], $text);
+    return trim($text);
+  }
+
+  /**
+   * Find the most specific cause of a Solr error in its stack trace.
+   *
+   * Only the message of the deepest "Caused by: ...SolrException" line is used.
+   * Solr writes those messages for people. The rest of the trace names internal
+   * classes, hosts and paths, and is never shown.
+   *
+   * @param array $error
+   *   The "error" object from a Solr response.
+   *
+   * @return string
+   *   For example "Error loading class 'solr.ICUCollationField'", or an empty
+   *   string if the trace has no such line.
+   */
+  protected function describeSolrCause(array $error): string {
+    $trace = $error['trace'] ?? NULL;
+    if (!is_string($trace)) {
+      return '';
+    }
+    if (!preg_match_all('/^Caused by: org\.apache\.solr\.common\.SolrException: (.+)$/m', $trace, $matches)) {
+      return '';
+    }
+    return mb_substr($this->scrub(end($matches[1])), 0, self::MAX_CAUSE_LENGTH);
+  }
+
+  /**
    * Summarize a Solr error object using only its short, structured fields.
    *
-   * The stack trace is never used, as it names internal classes, hosts and
-   * paths. From the message, bracketed ids (such as the core name) and file
-   * paths are removed.
+   * The message has bracketed ids, such as the core name, and file paths
+   * removed.
    *
    * @param array $error
    *   The "error" object from a Solr response.
@@ -312,15 +366,7 @@ class SchemaPoster implements LoggerAwareInterface {
    *   or an empty string if the error holds neither field.
    */
   protected function describeSolrError(array $error): string {
-    $message = '';
-    if (is_string($error['msg'] ?? NULL)) {
-      $message = preg_replace([
-        '/\s*\[[^\]]*\]/',
-        '#(?<!\S)/[\w.\-]+(?:/[\w.\-]+)+#',
-        '/\s+/',
-      ], ['', '', ' '], $error['msg']);
-      $message = trim($message);
-    }
+    $message = is_string($error['msg'] ?? NULL) ? $this->scrub($error['msg']) : '';
 
     // The metadata is a flat list of alternating names and values.
     $root_class = '';

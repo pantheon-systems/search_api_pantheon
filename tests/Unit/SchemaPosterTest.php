@@ -148,27 +148,73 @@ final class SchemaPosterTest extends TestCase {
     $this->assertSame('error', $result->getLogMethod());
     $this->assertSame(
       "Result: UPLOADED Status code: 200 - OK\nThe schema was uploaded, but Solr could not reload the core, so it may still be running the previous schema.\n"
-      . 'Solr error: Unable to reload core (java.lang.ClassNotFoundException)',
+      . "Solr error: Unable to reload core (java.lang.ClassNotFoundException)\nCause: Error loading class 'solr.ICUCollationField'",
       $result->message,
     );
   }
 
   /**
-   * Tests that nothing but the message and root class of a Solr error is shown.
+   * Tests that only the cause is taken from the stack trace of a Solr error.
    *
    * The sample is the reload error from SITE-5011. Its stack trace names the
    * core, a schema path in the Solr data directory and internal classes.
    */
-  public function testSolrErrorShowsNoTraceCoreIdOrPath(): void {
+  public function testSolrErrorShowsNoCoreIdPathOrInternalClass(): void {
     $message = $this->poster()->buildResult(
       $this->response(200, 'OK', ''),
       FALSE,
       $this->response(500, 'Internal Server Error', $this->solrReloadError()),
     )->message;
 
-    foreach (['40574207', 'live_coreqtvdc', '/var/solr', 'ICUCollationField', 'jetty', 'CoreContainer'] as $internal) {
+    foreach (['40574207', 'live_coreqtvdc', '/var/solr', 'jetty', 'CoreContainer', 'ConfigSetService', 'collated_ar'] as $internal) {
       $this->assertStringNotContainsString($internal, $message);
     }
+  }
+
+  /**
+   * Tests how the cause is taken from the stack trace of a Solr error.
+   *
+   * @param string $trace
+   *   The stack trace.
+   * @param string $expected
+   *   The cause expected in the message, or an empty string for none.
+   */
+  #[DataProvider('solrTraces')]
+  public function testSolrCauseIsTakenFromTrace(string $trace, string $expected): void {
+    $result = $this->poster()->buildResult(
+      $this->response(200, 'OK', ''),
+      FALSE,
+      $this->response(500, 'Internal Server Error', json_encode(['error' => ['msg' => 'Unable to reload core', 'trace' => $trace]])),
+    );
+
+    if ($expected === '') {
+      $this->assertStringNotContainsString('Cause:', $result->message);
+    }
+    else {
+      $this->assertStringEndsWith("\nCause: $expected", $result->message);
+    }
+  }
+
+  /**
+   * Provides stack traces and the cause expected from each.
+   *
+   * @return array<string, array{string, string}>
+   *   Traces and expected causes, keyed by description.
+   */
+  public static function solrTraces(): array {
+    return [
+      'deepest Solr exception is used' => [
+        "Caused by: org.apache.solr.common.SolrException: first\nCaused by: org.apache.solr.common.SolrException: second\nCaused by: java.lang.ClassNotFoundException: third",
+        'second',
+      ],
+      'path and bracketed id removed' => [
+        'Caused by: org.apache.solr.common.SolrException: Can\'t load /var/solr/data/abc/conf/schema.xml [abc_core]: bad',
+        "Can't load : bad",
+      ],
+      'no cause in trace' => ["org.apache.solr.common.SolrException: Unable to reload core\n\tat a.b.C.d(C.java:1)", ''],
+      'cause that is not a Solr exception' => ['Caused by: java.lang.ClassNotFoundException: solr.ICUCollationField', ''],
+      'long cause is cut' => ['Caused by: org.apache.solr.common.SolrException: ' . str_repeat('a', 400), str_repeat('a', 200)],
+    ];
   }
 
   /**
@@ -311,7 +357,13 @@ final class SchemaPosterTest extends TestCase {
         'trace' => implode("\n", [
           'org.apache.solr.common.SolrException: Unable to reload core',
           "\tat org.apache.solr.core.CoreContainer.reload(CoreContainer.java:1782)",
-          "Caused by: org.apache.solr.common.SolrException: Can't load schema /var/solr/data/40574207-9f38-4265-9e30-765e38d2f063_live_coreqtvdc/conf/schema.xml: Error loading class 'solr.ICUCollationField'",
+          "Caused by: org.apache.solr.common.SolrException: Could not load conf for core 40574207-9f38-4265-9e30-765e38d2f063_live_coreqtvdc: Can't load schema /var/solr/data/40574207-9f38-4265-9e30-765e38d2f063_live_coreqtvdc/conf/schema.xml: Plugin init failure for [schema.xml] fieldType \"collated_ar\": Error loading class 'solr.ICUCollationField'",
+          "\tat org.apache.solr.core.ConfigSetService.loadConfigSet(ConfigSetService.java:100)",
+          "Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] fieldType \"collated_ar\": Error loading class 'solr.ICUCollationField'",
+          "\tat org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:181)",
+          "Caused by: org.apache.solr.common.SolrException: Error loading class 'solr.ICUCollationField'",
+          "\tat org.apache.solr.core.SolrResourceLoader.findClass(SolrResourceLoader.java:549)",
+          'Caused by: java.lang.ClassNotFoundException: solr.ICUCollationField',
           "\tat org.eclipse.jetty.server.Server.handle(Server.java:516)",
         ]),
         'code' => 500,
