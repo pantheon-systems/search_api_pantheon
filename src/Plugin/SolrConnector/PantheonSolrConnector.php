@@ -175,11 +175,15 @@ class PantheonSolrConnector extends StandardSolrConnector {
   }
 
   /**
-   * {@inheritdoc}
+   * Asks the platform to reload the Solr core.
+   *
+   * @return \Solarium\Core\Client\Response|null
+   *   The platform's response, or NULL if there is no reload endpoint (for
+   *   example on a local environment). Use ::reloadCore() in that case.
    */
-  public function reloadCore(): bool {
+  public function requestReload(): ?Response {
     if (!isset($this->configuration['search_api_pantheon_reload_endpoint'])) {
-      return parent::reloadCore();
+      return NULL;
     }
     $this->useTimeout(self::INDEX_TIMEOUT);
     $request = (new Request())
@@ -193,7 +197,18 @@ class PantheonSolrConnector extends StandardSolrConnector {
       'status_code' => $response->getStatusCode(),
       'status_message' => $response->getStatusMessage(),
     ]);
-    return $logMethod === 'info';
+    return $response;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function reloadCore(): bool {
+    $response = $this->requestReload();
+    if ($response === NULL) {
+      return parent::reloadCore();
+    }
+    return static::getLogMethod($response) === 'info';
   }
 
   /**

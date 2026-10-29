@@ -53,9 +53,9 @@ class Schema extends DrushCommands {
         }
       }
 
-      $result = $this->schemaPoster->postSchema(files: $files);
-      $this->logger->{$result[0]}($result[1]);
-      if ($result[0] === 'info') {
+      $result = $this->schemaPoster->post(files: $files);
+      $this->logger->{$result->getLogMethod()}($result->message);
+      if ($result->isSuccess()) {
         return self::EXIT_SUCCESS;
       }
     }
