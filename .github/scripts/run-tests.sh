@@ -49,9 +49,16 @@ echo "::group::Generate test content"
 BEFORE=$(terminus drush "$SITE_ENV" -- sapi-s primary --fields=total --format=string 2>/dev/null || echo "0")
 echo "Pre-existing tracked items: $BEFORE"
 
-# Generate test content using devel_generate module (installed by create-multidev.sh)
+# Generate test content with core entity API (devel_generate is not Drupal 12 compatible)
 echo "Generating five nodes..."
-terminus drush "$SITE_ENV" -- genc 5
+terminus drush "$SITE_ENV" -- ev "
+  if (!\Drupal\node\Entity\NodeType::load('ci_test')) {
+    \Drupal\node\Entity\NodeType::create(['type' => 'ci_test', 'name' => 'CI Test'])->save();
+  }
+  for (\$i = 1; \$i <= 5; \$i++) {
+    \Drupal\node\Entity\Node::create(['type' => 'ci_test', 'title' => 'CI Generated Node ' . \$i, 'status' => 1])->save();
+  }
+"
 terminus drush "$SITE_ENV" -- search-api:index primary
 EXPECTED=$((BEFORE + 5))
 echo "::endgroup::"

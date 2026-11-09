@@ -25,7 +25,7 @@ Drupal 10/11/12 x PHP 8.1/8.3/8.4/8.5 x Solr 8/9 = 10 combinations (with exclusi
 Each matrix job runs these scripts sequentially:
 
 1. `create-multidev.sh` — Creates multidev from dev, installs module via Composer, sets Solr/PHP version in pantheon.yml, creates a second "parity" multidev
-2. `run-tests.sh` — Basic integration: Solr readiness polling, schema post (3 retries/60s), content generation, index verification (counts pre-existing content before `genc` to handle inherited nodes)
+2. `run-tests.sh` — Basic integration: Solr readiness polling, schema post (3 retries/60s), content generation via `drush ev` (5 nodes of a `ci_test` bundle it creates, since Drupal 12 Standard ships no content types), index verification (counts pre-existing content first to handle inherited nodes)
 3. `test-field-mapping.sh` — Configures Search API index, posts schema, indexes pre-baked test node, validates Solr field type mappings (tm_, its_, fs_, bs_, ds_, ss_ prefixes)
 4. `test-multidev-parity.sh` — Validates different multidevs get different Solr cores but same host/port
 5. `cleanup-multidevs.sh` — Deletes stale CI multidevs (prefix match + 72h age cutoff)
@@ -76,5 +76,5 @@ This avoids creating content types, fields, and test content per-multidev. The S
 ## Development Notes
 
 - Solr version is configured in `pantheon.yml` under `search: version: 8|9`. The `create-multidev.sh` script writes this based on the `SOLR_VERSION` matrix variable.
-- The module requires `search_api`, `search_api_solr`, and `search_api_pantheon` to be enabled. `devel_generate` (from `drupal/devel`) provides the `genc` command for test content.
+- The module requires `search_api`, `search_api_solr`, and `search_api_pantheon` to be enabled. Test content is created with `Node::create` via `drush ev`; `devel_generate` was dropped because it uses annotation-only plugin discovery, which Drupal 12 removed.
 - Schema is posted via `drush search-api-pantheon:postSchema`. For Solr 9, the config-set path is `/code/web/modules/contrib/search_api_solr/jump-start/solr9/config-set`.
