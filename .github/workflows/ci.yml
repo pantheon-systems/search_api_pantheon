@@ -46,7 +46,7 @@ jobs:
     name: PHP Compatibility
     steps:
       - name: PHPCompatibility
-        uses: pantheon-systems/phpcompatibility-action@44be5a8381691b9a209404a3f45df8254f1ce08f # v1
+        uses: pantheon-systems/phpcompatibility-action@6bcfb79e78f644a471e856a1e92e14148a8e4017 # v1.1.4
         with:
           test-versions: 8.1-
 
