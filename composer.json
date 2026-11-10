@@ -14,7 +14,7 @@
         "drupal/search_api_solr": "^4.3"
     },
     "require-dev": {
-        "drupal/coder": "^8.3",
+        "drupal/coder": "^9.0",
         "phpunit/phpunit": "^10.5 || ^11",
         "squizlabs/php_codesniffer": "@stable"
     },
