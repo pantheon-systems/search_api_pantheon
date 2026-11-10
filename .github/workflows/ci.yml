@@ -28,7 +28,7 @@ jobs:
     name: Code linting (PHP ${{ matrix.php-version }})
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup PHP
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
@@ -86,7 +86,7 @@ jobs:
       TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set multidev name and composer constraint
         run: .github/scripts/set-multidev-and-constraint.sh
@@ -163,7 +163,7 @@ jobs:
       DRUPAL_ORG_REMOTE: ${{ secrets.DRUPAL_ORG_REMOTE }}
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
