@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php-version }}
 
@@ -46,7 +46,7 @@ jobs:
     name: PHP Compatibility
     steps:
       - name: PHPCompatibility
-        uses: pantheon-systems/phpcompatibility-action@44be5a8381691b9a209404a3f45df8254f1ce08f # v1
+        uses: pantheon-systems/phpcompatibility-action@6bcfb79e78f644a471e856a1e92e14148a8e4017 # v1
         with:
           test-versions: 8.1-
 
@@ -95,12 +95,12 @@ jobs:
           GIT_REF_TYPE: ${{ github.ref_type }}
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ env.PHP_VERSION }}
 
       - name: Install Terminus
-        uses: pantheon-systems/terminus-github-actions@b0a005d0e886678b25cb6cd7833cf8d8cf779900 # v1.2.9
+        uses: pantheon-systems/terminus-github-actions@34305c662bb28fb2935aa5556cab46643a0c5170 # v1.2.11
         with:
           pantheon-machine-token: ${{env.TERMINUS_TOKEN}}
           terminus-version: ${{env.TERMINUS_VERSION}}
