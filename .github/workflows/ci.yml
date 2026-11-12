@@ -91,7 +91,7 @@ jobs:
       SOLR_VERSION: ${{ matrix.solr-version }}
       TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || matrix.drupal-version == 11 && vars.PANTHEON_SITE_D11 || vars.PANTHEON_SITE_D12 }}
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
-      TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.6.2' }}
+      TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
