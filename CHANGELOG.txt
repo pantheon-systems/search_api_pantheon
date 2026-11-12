@@ -1,3 +1,45 @@
+Search API Pantheon 8.6.0
+--------------------------------------------------
+
+### What's New
+
+- Added compatibility for Drupal 12 (requires PHP 8.5)
+
+### Bug Fixes
+
+- Fixed the Solr server stats summary failing when the Solr client was not yet connected
+- Removed the orphaned "execute pantheon_solr admin task" permission from
+  roles left behind by the search_api_pantheon_admin submodule removal
+
+### Improvements
+
+- Replaced the deprecated Solarium PHPS response writer with JSON in the stats summary
+- Added an explicit access check to the Pantheon server entity query
+
+### Removed
+
+- Removed the obsolete search_api_pantheon_admin submodule. Sites upgrading
+  from 8.3.x must uninstall it before updating:
+  `drush pm:uninstall search_api_pantheon_admin`
+  Otherwise /update.php is blocked by a missing module error; `drush updb`
+  still completes the cleanup.
+
+See README.md for installation and UPGRADE.md for upgrade instructions:
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.6.x/README.md
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.6.x/UPGRADE.md
+
+Search API Pantheon 8.5.1
+--------------------------------------------------
+
+### Bug Fixes
+
+- Prevented the update hook from cascade-deleting search indexes
+- Fixed the missing curlopt_sslcert setting
+
+See README.md for installation and UPGRADE.md for upgrade instructions:
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.5.x/README.md
+- https://git.drupalcode.org/project/search_api_pantheon/-/blob/8.5.x/UPGRADE.md
+
 Search API Pantheon 8.5.0
 --------------------------------------------------
 

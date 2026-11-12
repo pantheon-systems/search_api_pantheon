@@ -39,9 +39,8 @@ git checkout "$MULTIDEV"
 # Add module via VCS repo so we can install branch builds (not just tagged releases).
 # no-api: clone over git instead of querying api.github.com, which rate-limits
 # (HTTP 429) the busy matrix. Public repo over https needs no auth.
-# devel provides the genc (generate content) command used by run-tests.sh.
 composer config repositories.search_api_pantheon '{"type": "vcs", "url": "https://github.com/pantheon-systems/search_api_pantheon.git", "no-api": true, "canonical": false}'
-composer require "pantheon-systems/search_api_pantheon:${GIT_REF}" drupal/devel:~5.4
+composer require "pantheon-systems/search_api_pantheon:${GIT_REF}"
 
 echo "Module installed at:"
 find . -path '*/search_api_pantheon/search_api_pantheon.info.yml' -not -path './vendor/*' | head -1
@@ -98,9 +97,14 @@ cd ..
 echo "Waiting for Pantheon build to complete..."
 terminus workflow:wait "$TERMINUS_SITE.$MULTIDEV" --max=300
 
-# Enable the module and devel_generate (provides genc command for generating test content)
-echo "Enabling search_api_pantheon and devel_generate..."
-terminus drush "$TERMINUS_SITE.$MULTIDEV" -- pm:enable search_api_pantheon devel_generate -y
+# terminus drush exits 0 even when the install throws, so fail on the error output instead
+echo "Enabling search_api_pantheon..."
+ENABLE_LOG=$(mktemp)
+terminus drush "$TERMINUS_SITE.$MULTIDEV" -- pm:enable search_api_pantheon -y 2>&1 | tee "$ENABLE_LOG"
+if grep -qE '^[[:space:]]*In [A-Za-z0-9_]+\.php line [0-9]+:|\[error\]' "$ENABLE_LOG"; then
+  echo "::error::pm:enable reported an error, see output above"
+  exit 1
+fi
 
 # Export the truncated multidev name for subsequent CI steps (run-tests.sh, cleanup)
 echo "MULTIDEV_ENV=$MULTIDEV" >> "$GITHUB_ENV_FILE"

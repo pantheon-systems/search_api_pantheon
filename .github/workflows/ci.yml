@@ -46,7 +46,7 @@ jobs:
     name: PHP Compatibility
     steps:
       - name: PHPCompatibility
-        uses: pantheon-systems/phpcompatibility-action@44be5a8381691b9a209404a3f45df8254f1ce08f # v1
+        uses: pantheon-systems/phpcompatibility-action@6bcfb79e78f644a471e856a1e92e14148a8e4017 # v1.1.4
         with:
           test-versions: 8.1-
 
@@ -54,10 +54,11 @@ jobs:
     # Test combinations (floor + ceiling per Drupal version, both Solr versions):
     #   Drupal 10: PHP 8.1, 8.4
     #   Drupal 11: PHP 8.3, 8.5
+    #   Drupal 12: PHP 8.5
     #   Each tested with Solr 8 and 9
     strategy:
       matrix:
-        drupal-version: [ 10, 11 ]
+        drupal-version: [ 10, 11, 12 ]
         php-version: [ "8.1", "8.3", "8.4", "8.5" ]
         solr-version: [ 8, 9 ]
         exclude:
@@ -69,7 +70,14 @@ jobs:
             php-version: "8.1"
           - drupal-version: 11
             php-version: "8.4"
+          - drupal-version: 12
+            php-version: "8.1"
+          - drupal-version: 12
+            php-version: "8.3"
+          - drupal-version: 12
+            php-version: "8.4"
       fail-fast: false
+    continue-on-error: ${{ matrix.drupal-version == 12 }}
     runs-on: ubuntu-latest
     name: Multidev test (Drupal ${{ matrix.drupal-version }}, PHP ${{ matrix.php-version }}, Solr ${{ matrix.solr-version }})
     needs: [linting, phpcompatibility]
@@ -81,7 +89,7 @@ jobs:
       PANTHEON_CI_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       PHP_VERSION: ${{ matrix.php-version }}
       SOLR_VERSION: ${{ matrix.solr-version }}
-      TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || vars.PANTHEON_SITE_D11 }}
+      TERMINUS_SITE: ${{ matrix.drupal-version == 10 && vars.PANTHEON_SITE_D10 || matrix.drupal-version == 11 && vars.PANTHEON_SITE_D11 || vars.PANTHEON_SITE_D12 }}
       TERMINUS_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
       TERMINUS_VERSION: ${{ matrix.php-version >= '8.2' && '4.1.4' || '3.5.1' }}
     steps:

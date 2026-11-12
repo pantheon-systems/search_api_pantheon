@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Site\Settings;
+use Drupal\user\Entity\Role;
 
 /**
  * Uninstall deprecated search_api_pantheon_admin submodule.
@@ -134,5 +135,17 @@ function search_api_pantheon_update_10081() {
       '@message' => $e->getMessage(),
     ]);
     throw $e;
+  }
+}
+
+/**
+ * Revoke the obsolete search_api_pantheon_admin permission from all roles.
+ */
+function search_api_pantheon_update_10082() {
+  $permission = 'execute pantheon_solr admin task';
+  foreach (Role::loadMultiple() as $role) {
+    if (in_array($permission, $role->getPermissions(), TRUE)) {
+      $role->revokePermission($permission)->save();
+    }
   }
 }
